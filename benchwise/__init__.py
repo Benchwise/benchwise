@@ -66,7 +66,7 @@ from .client import (
     close_client,
 )
 
-__version__ = "0.1.0-alpha"
+__version__ = "0.1.0a0"
 __all__ = [
     # Core evaluation framework
     "evaluate",
