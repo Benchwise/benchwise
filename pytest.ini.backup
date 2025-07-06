@@ -1,0 +1,18 @@
+[tool:pytest]
+testpaths = tests
+python_files = test_*.py
+python_classes = Test*
+python_functions = test_*
+addopts =
+    --verbose
+    --tb=short
+    --strict-markers
+    --disable-warnings
+    --color=yes
+markers =
+    unit: Unit tests
+    integration: Integration tests
+    slow: Slow tests that may take a while
+    api: Tests that require API access
+    mock: Tests using mock models
+asyncio_mode = auto
