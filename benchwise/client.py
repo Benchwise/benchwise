@@ -822,7 +822,6 @@ async def close_client():
             _global_client = None
 
 
-# FIXED: Convenience functions with proper authentication
 async def upload_results(
     results: List[EvaluationResult], test_name: str, dataset_info: Dict[str, Any]
 ) -> bool:
