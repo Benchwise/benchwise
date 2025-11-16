@@ -329,26 +329,33 @@ export ANTHROPIC_API_KEY="your_anthropic_key"
 export GOOGLE_API_KEY="your_google_key"
 ```
 
-### Benchwise API Configuration
+### Benchwise API Configuration (Coming Soon)
 
-Connect to the Benchwise platform for result sharing and collaboration:
+We're building a community platform for sharing and discovering LLM evaluation benchmarks. Once launched, you'll be able to:
+
+- **Share Your Results** - Upload evaluation results to the community
+- **Discover Benchmarks** - Browse evaluations created by other developers
+- **Compare Performance** - See how models stack up across different tasks
+- **Track Trends** - Monitor model performance over time
 
 ```python
 from benchwise import configure_benchwise
 
-# Configure for automatic uploads
+# Community platform integration (Coming Soon)
 configure_benchwise(
     api_url="https://api.benchwise.ai",
     api_key="your_benchwise_key",
     upload_enabled=True
 )
 
-# Now your results will be automatically uploaded
-@evaluate("gpt-4", upload=True)  # Explicit upload
+# Results will be shareable with the community
+@evaluate("gpt-4", upload=True)
 async def my_test(model, dataset):
     # Your evaluation
     pass
 ```
+
+Stay tuned for the community platform launch!
 
 ### Working with Results
 

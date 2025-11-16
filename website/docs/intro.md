@@ -15,6 +15,7 @@ slug: /
 - **Async-First** - Built for performance with async/await throughout
 - **Results Management** - Caching, offline mode, and API upload
 - **Dataset Tools** - Load standard benchmarks (MMLU, HellaSwag, GSM8K)
+- **Community Sharing** - Share and discover benchmarks (Coming Soon)
 
 ## Quick Example
 
@@ -113,7 +114,18 @@ from benchwise.metrics import (
   </div>
 </div>
 
-## Community
+## Community Features (Coming Soon)
+
+We're building a platform to share and discover LLM evaluation benchmarks with the community:
+
+- **Share Your Benchmarks** - Publish your evaluation results and benchmarks
+- **Discover Benchmarks** - Browse community-contributed evaluations
+- **Compare Results** - See how different models perform across various tasks
+- **Leaderboards** - Track model performance across popular benchmarks
+
+Stay tuned for updates on the community platform launch!
+
+## Get Involved
 
 - [GitHub Repository](https://github.com/Benchwise/benchwise) - Star us and contribute!
 - [Issue Tracker](https://github.com/Benchwise/benchwise/issues) - Report bugs or request features
