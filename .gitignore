@@ -228,7 +228,7 @@ jspm_packages/
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
 
-# BenchWise specific
+# Benchwise specific
 /backend/app/migrations/versions/*.py
 !/backend/app/migrations/versions/.gitkeep
 /data/

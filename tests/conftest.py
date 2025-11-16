@@ -11,7 +11,7 @@ from datetime import datetime
 
 from benchwise.datasets import create_qa_dataset
 from benchwise.results import EvaluationResult, BenchmarkResult
-from benchwise.config import BenchWiseConfig
+from benchwise.config import BenchwiseConfig
 
 
 @pytest.fixture
@@ -117,7 +117,7 @@ def temp_csv_dataset_file(sample_qa_data):
 
 @pytest.fixture
 def test_config():
-    return BenchWiseConfig(
+    return BenchwiseConfig(
         api_url="http://localhost:8000",
         upload_enabled=False,
         cache_enabled=False,

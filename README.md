@@ -1,10 +1,10 @@
-# Getting Started with BenchWise
+# Getting Started with Benchwise
 
-Welcome to BenchWise! This guide will help you get up and running with evaluating LLMs using our platform.
+Welcome to Benchwise! This guide will help you get up and running with evaluating LLMs using our platform.
 
-## What is BenchWise?
+## What is Benchwise?
 
-BenchWise is an open-source platform that makes LLM evaluation as easy as writing unit tests. With PyTest-like syntax, you can create custom evaluations, share benchmarks with the community, and monitor your models in production.
+Benchwise is an open-source platform that makes LLM evaluation as easy as writing unit tests. With PyTest-like syntax, you can create custom evaluations, share benchmarks with the community, and monitor your models in production.
 
 ## Quick Start
 
@@ -70,7 +70,7 @@ print(results)
 
 ### Decorators
 
-BenchWise uses decorators to make evaluation simple:
+Benchwise uses decorators to make evaluation simple:
 
 - `@evaluate(*models)` - Run tests on multiple models
 - `@benchmark(name, description)` - Create named benchmarks

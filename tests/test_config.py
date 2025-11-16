@@ -8,7 +8,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from benchwise.config import (
-    BenchWiseConfig,
+    BenchwiseConfig,
     get_api_config,
     configure_benchwise,
     set_api_config,
@@ -21,9 +21,9 @@ from benchwise.config import (
 )
 
 
-class TestBenchWiseConfig:
+class TestBenchwiseConfig:
     def test_config_creation_defaults(self):
-        config = BenchWiseConfig()
+        config = BenchwiseConfig()
 
         assert config.api_url == "http://localhost:8000"
         assert config.api_key is None
@@ -34,7 +34,7 @@ class TestBenchWiseConfig:
         assert not config.debug
 
     def test_config_creation_custom(self):
-        config = BenchWiseConfig(
+        config = BenchwiseConfig(
             api_url="https://api.benchwise.ai",
             api_key="test-key",
             upload_enabled=True,
@@ -47,7 +47,7 @@ class TestBenchWiseConfig:
         assert config.debug
 
     def test_config_to_dict(self):
-        config = BenchWiseConfig(api_key="secret-key")
+        config = BenchwiseConfig(api_key="secret-key")
         config_dict = config.to_dict()
 
         assert isinstance(config_dict, dict)
@@ -56,37 +56,37 @@ class TestBenchWiseConfig:
         assert config_dict["api_key"] == "***"  # Should be masked
 
     def test_config_print_config(self, capsys):
-        config = BenchWiseConfig()
+        config = BenchwiseConfig()
         config.print_config()
 
         captured = capsys.readouterr()
-        assert "BenchWise Configuration" in captured.out
+        assert "Benchwise Configuration" in captured.out
         assert "api_url" in captured.out
 
 
 class TestConfigEnvironmentVariables:
     def test_load_api_url_from_env(self):
         with patch.dict(os.environ, {"BENCHWISE_API_URL": "https://test.api"}):
-            config = BenchWiseConfig()
+            config = BenchwiseConfig()
             assert config.api_url == "https://test.api"
 
     def test_load_api_key_from_env(self):
         with patch.dict(os.environ, {"BENCHWISE_API_KEY": "env-key"}):
-            config = BenchWiseConfig()
+            config = BenchwiseConfig()
             assert config.api_key == "env-key"
 
     def test_load_upload_setting_from_env(self):
         with patch.dict(os.environ, {"BENCHWISE_UPLOAD": "true"}):
-            config = BenchWiseConfig()
+            config = BenchwiseConfig()
             assert config.upload_enabled
 
         with patch.dict(os.environ, {"BENCHWISE_UPLOAD": "false"}):
-            config = BenchWiseConfig()
+            config = BenchwiseConfig()
             assert not config.upload_enabled
 
     def test_load_debug_from_env(self):
         with patch.dict(os.environ, {"BENCHWISE_DEBUG": "true"}):
-            config = BenchWiseConfig()
+            config = BenchwiseConfig()
             assert config.debug
 
 
@@ -115,7 +115,7 @@ class TestConfigFileLoading:
                     json.dumps(config_data)
                 )
 
-                config = BenchWiseConfig()
+                config = BenchwiseConfig()
                 # The actual file loading is complex to test, so we test the interface
                 assert hasattr(config, "_load_from_file")
 
@@ -123,7 +123,7 @@ class TestConfigFileLoading:
             Path(temp_path).unlink(missing_ok=True)
 
     def test_save_to_file(self):
-        config = BenchWiseConfig(upload_enabled=True, debug=True)
+        config = BenchwiseConfig(upload_enabled=True, debug=True)
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             temp_path = Path(f.name)
@@ -146,14 +146,14 @@ class TestGlobalConfig:
     def test_get_api_config(self):
         config = get_api_config()
 
-        assert isinstance(config, BenchWiseConfig)
+        assert isinstance(config, BenchwiseConfig)
         assert hasattr(config, "api_url")
         assert hasattr(config, "upload_enabled")
 
     def test_set_api_config(self):
         original_config = get_api_config()
 
-        new_config = BenchWiseConfig(debug=True, upload_enabled=True)
+        new_config = BenchwiseConfig(debug=True, upload_enabled=True)
         set_api_config(new_config)
 
         retrieved_config = get_api_config()
@@ -196,7 +196,7 @@ class TestConfigTemplates:
     def test_development_config(self):
         config = get_development_config()
 
-        assert isinstance(config, BenchWiseConfig)
+        assert isinstance(config, BenchwiseConfig)
         assert config.api_url == "http://localhost:8000"
         assert not config.upload_enabled
         assert config.debug
@@ -205,7 +205,7 @@ class TestConfigTemplates:
     def test_production_config(self):
         config = get_production_config("https://prod.api", "prod-key")
 
-        assert isinstance(config, BenchWiseConfig)
+        assert isinstance(config, BenchwiseConfig)
         assert config.api_url == "https://prod.api"
         assert config.api_key == "prod-key"
         assert config.upload_enabled
@@ -215,7 +215,7 @@ class TestConfigTemplates:
     def test_offline_config(self):
         config = get_offline_config()
 
-        assert isinstance(config, BenchWiseConfig)
+        assert isinstance(config, BenchwiseConfig)
         assert not config.upload_enabled
         assert config.cache_enabled
         assert config.offline_mode
@@ -224,7 +224,7 @@ class TestConfigTemplates:
 
 class TestConfigValidation:
     def test_api_url_validation(self):
-        config = BenchWiseConfig()
+        config = BenchwiseConfig()
         config.api_url = "example.com"
         config._validate_config()
 
@@ -235,14 +235,14 @@ class TestConfigValidation:
         assert not config.api_url.endswith("/")
 
     def test_timeout_validation(self):
-        config = BenchWiseConfig()
+        config = BenchwiseConfig()
         config.timeout = -5
         config._validate_config()
 
         assert config.timeout == 30.0  # Should reset to default
 
     def test_max_retries_validation(self):
-        config = BenchWiseConfig()
+        config = BenchwiseConfig()
         config.max_retries = -1
         config._validate_config()
 
@@ -255,13 +255,13 @@ class TestConfigUtilities:
         assert isinstance(result, bool)
 
     def test_is_authenticated(self):
-        config = BenchWiseConfig()
+        config = BenchwiseConfig()
         set_api_config(config)
 
         result = is_authenticated()
         assert not result
 
-        config_with_key = BenchWiseConfig(api_key="test-key")
+        config_with_key = BenchwiseConfig(api_key="test-key")
         set_api_config(config_with_key)
 
         result = is_authenticated()
@@ -272,7 +272,7 @@ class TestConfigUtilities:
 
 class TestConfigEdgeCases:
     def test_config_with_empty_values(self):
-        config = BenchWiseConfig(api_url="", api_key="", timeout=0)
+        config = BenchwiseConfig(api_url="", api_key="", timeout=0)
 
         config._validate_config()
 
@@ -280,7 +280,7 @@ class TestConfigEdgeCases:
         assert config.timeout > 0
 
     def test_config_with_invalid_cache_dir(self):
-        config = BenchWiseConfig(cache_dir="/invalid/path/that/cannot/be/created")
+        config = BenchwiseConfig(cache_dir="/invalid/path/that/cannot/be/created")
 
         config._validate_config()
 
@@ -292,8 +292,8 @@ class TestConfigEdgeCases:
             temp_path = f.name
 
         try:
-            config = BenchWiseConfig()
-            assert isinstance(config, BenchWiseConfig)
+            config = BenchwiseConfig()
+            assert isinstance(config, BenchwiseConfig)
 
         finally:
             Path(temp_path).unlink(missing_ok=True)

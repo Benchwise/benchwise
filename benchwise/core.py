@@ -1,114 +1,162 @@
-from typing import List, Dict, Any, Callable, Optional
+from typing import List, Dict, Any, Callable, Optional, Union
 from functools import wraps
 import asyncio
 import time
+import inspect
+import logging
 from .models import get_model_adapter
 from .datasets import Dataset
 from .results import EvaluationResult
 from .config import get_api_config
 from .client import upload_results
 
+# Set up logger
+logger = logging.getLogger("benchwise")
+
 
 def evaluate(*models: str, upload: bool = None, **kwargs) -> Callable:
     """
     Decorator for creating LLM evaluations.
+    
+    Supports both sync and async test functions automatically.
 
     Args:
         *models: Model names to evaluate
-        upload: Whether to upload results to BenchWise API (None = use config default)
+        upload: Whether to upload results to Benchwise API (None = use config default)
         **kwargs: Additional evaluation parameters
 
     Usage:
+        # Sync version
         @evaluate("gpt-4", "claude-3")
         def test_summarization(model, dataset):
-            responses = model.generate(dataset.prompts)
+            responses = asyncio.run(model.generate(dataset.prompts))
             scores = rouge_l(responses, dataset.ground_truth)
-            assert scores.mean() > 0.6
             return scores
 
-        # With auto-upload to BenchWise
+        # Async version (recommended)
+        @evaluate("gpt-4", "claude-3")
+        async def test_summarization(model, dataset):
+            responses = await model.generate(dataset.prompts)
+            scores = rouge_l(responses, dataset.ground_truth)
+            return scores
+
+        # With auto-upload to Benchwise
         @evaluate("gpt-4", "claude-3", upload=True)
-        def test_qa(model, dataset):
+        async def test_qa(model, dataset):
             # evaluation code
             return scores
     """
 
     def decorator(test_func: Callable) -> Callable:
-        @wraps(test_func)
-        async def wrapper(dataset: Dataset, **test_kwargs) -> List[EvaluationResult]:
-            results = []
-
-            for model_name in models:
-                try:
-                    # Get model adapter
-                    model = get_model_adapter(model_name)
-
-                    # Run the test
-                    start_time = time.time()
-                    result = await test_func(model, dataset, **test_kwargs)
-                    end_time = time.time()
-
-                    # Create evaluation result
-                    # Combine decorator kwargs with benchmark metadata if available
-                    combined_metadata = kwargs.copy()
-                    # Check for metadata on both the original function and the wrapper
-                    if hasattr(test_func, "_benchmark_metadata"):
-                        combined_metadata.update(test_func._benchmark_metadata)
-                    elif hasattr(wrapper, "_benchmark_metadata"):
-                        combined_metadata.update(wrapper._benchmark_metadata)
-
-                    eval_result = EvaluationResult(
-                        model_name=model_name,
-                        test_name=test_func.__name__,
-                        result=result,
-                        duration=end_time - start_time,
-                        dataset_info=dataset.metadata,
-                        metadata=combined_metadata,
-                    )
-                    results.append(eval_result)
-
-                except Exception as e:
-                    # Handle errors gracefully
-                    # Combine decorator kwargs with benchmark metadata if available
-                    combined_metadata = kwargs.copy()
-                    # Check for metadata on both the original function and the wrapper
-                    if hasattr(test_func, "_benchmark_metadata"):
-                        combined_metadata.update(test_func._benchmark_metadata)
-                    elif hasattr(wrapper, "_benchmark_metadata"):
-                        combined_metadata.update(wrapper._benchmark_metadata)
-
-                    eval_result = EvaluationResult(
-                        model_name=model_name,
-                        test_name=test_func.__name__,
-                        error=str(e),
-                        duration=0,
-                        dataset_info=dataset.metadata,
-                        metadata=combined_metadata,
-                    )
-                    results.append(eval_result)
-
-            # Upload results to BenchWise API if enabled
-            config = get_api_config()
-            should_upload = upload if upload is not None else config.upload_enabled
-
-            if should_upload and results:
-                try:
-                    await upload_results(
-                        results, test_func.__name__, dataset.metadata or {}
-                    )
-                except Exception as e:
-                    if config.debug:
-                        print(f"⚠️ Upload failed (results saved locally): {e}")
-
-            return results
-
-        # Preserve any existing metadata from the original function
-        if hasattr(test_func, "_benchmark_metadata"):
-            wrapper._benchmark_metadata = test_func._benchmark_metadata
-
-        return wrapper
+        is_async = inspect.iscoroutinefunction(test_func)
+        
+        if is_async:
+            @wraps(test_func)
+            async def async_wrapper(dataset: Dataset, **test_kwargs) -> List[EvaluationResult]:
+                return await _run_evaluation(test_func, dataset, models, upload, kwargs, test_kwargs, is_async=True)
+            
+            # Preserve metadata
+            if hasattr(test_func, "_benchmark_metadata"):
+                async_wrapper._benchmark_metadata = test_func._benchmark_metadata
+            
+            return async_wrapper
+        else:
+            @wraps(test_func)
+            def sync_wrapper(dataset: Dataset, **test_kwargs) -> List[EvaluationResult]:
+                return asyncio.run(_run_evaluation(test_func, dataset, models, upload, kwargs, test_kwargs, is_async=False))
+            
+            # Preserve metadata
+            if hasattr(test_func, "_benchmark_metadata"):
+                sync_wrapper._benchmark_metadata = test_func._benchmark_metadata
+            
+            return sync_wrapper
 
     return decorator
+
+
+async def _run_evaluation(
+    test_func: Callable,
+    dataset: Dataset,
+    models: tuple,
+    upload: Optional[bool],
+    decorator_kwargs: Dict[str, Any],
+    test_kwargs: Dict[str, Any],
+    is_async: bool
+) -> List[EvaluationResult]:
+    """Internal function to run evaluation logic."""
+    results = []
+    
+    logger.info(f"Starting evaluation: {test_func.__name__} on {len(models)} model(s)")
+
+    for model_name in models:
+        try:
+            logger.debug(f"Evaluating model: {model_name}")
+            
+            # Get model adapter
+            model = get_model_adapter(model_name)
+
+            # Run the test
+            start_time = time.time()
+            
+            if is_async:
+                result = await test_func(model, dataset, **test_kwargs)
+            else:
+                result = test_func(model, dataset, **test_kwargs)
+            
+            end_time = time.time()
+
+            # Combine decorator kwargs with benchmark metadata if available
+            combined_metadata = decorator_kwargs.copy()
+            if hasattr(test_func, "_benchmark_metadata"):
+                combined_metadata.update(test_func._benchmark_metadata)
+
+            eval_result = EvaluationResult(
+                model_name=model_name,
+                test_name=test_func.__name__,
+                result=result,
+                duration=end_time - start_time,
+                dataset_info=dataset.metadata,
+                metadata=combined_metadata,
+            )
+            results.append(eval_result)
+            
+            logger.info(f"✓ {model_name} completed in {end_time - start_time:.2f}s")
+
+        except Exception as e:
+            logger.error(f"✗ {model_name} failed: {e}", exc_info=True)
+            
+            # Combine decorator kwargs with benchmark metadata if available
+            combined_metadata = decorator_kwargs.copy()
+            if hasattr(test_func, "_benchmark_metadata"):
+                combined_metadata.update(test_func._benchmark_metadata)
+
+            eval_result = EvaluationResult(
+                model_name=model_name,
+                test_name=test_func.__name__,
+                error=str(e),
+                duration=0,
+                dataset_info=dataset.metadata,
+                metadata=combined_metadata,
+            )
+            results.append(eval_result)
+
+    # Upload results to Benchwise API if enabled
+    config = get_api_config()
+    should_upload = upload if upload is not None else config.upload_enabled
+
+    if should_upload and results:
+        try:
+            logger.debug("Uploading results to Benchwise API")
+            await upload_results(
+                results, test_func.__name__, dataset.metadata or {}
+            )
+            logger.info("Results uploaded successfully")
+        except Exception as e:
+            logger.warning(f"Upload failed (results saved locally): {e}")
+            if config.debug:
+                logger.debug("Upload error details", exc_info=True)
+
+    return results
 
 
 def benchmark(name: str, description: str = "", **kwargs) -> Callable:
@@ -139,10 +187,12 @@ def benchmark(name: str, description: str = "", **kwargs) -> Callable:
 def stress_test(concurrent_requests: int = 10, duration: int = 60) -> Callable:
     """
     Decorator for stress testing LLMs.
+    
+    NOTE: This is a WIP feature and may not be fully functional yet.
 
     Usage:
         @stress_test(concurrent_requests=50, duration=120)
-        def load_test(model, dataset):
+        async def load_test(model, dataset):
             # Test implementation
             pass
     """
@@ -150,6 +200,8 @@ def stress_test(concurrent_requests: int = 10, duration: int = 60) -> Callable:
     def decorator(test_func: Callable) -> Callable:
         @wraps(test_func)
         async def wrapper(*args, **kwargs):
+            logger.info(f"Starting stress test: {concurrent_requests} concurrent requests for {duration}s")
+            
             # Implementation for stress testing
             tasks = []
             start_time = time.time()
@@ -169,6 +221,7 @@ def stress_test(concurrent_requests: int = 10, duration: int = 60) -> Callable:
                 # Small delay between batches
                 await asyncio.sleep(0.1)
 
+            logger.info(f"Stress test completed: {len(tasks)} total requests")
             return tasks
 
         return wrapper
@@ -182,17 +235,23 @@ class EvaluationRunner:
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
         self.results_cache = {}
+        self.logger = logging.getLogger("benchwise.runner")
 
     async def run_evaluation(
         self, test_func: Callable, dataset: Dataset, models: List[str]
     ) -> List[EvaluationResult]:
         """Run evaluation on multiple models."""
         results = []
+        
+        self.logger.info(f"Running evaluation on {len(models)} models")
 
         for model_name in models:
-            model = get_model_adapter(model_name)
-            result = await test_func(model, dataset)
-            results.append(result)
+            try:
+                model = get_model_adapter(model_name)
+                result = await test_func(model, dataset)
+                results.append(result)
+            except Exception as e:
+                self.logger.error(f"Evaluation failed for {model_name}: {e}")
 
         return results
 
@@ -204,6 +263,7 @@ class EvaluationRunner:
         successful_results = [r for r in results if r.success]
 
         if not successful_results:
+            self.logger.warning("No successful results to compare")
             return {"error": "No successful results to compare"}
 
         # Extract scores for comparison
@@ -247,6 +307,9 @@ class EvaluationRunner:
                 {"model": name, "score": score} for name, score in model_scores
             ],
         }
+        
+        self.logger.info(f"Comparison complete: Best model is {comparison['best_model']}")
+        
         return comparison
 
 
@@ -262,11 +325,17 @@ def run_benchmark(
 def quick_eval(prompt: str, models: List[str], metric: Callable) -> Dict[str, float]:
     """Quick evaluation with a single prompt."""
     results = {}
+    
+    logger.info(f"Running quick eval on {len(models)} models")
 
     for model_name in models:
-        model = get_model_adapter(model_name)
-        response = model.generate([prompt])[0]
-        score = metric(response)
-        results[model_name] = score
+        try:
+            model = get_model_adapter(model_name)
+            response = asyncio.run(model.generate([prompt]))[0]
+            score = metric(response)
+            results[model_name] = score
+        except Exception as e:
+            logger.error(f"Quick eval failed for {model_name}: {e}")
+            results[model_name] = None
 
     return results

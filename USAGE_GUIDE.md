@@ -1,10 +1,10 @@
-# BenchWise SDK: Complete Usage Guide
+# Benchwise SDK: Complete Usage Guide
 
-Welcome to BenchWise - the GitHub of LLM evaluation! This guide will walk you through everything you need to know to get started with evaluating your language models.
+Welcome to Benchwise - the GitHub of LLM evaluation! This guide will walk you through everything you need to know to get started with evaluating your language models.
 
 ## Quick Start
 
-First, install BenchWise:
+First, install Benchwise:
 
 ```bash
 pip install benchwise
@@ -58,13 +58,13 @@ async def compare_models(model, dataset):
 # With custom settings
 @evaluate("gpt-4", upload=True, temperature=0.7)
 async def creative_test(model, dataset):
-    # Results will be uploaded to BenchWise API
+    # Results will be uploaded to Benchwise API
     pass
 ```
 
 ### 2. Datasets
 
-BenchWise makes it easy to work with evaluation datasets:
+Benchwise makes it easy to work with evaluation datasets:
 
 ```python
 from benchwise import create_qa_dataset, create_summarization_dataset, load_dataset
@@ -86,7 +86,7 @@ math_problems = load_gsm8k_sample()
 
 ### 3. Metrics
 
-BenchWise includes common evaluation metrics out of the box:
+Benchwise includes common evaluation metrics out of the box:
 
 ```python
 from benchwise import accuracy, rouge_l, bleu_score, semantic_similarity
@@ -325,9 +325,9 @@ export ANTHROPIC_API_KEY="your_anthropic_key"
 export GOOGLE_API_KEY="your_google_key"
 ```
 
-### BenchWise API Configuration
+### Benchwise API Configuration
 
-Connect to the BenchWise platform for result sharing and collaboration:
+Connect to the Benchwise platform for result sharing and collaboration:
 
 ```python
 from benchwise import configure_benchwise
@@ -447,7 +447,7 @@ print(f"Found {len(cached)} cached evaluations")
 
 ## CLI Usage
 
-BenchWise also includes a powerful command-line interface:
+Benchwise also includes a powerful command-line interface:
 
 ```bash
 # Run evaluations from command line
@@ -487,7 +487,7 @@ async def robust_test(model, dataset):
         responses = await model.generate(dataset.prompts)
         return accuracy(responses, dataset.references)
     except Exception as e:
-        # BenchWise automatically handles errors, but you can add custom handling
+        # Benchwise automatically handles errors, but you can add custom handling
         return {"error": str(e), "partial_results": None}
 ```
 
@@ -534,7 +534,7 @@ async def cost_aware_test(model, dataset):
 ### Common Issues
 
 1. **API Key Errors**: Make sure your API keys are properly set in environment variables
-2. **Rate Limiting**: BenchWise automatically handles rate limits, but you might need to reduce concurrency for some providers
+2. **Rate Limiting**: Benchwise automatically handles rate limits, but you might need to reduce concurrency for some providers
 3. **Memory Issues**: For large datasets, use `dataset.sample()` to test with smaller subsets first
 4. **Import Errors**: Install optional dependencies with `pip install benchwise[all]`
 
@@ -555,16 +555,16 @@ configure_benchwise(debug=True, verbose=True)
 
 ## What's Next?
 
-You're now ready to start evaluating your language models with BenchWise! Some ideas for next steps:
+You're now ready to start evaluating your language models with Benchwise! Some ideas for next steps:
 
 1. **Create your first benchmark** with your own dataset and models
 2. **Explore advanced metrics** like safety scoring and coherence evaluation
 3. **Set up automated evaluation pipelines** using the CLI tools
-4. **Share your benchmarks** with the community via the BenchWise platform
+4. **Share your benchmarks** with the community via the Benchwise platform
 5. **Integrate with your CI/CD** to automatically evaluate model changes
 
 Happy benchmarking! 🎯
 
 ---
 
-*BenchWise is actively developed and we welcome contributions. Star us on GitHub if this helped you!*
+*Benchwise is actively developed and we welcome contributions. Star us on GitHub if this helped you!*

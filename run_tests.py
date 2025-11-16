@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test runner for BenchWise SDK with detailed output
+Test runner for Benchwise SDK with detailed output
 
 Usage:
     python run_tests.py              # Run all tests
@@ -109,7 +109,7 @@ def check_optional_dependencies():
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Enhanced test runner for BenchWise SDK",
+        description="Enhanced test runner for Benchwise SDK",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -139,7 +139,7 @@ Examples:
     args = parser.parse_args()
 
     if not args.no_header:
-        print("🧪 BenchWise SDK Test Runner")
+        print("🧪 Benchwise SDK Test Runner")
         print("=" * 40)
 
     # Check if we're in the right directory
