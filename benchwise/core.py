@@ -30,14 +30,14 @@ def evaluate(*models: str, upload: bool = None, **kwargs) -> Callable:
         @evaluate("gpt-4", "claude-3")
         def test_summarization(model, dataset):
             responses = asyncio.run(model.generate(dataset.prompts))
-            scores = rouge_l(responses, dataset.ground_truth)
+            scores = rouge_l(responses, dataset.references)
             return scores
 
         # Async version (recommended)
         @evaluate("gpt-4", "claude-3")
         async def test_summarization(model, dataset):
             responses = await model.generate(dataset.prompts)
-            scores = rouge_l(responses, dataset.ground_truth)
+            scores = rouge_l(responses, dataset.references)
             return scores
 
         # With auto-upload to Benchwise
