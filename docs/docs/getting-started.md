@@ -19,8 +19,8 @@ Benchwise is an open-source platform that makes LLM evaluation as easy as writin
 pip install benchwise
 
 # Or install from source
-git clone https://github.com/your-org/benchwise.git
-cd benchwise/sdk
+git clone https://github.com/Benchwise/benchwise.git
+cd benchwise
 pip install -e .
 ```
 
@@ -170,8 +170,11 @@ async def test_safety(model, dataset):
 ### Performance Testing
 
 ```python
+import time
+from benchwise import stress_test, evaluate
+
 @stress_test(concurrent_requests=10, duration=60)
-@evaluate("gpt-3.5-turbo")
+@evaluate("gpt-4o-mini")
 async def test_performance(model, dataset):
     start_time = time.time()
     response = await model.generate(["Hello, world!"])

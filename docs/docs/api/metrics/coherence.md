@@ -9,7 +9,7 @@ Evaluate text coherence and quality.
 ## Signature
 
 ```python
-def coherence_score(texts: List[str]) -> Dict[str, float]
+def coherence_score(texts: List[str]) -> Dict[str, Any]
 ```
 
 ## Parameters

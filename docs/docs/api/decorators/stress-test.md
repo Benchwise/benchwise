@@ -147,11 +147,12 @@ async def test_under_load(model, dataset):
             failed_requests += 1
 
     avg_latency = total_latency / successful_requests if successful_requests > 0 else 0
+    total_requests = successful_requests + failed_requests
 
     return {
         "successful_requests": successful_requests,
         "failed_requests": failed_requests,
-        "failure_rate": failed_requests / (successful_requests + failed_requests),
+        "failure_rate": failed_requests / total_requests if total_requests > 0 else 0,
         "avg_latency": avg_latency
     }
 
@@ -187,7 +188,7 @@ async def test_rate_limits(model, dataset):
 
 ```python
 @stress_test(concurrent_requests=20, duration=60)
-@evaluate("gpt-4", "gpt-3.5-turbo")
+@evaluate("gpt-4", "gpt-4o-mini")
 async def test_cost_under_load(model, dataset):
     """Estimate costs under load conditions"""
     total_input_tokens = 0
@@ -202,14 +203,16 @@ async def test_cost_under_load(model, dataset):
             total_input_tokens += input_tokens
             total_output_tokens += output_tokens
 
+    # get_cost_estimate returns total estimated cost in USD for the given token counts
     total_cost = model.get_cost_estimate(total_input_tokens, total_output_tokens)
+    num_requests = len(dataset.prompts)
 
     return {
-        "total_requests": len(dataset.prompts),
+        "total_requests": num_requests,
         "total_input_tokens": total_input_tokens,
         "total_output_tokens": total_output_tokens,
         "total_cost": total_cost,
-        "cost_per_request": total_cost / len(dataset.prompts)
+        "cost_per_request": total_cost / num_requests if num_requests > 0 else 0
     }
 
 results = asyncio.run(test_cost_under_load(dataset))

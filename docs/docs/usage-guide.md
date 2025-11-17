@@ -154,7 +154,7 @@ async def test_general_knowledge(model, dataset):
 async def main():
     results = await test_general_knowledge(qa_dataset)
 
-    print("\\n=== General Knowledge QA Results ===")
+    print("\n=== General Knowledge QA Results ===")
     for result in results:
         if result.success:
             print(f"{result.model_name}:")
@@ -169,6 +169,7 @@ asyncio.run(main())
 ### Example 2: Text Summarization Benchmark
 
 ```python
+import asyncio
 from benchwise import evaluate, benchmark, create_summarization_dataset, rouge_l
 
 # Create summarization dataset
@@ -212,22 +213,22 @@ async def test_summarization(model, dataset):
 async def main():
     results = await test_summarization(summ_dataset)
 
-    print("\\n=== Summarization Results ===")
+    print("\n=== Summarization Results ===")
 
     for result in results:
         if result.success:
-            print(f"\\n{result.model_name}:")
+            print(f"\n{result.model_name}:")
             print(f"  ROUGE-L F1: {result.result['rouge_l_f1']:.3f}")
             print(f"  Precision: {result.result['rouge_l_precision']:.3f}")
             print(f"  Recall: {result.result['rouge_l_recall']:.3f}")
         else:
-            print(f"\\n{result.model_name}: FAILED - {result.error}")
+            print(f"\n{result.model_name}: FAILED - {result.error}")
 
     # Find best model from successful results
     successful_results = [r for r in results if r.success]
     if successful_results:
         best_model = max(successful_results, key=lambda r: r.result["rouge_l_f1"])
-        print(f"\\nBest model: {best_model.model_name}")
+        print(f"\nBest model: {best_model.model_name}")
 
     # Optional: Create a benchmark result for saving/reporting
     from benchwise import BenchmarkResult, save_results
@@ -237,7 +238,7 @@ async def main():
 
     # Save results
     save_results(benchmark, "summarization_results.json", format="json")
-    print("\\nResults saved to summarization_results.json")
+    print("\nResults saved to summarization_results.json")
 
 asyncio.run(main())
 ```
@@ -245,8 +246,9 @@ asyncio.run(main())
 ### Example 3: Custom Metrics and Analysis
 
 ```python
+import asyncio
 import re
-from benchwise import evaluate, accuracy
+from benchwise import evaluate, accuracy, create_qa_dataset
 
 def custom_code_metric(responses, references):
     """Custom metric for evaluating code generation"""
@@ -305,10 +307,10 @@ async def test_code_generation(model, dataset):
 async def main():
     results = await test_code_generation(code_dataset)
 
-    print("\\n=== Code Generation Results ===")
+    print("\n=== Code Generation Results ===")
     for result in results:
         if result.success:
-            print(f"\\n{result.model_name}:")
+            print(f"\n{result.model_name}:")
             print(f"  Code Quality: {result.result['code_quality']:.2%}")
             print(f"  Syntax Valid Rate: {result.result['syntax_valid_rate']:.2%}")
             print(f"  Sample: {result.result['sample_response']}")

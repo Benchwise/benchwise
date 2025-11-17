@@ -141,6 +141,7 @@ asyncio.run(test_reasoning(reasoning_qa))
 ## Handling Ambiguous Questions
 
 ```python
+import asyncio
 from benchwise import evaluate, create_qa_dataset
 
 ambiguous_qa = create_qa_dataset(

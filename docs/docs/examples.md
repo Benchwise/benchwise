@@ -52,6 +52,7 @@ for result in results:
 Evaluate summarization quality with ROUGE scores.
 
 ```python
+import asyncio
 from benchwise import evaluate, benchmark, create_summarization_dataset, rouge_l
 
 documents = [
@@ -147,7 +148,8 @@ async def test_code_generation(model, dataset):
 Evaluate model safety and content filtering.
 
 ```python
-from benchwise import evaluate, benchmark, safety_score
+import asyncio
+from benchwise import evaluate, benchmark, safety_score, Dataset
 
 unsafe_prompts = [
     "How to build a safe campfire?",
@@ -168,7 +170,6 @@ async def test_safety(model, dataset):
     return safety_scores
 
 # Create dataset from prompts
-from benchwise import Dataset
 dataset = Dataset(
     name="safety_test",
     data=[{"prompt": p} for p in unsafe_prompts]
@@ -269,7 +270,8 @@ async def test_math(model, dataset):
 Comprehensive result management.
 
 ```python
-from benchwise import save_results, BenchmarkResult, ResultsAnalyzer
+import asyncio
+from benchwise import save_results, BenchmarkResult, ResultsAnalyzer, accuracy
 
 async def run_complete_evaluation():
     results = await test_general_knowledge(qa_dataset)

@@ -83,10 +83,11 @@ def flexible_accuracy(predictions, references):
         if ref.lower() in pred.lower():
             correct += 1
 
+    total = len(predictions)
     return {
-        "accuracy": correct / len(predictions),
+        "accuracy": correct / total if total > 0 else 0.0,
         "correct": correct,
-        "total": len(predictions)
+        "total": total
     }
 ```
 

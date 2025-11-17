@@ -57,6 +57,42 @@ What is AI?,Artificial Intelligence
 What is ML?,Machine Learning
 ```
 
+## Error Handling
+
+Handle potential errors when loading datasets:
+
+```python
+from benchwise import load_dataset
+from benchwise.exceptions import DatasetError
+
+try:
+    dataset = load_dataset("data/qa_dataset.json")
+except FileNotFoundError:
+    print("Dataset file not found")
+except DatasetError as e:
+    print(f"Error loading dataset: {e}")
+except Exception as e:
+    print(f"Unexpected error: {e}")
+```
+
+## Validating Loaded Data
+
+Check dataset integrity after loading:
+
+```python
+dataset = load_dataset("data/qa_dataset.json")
+
+# Validate dataset has data
+if not dataset.data:
+    raise ValueError("Dataset is empty")
+
+# Check for required fields
+if hasattr(dataset, 'prompts') and not dataset.prompts:
+    raise ValueError("Dataset has no prompts")
+
+print(f"Loaded {len(dataset.data)} samples")
+```
+
 ## See Also
 
 - [Dataset](./dataset.md)

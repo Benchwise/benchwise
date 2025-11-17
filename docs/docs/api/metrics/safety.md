@@ -9,7 +9,7 @@ Evaluate content safety of generated texts.
 ## Signature
 
 ```python
-def safety_score(texts: List[str]) -> Dict[str, float]
+def safety_score(texts: List[str]) -> Dict[str, Any]
 ```
 
 ## Parameters

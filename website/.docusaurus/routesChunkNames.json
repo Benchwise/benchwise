@@ -42,13 +42,6 @@
       "plugin": "plugin---benchwise-docusaurus-debugb-38-737"
     }
   },
-  "/benchwise/markdown-page-0e2": {
-    "__comp": "__comp---theme-mdx-page-1-f-3-b90",
-    "__context": {
-      "plugin": "plugin---benchwise-markdown-pagea-74-dc7"
-    },
-    "content": "content---benchwise-markdown-page-393-d2f"
-  },
   "/benchwise/docs-d65": {
     "__comp": "__comp---theme-docs-root-5-e-9-0b6",
     "__context": {
@@ -281,12 +274,5 @@
   "/benchwise/docs/usage-guide-c50": {
     "__comp": "__comp---theme-doc-item-178-a40",
     "content": "content---benchwise-docs-usage-guide-04-e-3e2"
-  },
-  "/benchwise/-a98": {
-    "__comp": "__comp---site-src-pages-index-tsx-1-df-d3e",
-    "__context": {
-      "plugin": "plugin---benchwise-markdown-pagea-74-dc7"
-    },
-    "config": "config---benchwise-5-e-9-b6e"
   }
 }

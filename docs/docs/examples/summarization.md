@@ -270,23 +270,27 @@ asyncio.run(test_multilingual(multilingual_dataset))
 ## Real-Time News Summarization
 
 ```python
-from benchwise import evaluate, load_dataset, save_results, BenchmarkResult
+import time
+from benchwise import evaluate, load_dataset, save_results, BenchmarkResult, benchmark, rouge_l
 
 # Load news articles dataset
 news_dataset = load_dataset("data/news_articles.json")
 
 @benchmark("News Summarization", "Real-time news article summarization")
-@evaluate("gpt-3.5-turbo", "claude-3-haiku", "gemini-pro")
+@evaluate("gpt-4o-mini", "claude-3-5-haiku-20241022", "gemini-pro")
 async def test_news_summarization(model, dataset):
     # Fast summarization for real-time use
     prompts = [f"Headline and 2-sentence summary: {doc}" for doc in dataset.prompts]
+
+    start_time = time.monotonic()
     summaries = await model.generate(prompts, max_tokens=150, temperature=0.3)
+    duration = time.monotonic() - start_time
 
     rouge = rouge_l(summaries, dataset.references)
 
     return {
         "rouge_f1": rouge["f1"],
-        "avg_latency": result.duration / len(summaries)  # Per-article latency
+        "avg_latency": duration / len(summaries)  # Per-article latency
     }
 
 async def main():

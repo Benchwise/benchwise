@@ -25,16 +25,21 @@ Sync queued offline results.
 ## Usage
 
 ```python
-from benchwise.client import get_client, upload_results
+import asyncio
+from benchwise.client import upload_results, close_client
+from benchwise import BenchmarkResult
 
-client = get_client()
+# Create a benchmark result
+benchmark = BenchmarkResult(
+    name="My Benchmark",
+    metadata={"version": "1.0"}
+)
 
-# Upload results
-await upload_results(benchmark_results)
+# Upload results (client is managed internally)
+asyncio.run(upload_results(benchmark))
 
-# Close client
-from benchwise.client import close_client
-await close_client()
+# Close client when done
+asyncio.run(close_client())
 ```
 
 ## See Also

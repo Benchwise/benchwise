@@ -15,7 +15,7 @@ Benchwise provides a comprehensive set of evaluation metrics for assessing LLM o
 
 ### Accuracy & Correctness
 - [accuracy](./accuracy.md) - Exact match accuracy
-- factual_correctness - Factual accuracy check
+- [factual_correctness](./factual-correctness.md) - Factual accuracy check
 
 ### Semantic Analysis
 - [semantic_similarity](./semantic-similarity.md) - Embedding-based similarity
@@ -78,7 +78,7 @@ def custom_metric(predictions: List[str], references: List[str]) -> Dict[str, An
         scores.append(score)
 
     return {
-        "mean_score": sum(scores) / len(scores),
+        "mean_score": sum(scores) / len(scores) if scores else 0.0,
         "scores": scores
     }
 
@@ -141,6 +141,7 @@ All metrics return dictionaries with relevant scores:
 
 Explore individual metric documentation:
 - [Accuracy](./accuracy.md)
+- [Factual Correctness](./factual-correctness.md)
 - [ROUGE](./rouge.md)
 - [BLEU](./bleu.md)
 - [BERT Score](./bert-score.md)

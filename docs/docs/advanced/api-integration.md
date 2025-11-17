@@ -33,14 +33,27 @@ async def my_test(model, dataset):
 ## Manual Upload
 
 ```python
+import asyncio
 from benchwise.client import upload_results
-from benchwise import BenchmarkResult
+from benchwise import BenchmarkResult, EvaluationResult
 
-benchmark = BenchmarkResult("My Benchmark")
-# ... add results ...
+# Create benchmark and add results
+benchmark = BenchmarkResult(
+    name="My Benchmark",
+    metadata={"version": "1.0", "date": "2024-11-16"}
+)
+
+# Add evaluation results
+result = EvaluationResult(
+    model_name="gpt-4",
+    result={"accuracy": 0.85, "latency": 1.2},
+    success=True,
+    duration=10.5
+)
+benchmark.add_result(result)
 
 # Upload manually
-await upload_results(benchmark)
+asyncio.run(upload_results(benchmark))
 ```
 
 ## Offline Mode

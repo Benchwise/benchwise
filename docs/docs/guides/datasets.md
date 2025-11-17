@@ -76,6 +76,13 @@ dataset = Dataset(
 )
 ```
 
+**Note on Field Names:** The convenience creation functions (`create_qa_dataset`, `create_summarization_dataset`, `create_classification_dataset`) internally map their specific parameter names to standardized field names used for auto-detection:
+- `create_qa_dataset`: `questions` → `question`, `answers` → `answer`
+- `create_summarization_dataset`: `documents` → `prompt`, `summaries` → `reference`
+- `create_classification_dataset`: `texts` → `text`, `labels` → `target`
+
+When constructing a `Dataset` instance directly (as shown above), you must use the standard field names (`prompt`/`reference`, `input`/`output`, `question`/`answer`, `text`/`target`) for auto-detection to work. See lines 293-299 below for the canonical list of standard field names.
+
 ## Loading Datasets
 
 ### From JSON Files

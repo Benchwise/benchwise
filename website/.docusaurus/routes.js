@@ -38,11 +38,6 @@ export default [
     exact: true
   },
   {
-    path: '/benchwise/markdown-page',
-    component: ComponentCreator('/benchwise/markdown-page', '0e2'),
-    exact: true
-  },
-  {
     path: '/benchwise/docs',
     component: ComponentCreator('/benchwise/docs', 'd65'),
     routes: [
@@ -384,11 +379,6 @@ export default [
         ]
       }
     ]
-  },
-  {
-    path: '/benchwise/',
-    component: ComponentCreator('/benchwise/', 'a98'),
-    exact: true
   },
   {
     path: '*',

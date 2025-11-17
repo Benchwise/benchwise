@@ -16,12 +16,23 @@ def custom_metric(predictions: List[str], references: List[str]) -> Dict[str, An
     scores = []
 
     for pred, ref in zip(predictions, references):
-        # Your scoring logic
-        score = calculate_score(pred, ref)
+        # Example: simple character overlap score
+        pred_chars = set(pred.lower())
+        ref_chars = set(ref.lower())
+
+        if not pred_chars and not ref_chars:
+            score = 1.0
+        elif not pred_chars or not ref_chars:
+            score = 0.0
+        else:
+            overlap = len(pred_chars & ref_chars)
+            total = len(pred_chars | ref_chars)
+            score = overlap / total if total > 0 else 0.0
+
         scores.append(score)
 
     return {
-        "mean_score": sum(scores) / len(scores),
+        "mean_score": sum(scores) / len(scores) if scores else 0.0,
         "scores": scores
     }
 ```
@@ -52,12 +63,18 @@ def length_based_metric(predictions, references):
         pred_words = len(pred.split())
         ref_words = len(ref.split())
 
-        # Ratio of lengths
-        ratio = min(pred_words, ref_words) / max(pred_words, ref_words)
+        # Ratio of lengths (handle zero-length edge cases)
+        if pred_words == 0 and ref_words == 0:
+            ratio = 1.0
+        elif pred_words == 0 or ref_words == 0:
+            ratio = 0.0
+        else:
+            ratio = min(pred_words, ref_words) / max(pred_words, ref_words)
+
         scores.append(ratio)
 
     return {
-        "mean_length_ratio": sum(scores) / len(scores),
+        "mean_length_ratio": sum(scores) / len(scores) if scores else 0.0,
         "scores": scores,
         "perfect_matches": sum(1 for s in scores if s == 1.0)
     }
@@ -65,19 +82,31 @@ def length_based_metric(predictions, references):
 
 ## Metric Collections
 
+Combine custom metrics with built-in Benchwise metrics:
+
 ```python
-from benchwise import MetricCollection
+from benchwise import MetricCollection, accuracy, semantic_similarity
+
+# accuracy and semantic_similarity are built-in Benchwise metrics
+# custom_metric is defined above as our custom implementation
 
 # Create custom metric collection
 my_metrics = MetricCollection([
-    ("accuracy", accuracy),
-    ("similarity", semantic_similarity),
-    ("custom", custom_metric)
+    ("accuracy", accuracy),              # Built-in: exact match accuracy
+    ("similarity", semantic_similarity),  # Built-in: embedding-based similarity
+    ("custom", custom_metric)             # Custom: character overlap metric
 ])
 
 # Use in evaluation
 results = my_metrics.evaluate(predictions, references)
+
+# Access individual metric results
+print(f"Accuracy: {results['accuracy']}")
+print(f"Similarity: {results['similarity']}")
+print(f"Custom: {results['custom']}")
 ```
+
+**Note:** Built-in metrics like `accuracy`, `semantic_similarity`, `rouge_l`, `bleu_score`, etc. are imported from `benchwise`. See the [Metrics API](../api/metrics/overview.md) for all available metrics.
 
 ## See Also
 

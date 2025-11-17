@@ -21,7 +21,7 @@ dataset = create_qa_dataset(
 )
 
 # Evaluate multiple models
-@evaluate("gpt-3.5-turbo", "claude-3-5-haiku-20241022")
+@evaluate("gpt-4o-mini", "claude-3-5-haiku-20241022")
 async def test_qa(model, dataset):
     responses = await model.generate(dataset.prompts)
     scores = accuracy(responses, dataset.references)
@@ -56,7 +56,7 @@ dataset = create_qa_dataset(
 )
 
 @benchmark("AI Knowledge", "Tests basic AI understanding")
-@evaluate("gpt-4", "claude-3-opus")
+@evaluate("gpt-4", "claude-opus-4-1")
 async def test_ai_knowledge(model, dataset):
     responses = await model.generate(dataset.prompts)
     scores = accuracy(responses, dataset.references)
@@ -77,7 +77,7 @@ dataset = create_qa_dataset(
     answers=["Plants convert sunlight into energy through photosynthesis"]
 )
 
-@evaluate("gpt-3.5-turbo", "claude-3-5-haiku-20241022")
+@evaluate("gpt-4o-mini", "claude-3-5-haiku-20241022")
 async def test_with_metrics(model, dataset):
     responses = await model.generate(dataset.prompts)
 

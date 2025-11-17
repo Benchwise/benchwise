@@ -214,15 +214,19 @@ async def test_creative(model, dataset):
 ### 3. Return Comprehensive Metrics
 
 ```python
+import time
+
 @evaluate("gpt-4")
 async def comprehensive_test(model, dataset):
+    start_time = time.time()
     responses = await model.generate(dataset.prompts)
+    duration = time.time() - start_time
 
     return {
         "accuracy": accuracy(responses, dataset.references)["accuracy"],
         "total_samples": len(responses),
         "avg_length": sum(len(r) for r in responses) / len(responses),
-        "duration": result.duration
+        "duration": duration
     }
 ```
 

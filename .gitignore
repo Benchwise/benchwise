@@ -250,7 +250,3 @@ redis-data/
 
 # Celery
 celery-beat-schedule
-
-
-#AI Collab files
-CLAUDE.md
