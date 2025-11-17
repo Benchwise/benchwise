@@ -44,23 +44,9 @@ const config: Config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/Benchwise/benchwise/tree/main/website/',
+            'https://github.com/Benchwise/benchwise/tree/main/docs/',
         },
-        blog: {
-          showReadingTime: true,
-          feedOptions: {
-            type: ['rss', 'atom'],
-            xslt: true,
-          },
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://github.com/Benchwise/benchwise/tree/main/website/',
-          // Useful options to enforce blogging best practices
-          onInlineTags: 'warn',
-          onInlineAuthors: 'warn',
-          onUntruncatedBlogPosts: 'warn',
-        },
+        blog: false,
         theme: {
           customCss: './src/css/custom.css',
         },
@@ -83,17 +69,10 @@ const config: Config = {
       items: [
         {
           type: 'docSidebar',
-          sidebarId: 'tutorialSidebar',
+          sidebarId: 'docs',
           position: 'left',
           label: 'Docs',
         },
-        {
-          type: 'doc',
-          docId: 'api/overview',
-          position: 'left',
-          label: 'API Reference',
-        },
-        {to: '/blog', label: 'Blog', position: 'left'},
         {
           href: 'https://github.com/Benchwise/benchwise',
           label: 'GitHub',
@@ -109,15 +88,15 @@ const config: Config = {
           items: [
             {
               label: 'Getting Started',
-              to: '/docs/getting-started',
+              to: '/docs/getting-started/installation',
             },
             {
               label: 'API Reference',
-              to: '/docs/api/overview',
+              to: '/docs/api/decorators/evaluate',
             },
             {
               label: 'Examples',
-              to: '/docs/examples',
+              to: '/docs/examples/question-answering',
             },
           ],
         },
@@ -137,10 +116,6 @@ const config: Config = {
         {
           title: 'More',
           items: [
-            {
-              label: 'Blog',
-              to: '/blog',
-            },
             {
               label: 'PyPI',
               href: 'https://pypi.org/project/benchwise/',

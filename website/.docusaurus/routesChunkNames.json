@@ -1,0 +1,292 @@
+{
+  "/benchwise/__docusaurus/debug-482": {
+    "__comp": "__comp---theme-debug-config-23-a-2ff",
+    "__context": {
+      "plugin": "plugin---benchwise-docusaurus-debugb-38-737"
+    }
+  },
+  "/benchwise/__docusaurus/debug/config-5da": {
+    "__comp": "__comp---theme-debug-config-23-a-2ff",
+    "__context": {
+      "plugin": "plugin---benchwise-docusaurus-debugb-38-737"
+    }
+  },
+  "/benchwise/__docusaurus/debug/content-53c": {
+    "__comp": "__comp---theme-debug-contentba-8-ce7",
+    "__context": {
+      "plugin": "plugin---benchwise-docusaurus-debugb-38-737"
+    },
+    "__props": "__props---benchwise-docusaurus-debug-content-1-d-0-229"
+  },
+  "/benchwise/__docusaurus/debug/globalData-8bf": {
+    "__comp": "__comp---theme-debug-global-dataede-0fa",
+    "__context": {
+      "plugin": "plugin---benchwise-docusaurus-debugb-38-737"
+    }
+  },
+  "/benchwise/__docusaurus/debug/metadata-6e7": {
+    "__comp": "__comp---theme-debug-site-metadata-68-e-3d4",
+    "__context": {
+      "plugin": "plugin---benchwise-docusaurus-debugb-38-737"
+    }
+  },
+  "/benchwise/__docusaurus/debug/registry-fe0": {
+    "__comp": "__comp---theme-debug-registry-679-501",
+    "__context": {
+      "plugin": "plugin---benchwise-docusaurus-debugb-38-737"
+    }
+  },
+  "/benchwise/__docusaurus/debug/routes-9f4": {
+    "__comp": "__comp---theme-debug-routes-946-699",
+    "__context": {
+      "plugin": "plugin---benchwise-docusaurus-debugb-38-737"
+    }
+  },
+  "/benchwise/markdown-page-0e2": {
+    "__comp": "__comp---theme-mdx-page-1-f-3-b90",
+    "__context": {
+      "plugin": "plugin---benchwise-markdown-pagea-74-dc7"
+    },
+    "content": "content---benchwise-markdown-page-393-d2f"
+  },
+  "/benchwise/docs-d65": {
+    "__comp": "__comp---theme-docs-root-5-e-9-0b6",
+    "__context": {
+      "plugin": "plugin---benchwise-docsaba-f45"
+    }
+  },
+  "/benchwise/docs-0b8": {
+    "__comp": "__comp---theme-doc-version-roota-7-b-5de",
+    "__props": "__props---benchwise-docsc-85-68a"
+  },
+  "/benchwise/docs-666": {
+    "__comp": "__comp---theme-doc-roota-94-67a"
+  },
+  "/benchwise/docs/-d72": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-c-37-e2d"
+  },
+  "/benchwise/docs/-53e": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-0-e-3-9c4"
+  },
+  "/benchwise/docs/advanced/api-integration-795": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-advanced-api-integration-464-670"
+  },
+  "/benchwise/docs/advanced/configuration-1e3": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-advanced-configuration-97-a-103"
+  },
+  "/benchwise/docs/advanced/custom-metrics-b9b": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-advanced-custom-metricsc-67-a8f"
+  },
+  "/benchwise/docs/advanced/error-handling-55b": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-advanced-error-handling-03-d-8c4"
+  },
+  "/benchwise/docs/advanced/logging-f15": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-advanced-logging-477-fcf"
+  },
+  "/benchwise/docs/advanced/offline-mode-3fe": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-advanced-offline-modea-5-e-d88"
+  },
+  "/benchwise/docs/api/client-9b6": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-api-clientc-1-b-402"
+  },
+  "/benchwise/docs/api/config-374": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-api-configc-41-6c8"
+  },
+  "/benchwise/docs/api/datasets/create-dataset-b86": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-api-datasets-create-dataset-9-b-9-5a2"
+  },
+  "/benchwise/docs/api/datasets/dataset-b30": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-api-datasets-dataset-2-c-8-48b"
+  },
+  "/benchwise/docs/api/datasets/load-dataset-54a": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-api-datasets-load-dataset-207-d00"
+  },
+  "/benchwise/docs/api/decorators/benchmark-57d": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-api-decorators-benchmark-433-d9c"
+  },
+  "/benchwise/docs/api/decorators/evaluate-c92": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-api-decorators-evaluate-7-de-453"
+  },
+  "/benchwise/docs/api/decorators/stress-test-b14": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-api-decorators-stress-test-76-b-38e"
+  },
+  "/benchwise/docs/api/exceptions-79c": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-api-exceptionsd-9-d-08c"
+  },
+  "/benchwise/docs/api/metrics/accuracy-240": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-api-metrics-accuracyaf-6-6df"
+  },
+  "/benchwise/docs/api/metrics/bert-score-a86": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-api-metrics-bert-scoref-7-a-34a"
+  },
+  "/benchwise/docs/api/metrics/bleu-865": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-api-metrics-bleu-21-c-8c0"
+  },
+  "/benchwise/docs/api/metrics/coherence-723": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-api-metrics-coherence-2-f-0-df7"
+  },
+  "/benchwise/docs/api/metrics/overview-9d4": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-api-metrics-overview-06-f-c67"
+  },
+  "/benchwise/docs/api/metrics/rouge-bc7": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-api-metrics-rougeb-28-176"
+  },
+  "/benchwise/docs/api/metrics/safety-94b": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-api-metrics-safety-4-ed-85f"
+  },
+  "/benchwise/docs/api/metrics/semantic-similarity-13a": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-api-metrics-semantic-similarity-0-b-5-a18"
+  },
+  "/benchwise/docs/api/models/anthropic-efd": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-api-models-anthropic-3-c-0-9c3"
+  },
+  "/benchwise/docs/api/models/google-980": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-api-models-google-66-a-b56"
+  },
+  "/benchwise/docs/api/models/huggingface-5c3": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-api-models-huggingface-923-f76"
+  },
+  "/benchwise/docs/api/models/model-adapter-85f": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-api-models-model-adapter-136-088"
+  },
+  "/benchwise/docs/api/models/openai-a02": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-api-models-openai-845-d1c"
+  },
+  "/benchwise/docs/api/overview-82f": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-api-overview-65-d-1a6"
+  },
+  "/benchwise/docs/api/results/benchmark-result-b4c": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-api-results-benchmark-result-02-e-a6e"
+  },
+  "/benchwise/docs/api/results/evaluation-result-572": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-api-results-evaluation-resultbad-36a"
+  },
+  "/benchwise/docs/api/results/results-analyzer-df5": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-api-results-results-analyzerf-6-d-e6a"
+  },
+  "/benchwise/docs/changelog-dcb": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-changelog-9-be-750"
+  },
+  "/benchwise/docs/cli-390": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-cli-1-a-2-1c1"
+  },
+  "/benchwise/docs/contributing-293": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-contributing-4-d-5-eb3"
+  },
+  "/benchwise/docs/examples-521": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-examples-09-d-d3a"
+  },
+  "/benchwise/docs/examples/classification-c51": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-examples-classification-126-48a"
+  },
+  "/benchwise/docs/examples/multi-model-comparison-9bc": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-examples-multi-model-comparisonbe-2-539"
+  },
+  "/benchwise/docs/examples/question-answering-82a": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-examples-question-answering-340-5c5"
+  },
+  "/benchwise/docs/examples/safety-evaluation-f4b": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-examples-safety-evaluation-996-75a"
+  },
+  "/benchwise/docs/examples/summarization-233": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-examples-summarizationf-42-2e5"
+  },
+  "/benchwise/docs/faq-bb8": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-faq-048-0ac"
+  },
+  "/benchwise/docs/getting-started-1fd": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-getting-startedd-58-198"
+  },
+  "/benchwise/docs/getting-started/core-concepts-eda": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-getting-started-core-concepts-8-b-9-a2c"
+  },
+  "/benchwise/docs/getting-started/installation-e37": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-getting-started-installation-54-f-94e"
+  },
+  "/benchwise/docs/getting-started/quickstart-a49": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-getting-started-quickstartfbd-847"
+  },
+  "/benchwise/docs/guides/datasets-490": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-guides-datasets-431-678"
+  },
+  "/benchwise/docs/guides/evaluation-7f6": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-guides-evaluation-600-fea"
+  },
+  "/benchwise/docs/guides/metrics-50e": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-guides-metricsa-49-c45"
+  },
+  "/benchwise/docs/guides/models-cff": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-guides-modelsd-24-6bb"
+  },
+  "/benchwise/docs/guides/results-143": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-guides-results-3-d-8-196"
+  },
+  "/benchwise/docs/migration-guide-fd6": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-migration-guide-613-d4b"
+  },
+  "/benchwise/docs/usage-guide-c50": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---benchwise-docs-usage-guide-04-e-3e2"
+  },
+  "/benchwise/-a98": {
+    "__comp": "__comp---site-src-pages-index-tsx-1-df-d3e",
+    "__context": {
+      "plugin": "plugin---benchwise-markdown-pagea-74-dc7"
+    },
+    "config": "config---benchwise-5-e-9-b6e"
+  }
+}
