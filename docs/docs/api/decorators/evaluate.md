@@ -9,17 +9,17 @@ The main decorator for running evaluations across multiple models.
 ## Signature
 
 ```python
-@evaluate(*models: str, **kwargs) -> Callable
+@evaluate(*models: str, upload: bool = None, **kwargs) -> Callable
 ```
 
 ## Parameters
 
 - **`*models`** (str): One or more model identifiers to evaluate
+- **`upload`** (bool, optional): Whether to upload results to Benchwise API (None = use config default).
 - **`**kwargs`**: Optional parameters passed to model generation:
   - `temperature` (float): Sampling temperature (0.0 to 1.0)
   - `max_tokens` (int): Maximum tokens to generate
   - `top_p` (float): Nucleus sampling parameter
-  - `upload` (bool): Whether to upload results to Benchwise API
 
 ## Returns
 

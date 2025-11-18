@@ -61,7 +61,7 @@ async def test_with_retry(model, dataset):
 ## Custom Exceptions
 
 ```python
-from benchwise.exceptions import BenchWiseError, ModelError, DatasetError
+from benchwise.exceptions import BenchwiseError, ModelError, DatasetError
 
 try:
     dataset = load_dataset("invalid.json")

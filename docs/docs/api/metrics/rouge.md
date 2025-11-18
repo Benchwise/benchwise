@@ -9,20 +9,38 @@ Calculate ROUGE-L score for text overlap evaluation.
 ## Signature
 
 ```python
-def rouge_l(predictions: List[str], references: List[str]) -> Dict[str, float]
+def rouge_l(
+    predictions: List[str],
+    references: List[str],
+    use_stemmer: bool = True,
+    alpha: float = 0.5,
+    return_confidence: bool = True,
+) -> Dict[str, float]
 ```
 
 ## Parameters
 
 - **predictions** (List[str]): Model-generated texts
 - **references** (List[str]): Reference texts
+- **use_stemmer** (bool, optional): Whether to use stemming for better matching. Defaults to True.
+- **alpha** (float, optional): Parameter for F-score calculation (0.5 = balanced, less than 0.5 favors precision, greater than 0.5 favors recall). Defaults to 0.5.
+- **return_confidence** (bool, optional): Whether to return confidence intervals. Defaults to True.
 
 ## Returns
 
 Dictionary containing:
-- **f1** (float): F1 score
-- **precision** (float): Precision score
-- **recall** (float): Recall score
+- **f1** (float): Mean F1 score (custom calculation with `alpha`).
+- **precision** (float): Mean Precision score.
+- **recall** (float): Mean Recall score.
+- **rouge1_f1** (float): Mean ROUGE-1 F1 score.
+- **rouge2_f1** (float): Mean ROUGE-2 F1 score.
+- **std_f1** (float): Standard deviation of F1 scores.
+- **std_precision** (float): Standard deviation of Precision scores.
+- **std_recall** (float): Standard deviation of Recall scores.
+- **scores** (Dict[str, List[float]]): Dictionary containing lists of individual precision, recall, and f1 scores.
+- **f1_confidence_interval** (Tuple[float, float], optional): 95\% confidence interval for F1 score (if `return_confidence` is True).
+- **precision_confidence_interval** (Tuple[float, float], optional): 95% confidence interval for Precision score (if `return_confidence` is True).
+- **recall_confidence_interval** (Tuple[float, float], optional): 95% confidence interval for Recall score (if `return_confidence` is True).
 
 ## Usage
 

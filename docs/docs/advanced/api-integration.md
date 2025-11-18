@@ -53,7 +53,7 @@ result = EvaluationResult(
 benchmark.add_result(result)
 
 # Upload manually
-asyncio.run(upload_results(benchmark))
+asyncio.run(upload_results(benchmark.results, benchmark.name, benchmark.metadata))
 ```
 
 ## Offline Mode

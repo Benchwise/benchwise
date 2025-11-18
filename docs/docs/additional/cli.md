@@ -67,5 +67,5 @@ benchwise validate my_dataset.json
 
 ## See Also
 
-- [Configuration](./advanced/configuration.md)
-- [Getting Started](./getting-started/installation.md)
+- [Configuration](../advanced/configuration.md)
+- [Getting Started](../getting-started/installation.md)

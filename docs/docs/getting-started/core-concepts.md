@@ -182,7 +182,7 @@ acc = accuracy(predictions, references)
 print(acc["accuracy"])
 
 # Factual correctness
-correctness = factual_correctness(predictions, references, context)
+correctness = factual_correctness(predictions, references)
 ```
 
 ### Semantic Similarity

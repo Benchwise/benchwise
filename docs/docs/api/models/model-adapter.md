@@ -14,8 +14,6 @@ class ModelAdapter(ABC):
     async def generate(
         self,
         prompts: List[str],
-        temperature: float = 0.7,
-        max_tokens: int = None,
         **kwargs
     ) -> List[str]:
         """Generate responses for prompts"""
@@ -39,7 +37,7 @@ class ModelAdapter(ABC):
 ## Factory Function
 
 ```python
-def get_model_adapter(model_name: str) -> ModelAdapter
+def get_model_adapter(model_name: str, config: Optional[Dict[str, Any]] = None) -> ModelAdapter
 ```
 
 Automatically selects the appropriate adapter based on model name prefix:

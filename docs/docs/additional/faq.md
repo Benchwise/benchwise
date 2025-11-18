@@ -31,11 +31,11 @@ Yes, Benchwise is open-source and free to use under the MIT license. You only pa
 2. Set API keys
 3. Create your first evaluation
 
-See the [Quickstart Guide](./getting-started/quickstart.md).
+See the [Quickstart Guide](../getting-started/quickstart.md).
 
 ### Can I use custom metrics?
 
-Yes! You can create custom metrics. See [Custom Metrics Guide](./advanced/custom-metrics.md).
+Yes! You can create custom metrics. See [Custom Metrics Guide](../advanced/custom-metrics.md).
 
 ### How do I compare multiple models?
 
@@ -50,7 +50,7 @@ async def my_test(model, dataset):
 
 ### Can I run evaluations offline?
 
-Yes, use offline mode to cache results locally. See [Offline Mode](./advanced/offline-mode.md).
+Yes, use offline mode to cache results locally. See [Offline Mode](../advanced/offline-mode.md).
 
 ## Technical
 
@@ -107,6 +107,6 @@ Benchwise handles rate limits automatically. For heavy workloads, consider reduc
 
 ## See Also
 
-- [Getting Started](./getting-started/installation.md)
-- [Guides](./guides/evaluation.md)
-- [Examples](./examples/question-answering.md)
+- [Getting Started](../getting-started/installation.md)
+- [Guides](../guides/evaluation.md)
+- [Examples](../examples/question-answering.md)

@@ -169,18 +169,7 @@ html_report = ResultsAnalyzer.generate_report(benchmark, format="html")
 text_report = ResultsAnalyzer.generate_report(benchmark, format="text")
 ```
 
-### Statistical Analysis
 
-```python
-# Get summary statistics
-stats = ResultsAnalyzer.get_statistics(benchmark, metric="accuracy")
-
-print(f"Mean: {stats['mean']:.3f}")
-print(f"Median: {stats['median']:.3f}")
-print(f"Std Dev: {stats['std']:.3f}")
-print(f"Min: {stats['min']:.3f}")
-print(f"Max: {stats['max']:.3f}")
-```
 
 ## Caching Results
 
@@ -198,8 +187,10 @@ cache.clear_cache()
 cached = cache.list_cached_results()
 print(f"Cached evaluations: {len(cached)}")
 
-# Get specific cached result
-cached_result = cache.get_cached_result("evaluation_id")
+# Get specific cached result (requires model_name, test_name, and dataset_hash)
+# You would typically get these from a list of cached results or a known evaluation.
+# Example:
+# cached_result = cache.load_result("gpt-4", "my_test", "dataset_hash_value")
 ```
 
 ## Complete Example

@@ -9,7 +9,7 @@ Decorator for performance and load testing with concurrent requests.
 ## Signature
 
 ```python
-@stress_test(concurrent_requests: int, duration: int) -> Callable
+@stress_test(concurrent_requests: int = 10, duration: int = 60) -> Callable
 ```
 
 ## Parameters

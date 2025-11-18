@@ -9,14 +9,14 @@ Decorator to mark evaluation functions as named benchmarks with metadata.
 ## Signature
 
 ```python
-@benchmark(name: str, description: str = "", **metadata) -> Callable
+@benchmark(name: str, description: str = "", **kwargs) -> Callable
 ```
 
 ## Parameters
 
 - **`name`** (str): Name of the benchmark
 - **`description`** (str, optional): Description of what the benchmark tests
-- **`**metadata`**: Additional metadata key-value pairs
+- **`**kwargs`**: Additional keyword arguments passed to the benchmark.
 
 ## Returns
 

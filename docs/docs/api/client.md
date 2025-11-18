@@ -10,14 +10,14 @@ API client for Benchwise platform.
 
 ### upload_results
 ```python
-async def upload_results(results: BenchmarkResult) -> Dict[str, Any]
+async def upload_results(results: List[EvaluationResult], test_name: str, dataset_info: Dict[str, Any]) -> bool
 ```
 
 Upload results to Benchwise API.
 
 ### sync_offline_results
 ```python
-async def sync_offline_results() -> None
+async def sync_offline_results() -> int
 ```
 
 Sync queued offline results.
@@ -36,7 +36,7 @@ benchmark = BenchmarkResult(
 )
 
 # Upload results (client is managed internally)
-asyncio.run(upload_results(benchmark))
+asyncio.run(upload_results(benchmark.results, benchmark.name, benchmark.metadata))
 
 # Close client when done
 asyncio.run(close_client())

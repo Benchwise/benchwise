@@ -9,18 +9,20 @@ Load datasets from JSON, CSV, or URLs.
 ## Signature
 
 ```python
-def load_dataset(path: str) -> Dataset
+def load_dataset(source: Union[str, Path, Dict[str, Any]], **kwargs) -> Dataset
 ```
 
 ## Parameters
 
-- **path** (str): File path or URL to dataset
+- **source** (Union[str, Path, Dict[str, Any]]): File path, URL, or dictionary data for the dataset.
+- **kwargs**: Additional parameters for dataset creation (e.g., `name`, `metadata`).
 
 ## Supported Formats
 
 - JSON files (`.json`)
 - CSV files (`.csv`)
 - URLs (http/https)
+- Python dictionaries (passed directly as `source`)
 
 ## Usage
 
@@ -35,6 +37,17 @@ dataset = load_dataset("data/qa_dataset.csv")
 
 # From URL
 dataset = load_dataset("https://example.com/dataset.json")
+
+# From Python dictionary
+dataset = load_dataset(
+    source={
+        "name": "my_dict_dataset",
+        "data": [
+            {"question": "Dict Q1", "answer": "Dict A1"},
+            {"question": "Dict Q2", "answer": "Dict A2"}
+        ]
+    }
+)
 ```
 
 ## JSON Format

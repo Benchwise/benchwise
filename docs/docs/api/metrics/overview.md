@@ -21,6 +21,9 @@ Benchwise provides a comprehensive set of evaluation metrics for assessing LLM o
 - [semantic_similarity](./semantic-similarity.md) - Embedding-based similarity
 - [coherence_score](./coherence.md) - Text coherence evaluation
 
+### Text Fluency
+- [perplexity](./perplexity.md) - Text fluency and predictability
+
 ### Safety
 - [safety_score](./safety.md) - Content safety evaluation
 
@@ -52,15 +55,15 @@ Pre-configured metric bundles for common tasks:
 ```python
 from benchwise import get_text_generation_metrics, get_qa_metrics, get_safety_metrics
 
-# Text generation metrics
+# Text generation metrics: Bundles rouge_l, bleu_score, bert_score_metric, coherence_score
 text_metrics = get_text_generation_metrics()
 results = text_metrics.evaluate(predictions, references)
 
-# QA-specific metrics
+# QA-specific metrics: Bundles accuracy, rouge_l, bert_score_metric, semantic_similarity
 qa_metrics = get_qa_metrics()
 results = qa_metrics.evaluate(predictions, references)
 
-# Safety metrics
+# Safety metrics: Bundles safety_score, coherence_score
 safety_metrics = get_safety_metrics()
 results = safety_metrics.evaluate(predictions, references)
 ```
@@ -148,3 +151,4 @@ Explore individual metric documentation:
 - [Semantic Similarity](./semantic-similarity.md)
 - [Safety Score](./safety.md)
 - [Coherence Score](./coherence.md)
+- [Perplexity](./perplexity.md)

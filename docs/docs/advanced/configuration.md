@@ -70,5 +70,5 @@ config = get_offline_config()
 
 ## See Also
 
-- [API Configuration](./api/config.md)
+- [API Configuration](../api/config.md)
 - [Offline Mode](./offline-mode.md)

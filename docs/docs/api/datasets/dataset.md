@@ -13,7 +13,8 @@ Main dataset class for organizing evaluation data.
 class Dataset:
     name: str
     data: List[Dict[str, Any]]
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: Optional[Dict[str, Any]] = None
+    schema: Optional[Dict[str, Any]] = None
 ```
 
 ## Properties
@@ -23,32 +24,32 @@ class Dataset:
 @property
 def prompts(self) -> List[str]
 ```
-Auto-detects and returns prompts from fields: `prompt`, `input`, `question`, or `text`.
+Auto-detects and returns prompts from fields: `prompt`, `input`, `question`, `text`, or `document`.
 
 ### references
 ```python
 @property
 def references(self) -> List[str]
 ```
-Auto-detects and returns references from fields: `reference`, `output`, `answer`, or `target`.
+Auto-detects and returns references from fields: `reference`, `output`, `answer`, `target`, or `summary`.
 
 ## Methods
 
 ### sample
 ```python
-def sample(self, n: int, random_state: int = None) -> Dataset
+def sample(self, n: int, random_state: Optional[int] = None) -> "Dataset"
 ```
 Returns random sample of n items.
 
 ### filter
 ```python
-def filter(self, condition: Callable) -> Dataset
+def filter(self, condition: callable) -> "Dataset"
 ```
 Filters dataset by condition function.
 
 ### split
 ```python
-def split(self, train_ratio: float = 0.8, random_state: int = None) -> Tuple[Dataset, Dataset]
+def split(self, train_ratio: float = 0.8, random_state: Optional[int] = None) -> Tuple["Dataset", "Dataset"]
 ```
 Splits into train and test sets.
 

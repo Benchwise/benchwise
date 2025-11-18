@@ -84,37 +84,6 @@ from benchwise.metrics import (
 )
 ```
 
-## Next Steps
-
-<div className="row">
-  <div className="col col--6">
-    <div className="card">
-      <div className="card__header">
-        <h3>Getting Started</h3>
-      </div>
-      <div className="card__body">
-        <p>Learn how to install Benchwise and run your first evaluation.</p>
-      </div>
-      <div className="card__footer">
-        <a href="/docs/getting-started/installation" className="button button--primary button--block">Get Started</a>
-      </div>
-    </div>
-  </div>
-  <div className="col col--6">
-    <div className="card">
-      <div className="card__header">
-        <h3>Guides</h3>
-      </div>
-      <div className="card__body">
-        <p>Explore detailed examples and best practices.</p>
-      </div>
-      <div className="card__footer">
-        <a href="/docs/guides/evaluation" className="button button--secondary button--block">Learn More</a>
-      </div>
-    </div>
-  </div>
-</div>
-
 ## Community Features (Coming Soon)
 
 We're building a platform to share and discover LLM evaluation benchmarks with the community:

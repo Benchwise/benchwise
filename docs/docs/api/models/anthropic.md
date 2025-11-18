@@ -12,6 +12,7 @@ Adapter for Anthropic Claude models.
 - `claude-3-sonnet`
 - `claude-3-haiku`
 - `claude-3-5-haiku-20241022`
+- `claude-3.5-sonnet`
 
 ## Usage
 

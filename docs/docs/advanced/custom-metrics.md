@@ -91,11 +91,10 @@ from benchwise import MetricCollection, accuracy, semantic_similarity
 # custom_metric is defined above as our custom implementation
 
 # Create custom metric collection
-my_metrics = MetricCollection([
-    ("accuracy", accuracy),              # Built-in: exact match accuracy
-    ("similarity", semantic_similarity),  # Built-in: embedding-based similarity
-    ("custom", custom_metric)             # Custom: character overlap metric
-])
+my_metrics = MetricCollection()
+my_metrics.add_metric("accuracy", accuracy)              # Built-in: exact match accuracy
+my_metrics.add_metric("similarity", semantic_similarity)  # Built-in: embedding-based similarity
+my_metrics.add_metric("custom", custom_metric)             # Custom: character overlap metric
 
 # Use in evaluation
 results = my_metrics.evaluate(predictions, references)

@@ -43,8 +43,7 @@ pip install -e ".[transformers]"
 # All LLM dependencies
 pip install -e ".[llms]"
 
-# Everything
-pip install -e ".[all]"
+
 ```
 
 ## Set Up API Keys
@@ -57,15 +56,7 @@ export ANTHROPIC_API_KEY="your-anthropic-key"
 export GOOGLE_API_KEY="your-google-key"
 ```
 
-### Using a .env File
 
-Alternatively, create a `.env` file in your project root:
-
-```
-OPENAI_API_KEY=your-openai-key
-ANTHROPIC_API_KEY=your-anthropic-key
-GOOGLE_API_KEY=your-google-key
-```
 
 ## Verify Installation
 

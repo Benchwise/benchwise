@@ -78,10 +78,10 @@ dataset = Dataset(
 
 **Note on Field Names:** The convenience creation functions (`create_qa_dataset`, `create_summarization_dataset`, `create_classification_dataset`) internally map their specific parameter names to standardized field names used for auto-detection:
 - `create_qa_dataset`: `questions` → `question`, `answers` → `answer`
-- `create_summarization_dataset`: `documents` → `prompt`, `summaries` → `reference`
-- `create_classification_dataset`: `texts` → `text`, `labels` → `target`
+- `create_summarization_dataset`: `documents` → `document`, `summaries` → `summary`
+- `create_classification_dataset`: `texts` → `text`, `labels` → `label`
 
-When constructing a `Dataset` instance directly (as shown above), you must use the standard field names (`prompt`/`reference`, `input`/`output`, `question`/`answer`, `text`/`target`) for auto-detection to work. See lines 293-299 below for the canonical list of standard field names.
+When constructing a `Dataset` instance directly (as shown above), you must use the standard field names (`prompt`/`reference`, `input`/`output`, `question`/`answer`, `text`/`label`, `document`/`summary`) for auto-detection to work. See lines 293-299 below for the canonical list of standard field names.
 
 ## Loading Datasets
 
@@ -230,14 +230,14 @@ from benchwise.datasets import DatasetRegistry
 registry = DatasetRegistry()
 
 # Register datasets
-registry.register("qa_v1", qa_dataset)
-registry.register("qa_v2", qa_dataset_v2)
+registry.register(qa_dataset)
+registry.register(qa_dataset_v2)
 
 # Retrieve datasets
 dataset = registry.get("qa_v1")
 
 # List all datasets
-all_datasets = registry.list_datasets()
+all_datasets = registry.list()
 ```
 
 ## Best Practices

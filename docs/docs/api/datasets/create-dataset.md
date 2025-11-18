@@ -13,7 +13,7 @@ def create_qa_dataset(
     questions: List[str],
     answers: List[str],
     name: str = "qa_dataset",
-    **metadata
+    **kwargs
 ) -> Dataset
 ```
 
@@ -36,7 +36,7 @@ def create_summarization_dataset(
     documents: List[str],
     summaries: List[str],
     name: str = "summarization_dataset",
-    **metadata
+    **kwargs
 ) -> Dataset
 ```
 
@@ -59,7 +59,7 @@ def create_classification_dataset(
     texts: List[str],
     labels: List[str],
     name: str = "classification_dataset",
-    **metadata
+    **kwargs
 ) -> Dataset
 ```
 
