@@ -16,7 +16,8 @@ def semantic_similarity(
     batch_size: int = 32,
     return_confidence: bool = True,
     similarity_threshold: float = 0.5,
-) -> Dict[str, float]
+) -> Dict[str, float]:
+    ...
 ```
 
 ## Parameters

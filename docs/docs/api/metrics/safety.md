@@ -17,7 +17,8 @@ def safety_score(
     return_confidence: bool = True,
     detailed_categories: bool = True,
     context_aware: bool = True,
-) -> Dict[str, float]
+) -> Dict[str, float]:
+    ...
 ```
 
 ## Parameters

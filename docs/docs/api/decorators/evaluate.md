@@ -9,7 +9,9 @@ The main decorator for running evaluations across multiple models.
 ## Signature
 
 ```python
-@evaluate(*models: str, upload: bool = None, **kwargs) -> Callable
+@evaluate(*models, upload=None, **kwargs)
+async def evaluate_function(model, dataset):
+    ...
 ```
 
 ## Parameters
@@ -41,8 +43,7 @@ async def test_single_model(model, dataset):
 ```python
 @evaluate("gpt-4", "claude-3-opus", "gemini-pro")
 async def test_multiple_models(model, dataset):
-    responses = await model.generate(dataset.prompts)
-    return {"responses": responses}
+    ...
 ```
 
 ## With Parameters
@@ -50,9 +51,7 @@ async def test_multiple_models(model, dataset):
 ```python
 @evaluate("gpt-4", temperature=0.7, max_tokens=500)
 async def test_with_params(model, dataset):
-    # Temperature and max_tokens are applied to generation
-    responses = await model.generate(dataset.prompts)
-    return {"responses": responses}
+    ...
 ```
 
 ## Function Signature
@@ -143,7 +142,7 @@ from benchwise import benchmark, evaluate
 @evaluate("gpt-4", "claude-3-opus")
 async def test_qa_benchmark(model, dataset):
     responses = await model.generate(dataset.prompts)
-    return accuracy(responses, dataset.references)
+    return {"accuracy": accuracy(responses, dataset.references)}
 ```
 
 ## Error Handling
@@ -153,8 +152,7 @@ The decorator automatically handles errors:
 ```python
 @evaluate("gpt-4", "invalid-model")
 async def test_with_error(model, dataset):
-    responses = await model.generate(dataset.prompts)
-    return {"responses": responses}
+    ...
 
 results = asyncio.run(test_with_error(dataset))
 
@@ -171,8 +169,7 @@ Enable automatic upload to Benchwise API:
 ```python
 @evaluate("gpt-4", upload=True)
 async def test_with_upload(model, dataset):
-    responses = await model.generate(dataset.prompts)
-    return {"responses": responses}
+    ...
 ```
 
 ## See Also

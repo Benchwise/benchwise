@@ -35,7 +35,8 @@ class BenchmarkResult:
 
 ### add_result()
 ```python
-def add_result(self, result: EvaluationResult) -> None
+def add_result(self, result: EvaluationResult) -> None:
+    ...
 ```
 
 Add an evaluation result to the benchmark.
@@ -45,7 +46,8 @@ Add an evaluation result to the benchmark.
 
 ### compare_models()
 ```python
-def compare_models(self, metric_name: str = None) -> Dict[str, Any]
+def compare_models(self, metric_name: str = None) -> Dict[str, Any]:
+    ...
 ```
 
 Compare all models in the benchmark.
@@ -65,7 +67,8 @@ Compare all models in the benchmark.
 
 ### get_best_model()
 ```python
-def get_best_model(self, metric_name: str = None) -> Optional[EvaluationResult]
+def get_best_model(self, metric_name: str = None) -> Optional[EvaluationResult]:
+    ...
 ```
 
 Get the best performing model result.
@@ -77,7 +80,8 @@ Get the best performing model result.
 
 ### get_worst_model()
 ```python
-def get_worst_model(self, metric_name: str = None) -> Optional[EvaluationResult]
+def get_worst_model(self, metric_name: str = None) -> Optional[EvaluationResult]:
+    ...
 ```
 
 Get the worst performing model result.
@@ -89,7 +93,8 @@ Get the worst performing model result.
 
 ### get_model_result()
 ```python
-def get_model_result(self, model_name: str) -> Optional[EvaluationResult]
+def get_model_result(self, model_name: str) -> Optional[EvaluationResult]:
+    ...
 ```
 
 Get result for a specific model.
@@ -101,7 +106,8 @@ Get result for a specific model.
 
 ### to_dict()
 ```python
-def to_dict() -> Dict[str, Any]
+def to_dict(self) -> Dict[str, Any]:
+    ...
 ```
 
 Convert benchmark result to dictionary format for serialization.
@@ -110,7 +116,8 @@ Convert benchmark result to dictionary format for serialization.
 
 ### to_dataframe()
 ```python
-def to_dataframe() -> pd.DataFrame
+def to_dataframe(self) -> pd.DataFrame:
+    ...
 ```
 
 Convert results to pandas DataFrame for analysis.
@@ -119,7 +126,8 @@ Convert results to pandas DataFrame for analysis.
 
 ### save_to_json()
 ```python
-def save_to_json(self, file_path: Union[str, Path]) -> None
+def save_to_json(self, file_path: Union[str, Path]) -> None:
+    ...
 ```
 
 Save benchmark results to JSON file.
@@ -129,7 +137,8 @@ Save benchmark results to JSON file.
 
 ### save_to_csv()
 ```python
-def save_to_csv(self, file_path: Union[str, Path]) -> None
+def save_to_csv(self, file_path: Union[str, Path]) -> None:
+    ...
 ```
 
 Save benchmark results to CSV file.

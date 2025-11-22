@@ -9,7 +9,8 @@ Load datasets from JSON, CSV, or URLs.
 ## Signature
 
 ```python
-def load_dataset(source: Union[str, Path, Dict[str, Any]], **kwargs) -> Dataset
+def load_dataset(source: Union[str, Path, Dict[str, Any]], **kwargs) -> Dataset:
+    ...
 ```
 
 ## Parameters

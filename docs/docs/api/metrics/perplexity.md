@@ -9,7 +9,8 @@ Calculate the perplexity of generated text using a pre-trained language model. L
 ## Signature
 
 ```python
-def perplexity(predictions: List[str], model_name: str = "gpt2") -> Dict[str, float]
+def perplexity(predictions: List[str], model_name: str = "gpt2") -> Dict[str, float]:
+    ...
 ```
 
 ## Parameters

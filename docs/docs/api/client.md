@@ -10,14 +10,16 @@ API client for Benchwise platform.
 
 ### upload_results
 ```python
-async def upload_results(results: List[EvaluationResult], test_name: str, dataset_info: Dict[str, Any]) -> bool
+async def upload_results(results: List[EvaluationResult], test_name: str, dataset_info: Dict[str, Any]) -> bool:
+    ...
 ```
 
 Upload results to Benchwise API.
 
 ### sync_offline_results
 ```python
-async def sync_offline_results() -> int
+async def sync_offline_results() -> int:
+    ...
 ```
 
 Sync queued offline results.

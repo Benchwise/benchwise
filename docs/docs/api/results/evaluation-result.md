@@ -41,7 +41,8 @@ class EvaluationResult:
 
 ### to_dict()
 ```python
-def to_dict() -> Dict[str, Any]
+def to_dict(self) -> Dict[str, Any]:
+    ...
 ```
 
 Convert result to dictionary format for serialization.
@@ -50,7 +51,8 @@ Convert result to dictionary format for serialization.
 
 ### get_score()
 ```python
-def get_score(metric_name: str = None) -> Union[float, Any]
+def get_score(self, metric_name: str = None) -> Union[float, Any]:
+    ...
 ```
 
 Extract a specific score from the result.

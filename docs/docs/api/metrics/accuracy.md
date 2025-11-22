@@ -17,7 +17,8 @@ def accuracy(
     fuzzy_match: bool = False,
     fuzzy_threshold: float = 0.8,
     return_confidence: bool = True,
-) -> Dict[str, float]
+) -> Dict[str, float]:
+    ...
 ```
 
 ## Parameters

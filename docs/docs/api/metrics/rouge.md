@@ -15,7 +15,8 @@ def rouge_l(
     use_stemmer: bool = True,
     alpha: float = 0.5,
     return_confidence: bool = True,
-) -> Dict[str, float]
+) -> Dict[str, float]:
+    ...
 ```
 
 ## Parameters

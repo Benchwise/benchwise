@@ -66,6 +66,7 @@ asyncio.run(main())
 ## Medical QA Example
 
 ```python
+import asyncio
 from benchwise import evaluate, benchmark, create_qa_dataset, accuracy, semantic_similarity
 
 # Medical domain dataset
@@ -99,12 +100,25 @@ async def test_medical_qa(model, dataset):
         "similarity": similarity["mean_similarity"]
     }
 
-asyncio.run(test_medical_qa(medical_qa))
+async def main():
+    results = await test_medical_qa(medical_qa)
+
+    print("\n=== Medical QA Results ===")
+    for result in results:
+        if result.success:
+            print(f"\n{result.model_name}:")
+            print(f"  Accuracy: {result.result['accuracy']:.2%}")
+            print(f"  Similarity: {result.result['similarity']:.3f}")
+        else:
+            print(f"\n{result.model_name}: FAILED - {result.error}")
+
+asyncio.run(main())
 ```
 
 ## Multi-Hop Reasoning
 
 ```python
+import asyncio
 from benchwise import evaluate, create_qa_dataset, accuracy
 
 # Complex reasoning questions
@@ -135,7 +149,19 @@ async def test_reasoning(model, dataset):
         "total": len(responses)
     }
 
-asyncio.run(test_reasoning(reasoning_qa))
+async def main():
+    results = await test_reasoning(reasoning_qa)
+
+    print("\n=== Multi-Hop Reasoning Results ===")
+    for result in results:
+        if result.success:
+            print(f"\n{result.model_name}:")
+            print(f"  Accuracy: {result.result['accuracy']:.2%}")
+            print(f"  Total: {result.result['total']}")
+        else:
+            print(f"\n{result.model_name}: FAILED - {result.error}")
+
+asyncio.run(main())
 ```
 
 ## Handling Ambiguous Questions
@@ -178,12 +204,25 @@ async def test_ambiguous(model, dataset):
         "total": len(responses)
     }
 
-asyncio.run(test_ambiguous(ambiguous_qa))
+async def main():
+    results = await test_ambiguous(ambiguous_qa)
+
+    print("\n=== Ambiguous Questions Results ===")
+    for result in results:
+        if result.success:
+            print(f"\n{result.model_name}:")
+            print(f"  Ambiguity Acknowledgment Rate: {result.result['ambiguity_acknowledgment_rate']:.2%}")
+            print(f"  Total: {result.result['total']}")
+        else:
+            print(f"\n{result.model_name}: FAILED - {result.error}")
+
+asyncio.run(main())
 ```
 
 ## Batch Processing Large QA Datasets
 
 ```python
+import asyncio
 from benchwise import evaluate, load_dataset, accuracy
 
 # Load large dataset
@@ -219,7 +258,8 @@ asyncio.run(test_large_batch(large_qa))
 ## Using Standard Benchmarks
 
 ```python
-from benchwise import evaluate, load_mmlu_sample, accuracy
+import asyncio
+from benchwise import evaluate, benchmark, load_mmlu_sample, accuracy
 
 # Load MMLU sample
 mmlu = load_mmlu_sample()
@@ -235,13 +275,66 @@ async def test_mmlu(model, dataset):
         "total": len(responses)
     }
 
-asyncio.run(test_mmlu(mmlu))
+async def main():
+    results = await test_mmlu(mmlu)
+
+    print("\n=== MMLU Sample Results ===")
+    for result in results:
+        if result.success:
+            print(f"\n{result.model_name}:")
+            print(f"  Accuracy: {result.result['accuracy']:.2%}")
+            print(f"  Total: {result.result['total']}")
+        else:
+            print(f"\n{result.model_name}: FAILED - {result.error}")
+
+asyncio.run(main())
 ```
 
 ## Saving and Analyzing Results
 
 ```python
-from benchwise import save_results, BenchmarkResult, ResultsAnalyzer
+import asyncio
+from benchwise import (
+    evaluate,
+    benchmark,
+    create_qa_dataset,
+    accuracy,
+    semantic_similarity,
+    save_results,
+    BenchmarkResult,
+    ResultsAnalyzer
+)
+
+# Create QA dataset (same as in Basic QA Evaluation)
+qa_dataset = create_qa_dataset(
+    questions=[
+        "What is the capital of Japan?",
+        "Who wrote '1984'?",
+        "What is the speed of light?",
+        "Explain photosynthesis in one sentence.",
+        "What causes rainbows?"
+    ],
+    answers=[
+        "Tokyo",
+        "George Orwell",
+        "299,792,458 meters per second",
+        "Photosynthesis is the process by which plants convert sunlight into energy.",
+        "Rainbows are caused by light refraction and reflection in water droplets."
+    ],
+    name="general_knowledge_qa"
+)
+
+@benchmark("General Knowledge QA", "Tests basic factual knowledge")
+@evaluate("gpt-3.5-turbo", "claude-3-5-haiku-20241022", "gemini-pro")
+async def test_general_knowledge(model, dataset):
+    responses = await model.generate(dataset.prompts)
+    acc = accuracy(responses, dataset.references)
+    similarity = semantic_similarity(responses, dataset.references)
+    return {
+        "accuracy": acc["accuracy"],
+        "semantic_similarity": similarity["mean_similarity"],
+        "total_questions": len(responses)
+    }
 
 async def run_complete_qa_evaluation():
     results = await test_general_knowledge(qa_dataset)

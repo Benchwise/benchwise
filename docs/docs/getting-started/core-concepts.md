@@ -70,18 +70,28 @@ Benchwise supports multiple LLM providers out of the box.
 ```python
 # OpenAI models
 @evaluate("gpt-4", "gpt-3.5-turbo", "gpt-4-turbo")
+async def test_openai(model, dataset):
+    ...
 
 # Anthropic models
 @evaluate("claude-3-opus", "claude-3-sonnet", "claude-3-5-haiku-20241022")
+async def test_anthropic(model, dataset):
+    ...
 
 # Google models
 @evaluate("gemini-pro", "gemini-1.5-pro")
+async def test_google(model, dataset):
+    ...
 
 # HuggingFace models
 @evaluate("microsoft/DialoGPT-medium")
+async def test_huggingface(model, dataset):
+    ...
 
 # Mock adapter for testing
 @evaluate("mock-test")
+async def test_mock(model, dataset):
+    ...
 ```
 
 ### Model Interface

@@ -17,12 +17,12 @@ class ModelAdapter(ABC):
         **kwargs
     ) -> List[str]:
         """Generate responses for prompts"""
-        pass
+        ...
 
     @abstractmethod
     def get_token_count(self, text: str) -> int:
         """Count tokens in text"""
-        pass
+        ...
 
     @abstractmethod
     def get_cost_estimate(
@@ -31,13 +31,14 @@ class ModelAdapter(ABC):
         output_tokens: int
     ) -> float:
         """Estimate cost for token usage"""
-        pass
+        ...
 ```
 
 ## Factory Function
 
 ```python
-def get_model_adapter(model_name: str, config: Optional[Dict[str, Any]] = None) -> ModelAdapter
+def get_model_adapter(model_name: str, config: Optional[Dict[str, Any]] = None) -> ModelAdapter:
+    ...
 ```
 
 Automatically selects the appropriate adapter based on model name prefix:

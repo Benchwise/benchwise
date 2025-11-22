@@ -116,7 +116,27 @@ asyncio.run(main())
 ## Cost vs Performance Analysis
 
 ```python
+import asyncio
 from benchwise import evaluate, create_qa_dataset, accuracy
+
+# Create dataset for testing
+qa_dataset = create_qa_dataset(
+    questions=[
+        "What is artificial intelligence?",
+        "Explain quantum computing",
+        "What causes climate change?",
+        "How does photosynthesis work?",
+        "What is the theory of relativity?"
+    ],
+    answers=[
+        "AI is the simulation of human intelligence in machines",
+        "Quantum computing uses quantum-mechanical phenomena to perform calculations",
+        "Climate change is caused by greenhouse gas emissions from human activities",
+        "Photosynthesis is how plants convert light into chemical energy",
+        "Einstein's theory describing the relationship between space, time, and gravity"
+    ],
+    name="comprehensive_qa"
+)
 
 @evaluate("gpt-4", "gpt-3.5-turbo", "claude-3-opus", "claude-3-haiku")
 async def compare_cost_performance(model, dataset):
@@ -165,8 +185,28 @@ asyncio.run(analyze_cost_performance())
 ## Speed vs Accuracy Trade-offs
 
 ```python
-from benchwise import evaluate, create_qa_dataset, accuracy
+import asyncio
 import time
+from benchwise import evaluate, create_qa_dataset, accuracy
+
+# Create dataset for testing
+qa_dataset = create_qa_dataset(
+    questions=[
+        "What is artificial intelligence?",
+        "Explain quantum computing",
+        "What causes climate change?",
+        "How does photosynthesis work?",
+        "What is the theory of relativity?"
+    ],
+    answers=[
+        "AI is the simulation of human intelligence in machines",
+        "Quantum computing uses quantum-mechanical phenomena to perform calculations",
+        "Climate change is caused by greenhouse gas emissions from human activities",
+        "Photosynthesis is how plants convert light into chemical energy",
+        "Einstein's theory describing the relationship between space, time, and gravity"
+    ],
+    name="comprehensive_qa"
+)
 
 @evaluate("gpt-4", "gpt-3.5-turbo", "claude-3-opus", "claude-3-haiku", "gemini-pro")
 async def compare_speed_accuracy(model, dataset):
@@ -217,6 +257,7 @@ asyncio.run(analyze_speed_accuracy())
 ## Task-Specific Comparisons
 
 ```python
+import asyncio
 from benchwise import evaluate, create_qa_dataset, create_summarization_dataset, accuracy, rouge_l
 
 # Different tasks
@@ -270,7 +311,27 @@ asyncio.run(task_specific_comparison())
 ## Provider Comparison
 
 ```python
+import asyncio
 from benchwise import evaluate, create_qa_dataset, accuracy
+
+# Create dataset for testing
+qa_dataset = create_qa_dataset(
+    questions=[
+        "What is artificial intelligence?",
+        "Explain quantum computing",
+        "What causes climate change?",
+        "How does photosynthesis work?",
+        "What is the theory of relativity?"
+    ],
+    answers=[
+        "AI is the simulation of human intelligence in machines",
+        "Quantum computing uses quantum-mechanical phenomena to perform calculations",
+        "Climate change is caused by greenhouse gas emissions from human activities",
+        "Photosynthesis is how plants convert light into chemical energy",
+        "Einstein's theory describing the relationship between space, time, and gravity"
+    ],
+    name="comprehensive_qa"
+)
 
 # Compare providers
 openai_models = ["gpt-4", "gpt-3.5-turbo"]
@@ -321,7 +382,27 @@ asyncio.run(provider_analysis())
 ## Model Size Comparison
 
 ```python
-from benchwise import evaluate
+import asyncio
+from benchwise import evaluate, create_qa_dataset, accuracy
+
+# Create dataset for testing
+qa_dataset = create_qa_dataset(
+    questions=[
+        "What is artificial intelligence?",
+        "Explain quantum computing",
+        "What causes climate change?",
+        "How does photosynthesis work?",
+        "What is the theory of relativity?"
+    ],
+    answers=[
+        "AI is the simulation of human intelligence in machines",
+        "Quantum computing uses quantum-mechanical phenomena to perform calculations",
+        "Climate change is caused by greenhouse gas emissions from human activities",
+        "Photosynthesis is how plants convert light into chemical energy",
+        "Einstein's theory describing the relationship between space, time, and gravity"
+    ],
+    name="comprehensive_qa"
+)
 
 # Compare model sizes within same provider
 small_models = ["gpt-3.5-turbo", "claude-3-haiku"]
@@ -369,7 +450,27 @@ asyncio.run(size_analysis())
 ## Comprehensive Leaderboard
 
 ```python
-from benchwise import evaluate, benchmark, save_results, BenchmarkResult
+import asyncio
+from benchwise import evaluate, benchmark, create_qa_dataset, accuracy, semantic_similarity, save_results, BenchmarkResult
+
+# Create dataset for testing
+qa_dataset = create_qa_dataset(
+    questions=[
+        "What is artificial intelligence?",
+        "Explain quantum computing",
+        "What causes climate change?",
+        "How does photosynthesis work?",
+        "What is the theory of relativity?"
+    ],
+    answers=[
+        "AI is the simulation of human intelligence in machines",
+        "Quantum computing uses quantum-mechanical phenomena to perform calculations",
+        "Climate change is caused by greenhouse gas emissions from human activities",
+        "Photosynthesis is how plants convert light into chemical energy",
+        "Einstein's theory describing the relationship between space, time, and gravity"
+    ],
+    name="comprehensive_qa"
+)
 
 @benchmark("Model Leaderboard", "Comprehensive model ranking")
 @evaluate("gpt-4", "gpt-3.5-turbo", "claude-3-opus", "claude-3-sonnet", "claude-3-haiku", "gemini-pro")

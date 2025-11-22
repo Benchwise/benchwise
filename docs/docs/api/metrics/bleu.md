@@ -15,7 +15,8 @@ def bleu_score(
     smooth_method: str = "exp",
     return_confidence: bool = True,
     max_n: int = 4,
-) -> Dict[str, float]
+) -> Dict[str, float]:
+    ...
 ```
 
 ## Parameters

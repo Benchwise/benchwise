@@ -22,14 +22,16 @@ class Dataset:
 ### prompts
 ```python
 @property
-def prompts(self) -> List[str]
+def prompts(self) -> List[str]:
+    ...
 ```
 Auto-detects and returns prompts from fields: `prompt`, `input`, `question`, `text`, or `document`.
 
 ### references
 ```python
 @property
-def references(self) -> List[str]
+def references(self) -> List[str]:
+    ...
 ```
 Auto-detects and returns references from fields: `reference`, `output`, `answer`, `target`, or `summary`.
 
@@ -37,19 +39,22 @@ Auto-detects and returns references from fields: `reference`, `output`, `answer`
 
 ### sample
 ```python
-def sample(self, n: int, random_state: Optional[int] = None) -> "Dataset"
+def sample(self, n: int, random_state: Optional[int] = None) -> "Dataset":
+    ...
 ```
 Returns random sample of n items.
 
 ### filter
 ```python
-def filter(self, condition: callable) -> "Dataset"
+def filter(self, condition: callable) -> "Dataset":
+    ...
 ```
 Filters dataset by condition function.
 
 ### split
 ```python
-def split(self, train_ratio: float = 0.8, random_state: Optional[int] = None) -> Tuple["Dataset", "Dataset"]
+def split(self, train_ratio: float = 0.8, random_state: Optional[int] = None) -> Tuple["Dataset", "Dataset"]:
+    ...
 ```
 Splits into train and test sets.
 

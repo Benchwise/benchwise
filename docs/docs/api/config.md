@@ -38,7 +38,8 @@ def configure_benchwise(
     cache_enabled: Optional[bool] = None,
     debug: Optional[bool] = None,
     **kwargs,
-) -> BenchwiseConfig
+) -> BenchwiseConfig:
+    ...
 ```
 
 Configure Benchwise settings programmatically.
@@ -46,7 +47,8 @@ Configure Benchwise settings programmatically.
 ### get_api_config
 
 ```python
-def get_api_config() -> BenchwiseConfig
+def get_api_config() -> BenchwiseConfig:
+    ...
 ```
 
 Get the global Benchwise configuration instance.
@@ -54,7 +56,8 @@ Get the global Benchwise configuration instance.
 ### set_api_config
 
 ```python
-def set_api_config(config: BenchwiseConfig)
+def set_api_config(config: BenchwiseConfig):
+    ...
 ```
 
 Set the global Benchwise configuration instance.
@@ -62,7 +65,8 @@ Set the global Benchwise configuration instance.
 ### reset_config
 
 ```python
-def reset_config()
+def reset_config():
+    ...
 ```
 
 Reset configuration to default values.
@@ -70,7 +74,8 @@ Reset configuration to default values.
 ### is_api_available
 
 ```python
-def is_api_available() -> bool
+def is_api_available() -> bool:
+    ...
 ```
 
 Check if Benchwise API configuration is available.
@@ -78,7 +83,8 @@ Check if Benchwise API configuration is available.
 ### is_authenticated
 
 ```python
-def is_authenticated() -> bool
+def is_authenticated() -> bool:
+    ...
 ```
 
 Check if API authentication is configured.
@@ -86,7 +92,8 @@ Check if API authentication is configured.
 ### get_cache_dir
 
 ```python
-def get_cache_dir() -> Path
+def get_cache_dir() -> Path:
+    ...
 ```
 
 Get the cache directory path.
@@ -94,7 +101,8 @@ Get the cache directory path.
 ### get_development_config
 
 ```python
-def get_development_config() -> BenchwiseConfig
+def get_development_config() -> BenchwiseConfig:
+    ...
 ```
 
 Get configuration optimized for development.
@@ -102,7 +110,8 @@ Get configuration optimized for development.
 ### get_production_config
 
 ```python
-def get_production_config(api_url: str, api_key: str) -> BenchwiseConfig
+def get_production_config(api_url: str, api_key: str) -> BenchwiseConfig:
+    ...
 ```
 
 Get configuration optimized for production.
@@ -110,7 +119,8 @@ Get configuration optimized for production.
 ### get_offline_config
 
 ```python
-def get_offline_config() -> BenchwiseConfig
+def get_offline_config() -> BenchwiseConfig:
+    ...
 ```
 
 Get configuration for offline usage.
@@ -118,7 +128,8 @@ Get configuration for offline usage.
 ### validate_api_connection
 
 ```python
-def validate_api_connection(config: BenchwiseConfig) -> bool
+def validate_api_connection(config: BenchwiseConfig) -> bool:
+    ...
 ```
 
 Validate API connection and configuration.
@@ -126,7 +137,8 @@ Validate API connection and configuration.
 ### validate_api_keys
 
 ```python
-def validate_api_keys(config: BenchwiseConfig) -> Dict[str, bool]
+def validate_api_keys(config: BenchwiseConfig) -> Dict[str, bool]:
+    ...
 ```
 
 Validate external API keys by making test calls.
@@ -134,7 +146,8 @@ Validate external API keys by making test calls.
 ### print_configuration_status
 
 ```python
-def print_configuration_status(config: BenchwiseConfig)
+def print_configuration_status(config: BenchwiseConfig):
+    ...
 ```
 
 Print comprehensive configuration status.

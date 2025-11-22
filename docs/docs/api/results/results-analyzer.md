@@ -14,7 +14,8 @@ Statistical analysis and reporting for results.
 def generate_report(
     benchmark_result: BenchmarkResult,
     output_format: str = "text"
-) -> str
+) -> str:
+    ...
 ```
 
 Generate a formatted report of benchmark results.
@@ -31,7 +32,8 @@ Generate a formatted report of benchmark results.
 def compare_benchmarks(
     benchmark_results: List[BenchmarkResult],
     metric_name: str = None
-) -> Dict[str, Any]
+) -> Dict[str, Any]:
+    ...
 ```
 
 Compare results across multiple benchmarks.
@@ -51,7 +53,8 @@ Compare results across multiple benchmarks.
 def analyze_model_performance(
     results: List[EvaluationResult],
     metric_name: str = None
-) -> Dict[str, Any]
+) -> Dict[str, Any]:
+    ...
 ```
 
 Analyze performance of a single model across multiple evaluations.

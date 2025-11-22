@@ -15,7 +15,8 @@ def bert_score_metric(
     model_type: str = "distilbert-base-uncased",
     return_confidence: bool = True,
     batch_size: int = 64,
-) -> Dict[str, float]
+) -> Dict[str, float]:
+    ...
 ```
 
 ## Parameters

@@ -85,6 +85,7 @@ asyncio.run(main())
 ## Topic Classification
 
 ```python
+import asyncio
 from benchwise import evaluate, create_classification_dataset, accuracy
 
 # Topic classification dataset
@@ -133,12 +134,25 @@ async def test_topic_classification(model, dataset):
         "misclassifications": sum(1 for n in normalized if n == "unknown")
     }
 
-asyncio.run(test_topic_classification(topic_dataset))
+async def main():
+    results = await test_topic_classification(topic_dataset)
+
+    print("\n=== Topic Classification Results ===")
+    for result in results:
+        if result.success:
+            print(f"\n{result.model_name}:")
+            print(f"  Accuracy: {result.result['accuracy']:.2%}")
+            print(f"  Misclassifications: {result.result['misclassifications']}")
+        else:
+            print(f"\n{result.model_name}: FAILED - {result.error}")
+
+asyncio.run(main())
 ```
 
 ## Multi-Label Classification
 
 ```python
+import asyncio
 from benchwise import evaluate, Dataset
 
 # Multi-label classification (document can have multiple tags)
@@ -199,12 +213,26 @@ async def test_multi_label(model, dataset):
         "f1_score": f1
     }
 
-asyncio.run(test_multi_label(multi_label_dataset))
+async def main():
+    results = await test_multi_label(multi_label_dataset)
+
+    print("\n=== Multi-Label Classification Results ===")
+    for result in results:
+        if result.success:
+            print(f"\n{result.model_name}:")
+            print(f"  Precision: {result.result['precision']:.2%}")
+            print(f"  Recall: {result.result['recall']:.2%}")
+            print(f"  F1 Score: {result.result['f1_score']:.2%}")
+        else:
+            print(f"\n{result.model_name}: FAILED - {result.error}")
+
+asyncio.run(main())
 ```
 
 ## Spam Detection
 
 ```python
+import asyncio
 from benchwise import evaluate, create_classification_dataset, accuracy
 
 # Spam vs legitimate messages
@@ -260,12 +288,26 @@ async def test_spam_detection(model, dataset):
         "spam_recall": recall
     }
 
-asyncio.run(test_spam_detection(spam_dataset))
+async def main():
+    results = await test_spam_detection(spam_dataset)
+
+    print("\n=== Spam Detection Results ===")
+    for result in results:
+        if result.success:
+            print(f"\n{result.model_name}:")
+            print(f"  Accuracy: {result.result['accuracy']:.2%}")
+            print(f"  Spam Precision: {result.result['spam_precision']:.2%}")
+            print(f"  Spam Recall: {result.result['spam_recall']:.2%}")
+        else:
+            print(f"\n{result.model_name}: FAILED - {result.error}")
+
+asyncio.run(main())
 ```
 
 ## Intent Classification
 
 ```python
+import asyncio
 from benchwise import evaluate, create_classification_dataset, accuracy
 
 # User intent classification for chatbots
@@ -322,13 +364,26 @@ async def test_intent_classification(model, dataset):
         "successful_classifications": sum(1 for n in normalized if n != "unknown")
     }
 
-asyncio.run(test_intent_classification(intent_dataset))
+async def main():
+    results = await test_intent_classification(intent_dataset)
+
+    print("\n=== Intent Classification Results ===")
+    for result in results:
+        if result.success:
+            print(f"\n{result.model_name}:")
+            print(f"  Accuracy: {result.result['accuracy']:.2%}")
+            print(f"  Successful Classifications: {result.result['successful_classifications']}")
+        else:
+            print(f"\n{result.model_name}: FAILED - {result.error}")
+
+asyncio.run(main())
 ```
 
 ## Emotion Classification
 
 ```python
-from benchwise import evaluate, create_classification_dataset
+import asyncio
+from benchwise import evaluate, create_classification_dataset, accuracy
 
 # Emotion detection in text
 emotional_texts = [
@@ -374,12 +429,24 @@ async def test_emotion_classification(model, dataset):
 
     return {"accuracy": acc["accuracy"]}
 
-asyncio.run(test_emotion_classification(emotion_dataset))
+async def main():
+    results = await test_emotion_classification(emotion_dataset)
+
+    print("\n=== Emotion Classification Results ===")
+    for result in results:
+        if result.success:
+            print(f"\n{result.model_name}:")
+            print(f"  Accuracy: {result.result['accuracy']:.2%}")
+        else:
+            print(f"\n{result.model_name}: FAILED - {result.error}")
+
+asyncio.run(main())
 ```
 
 ## Zero-Shot Classification
 
 ```python
+import asyncio
 from benchwise import evaluate, Dataset
 
 # Test zero-shot classification with novel categories
@@ -421,13 +488,83 @@ async def test_zero_shot(model, dataset):
         "successful_classifications": correct
     }
 
-asyncio.run(test_zero_shot(zero_shot_dataset))
+async def main():
+    results = await test_zero_shot(zero_shot_dataset)
+
+    print("\n=== Zero-Shot Classification Results ===")
+    for result in results:
+        if result.success:
+            print(f"\n{result.model_name}:")
+            print(f"  Zero-Shot Accuracy: {result.result['zero_shot_accuracy']:.2%}")
+            print(f"  Successful Classifications: {result.result['successful_classifications']}")
+        else:
+            print(f"\n{result.model_name}: FAILED - {result.error}")
+
+asyncio.run(main())
 ```
 
 ## Saving and Analyzing Results
 
 ```python
-from benchwise import save_results, BenchmarkResult, ResultsAnalyzer
+import asyncio
+from benchwise import (
+    evaluate,
+    benchmark,
+    create_classification_dataset,
+    accuracy,
+    save_results,
+    BenchmarkResult,
+    ResultsAnalyzer
+)
+
+# Create sentiment classification dataset
+texts = [
+    "This product is amazing! I love it!",
+    "Terrible experience, very disappointed.",
+    "It's okay, nothing special.",
+    "Best purchase I've ever made!",
+    "Waste of money, do not recommend.",
+    "Pretty good, meets expectations."
+]
+
+labels = [
+    "positive",
+    "negative",
+    "neutral",
+    "positive",
+    "negative",
+    "neutral"
+]
+
+sentiment_dataset = create_classification_dataset(
+    texts=texts,
+    labels=labels,
+    name="sentiment_analysis"
+)
+
+@benchmark("Sentiment Analysis", "Product review sentiment classification")
+@evaluate("gpt-3.5-turbo", "claude-3-haiku", "gemini-pro")
+async def test_sentiment_classification(model, dataset):
+    prompts = [f"Classify the sentiment as positive, negative, or neutral: '{text}'"
+               for text in dataset.prompts]
+    responses = await model.generate(prompts, temperature=0)
+    normalized_responses = []
+    for response in responses:
+        response_lower = response.lower()
+        if "positive" in response_lower:
+            normalized_responses.append("positive")
+        elif "negative" in response_lower:
+            normalized_responses.append("negative")
+        elif "neutral" in response_lower:
+            normalized_responses.append("neutral")
+        else:
+            normalized_responses.append("unknown")
+    acc = accuracy(normalized_responses, dataset.references)
+    return {
+        "accuracy": acc["accuracy"],
+        "total_classified": len(normalized_responses),
+        "unknown_responses": normalized_responses.count("unknown")
+    }
 
 async def run_complete_classification():
     results = await test_sentiment_classification(sentiment_dataset)

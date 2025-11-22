@@ -8,7 +8,7 @@ Custom exception classes for Benchwise.
 
 ## Exception Hierarchy
 
-```python
+```
 BenchwiseError (base)
 ├── AuthenticationError
 ├── RateLimitError

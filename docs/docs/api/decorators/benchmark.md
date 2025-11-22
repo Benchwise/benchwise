@@ -9,7 +9,10 @@ Decorator to mark evaluation functions as named benchmarks with metadata.
 ## Signature
 
 ```python
-@benchmark(name: str, description: str = "", **kwargs) -> Callable
+@benchmark(name, description="", **kwargs)
+@evaluate(*models)
+async def evaluate_function(model, dataset):
+    ...
 ```
 
 ## Parameters
@@ -47,8 +50,7 @@ async def test_general_qa(model, dataset):
 )
 @evaluate("gpt-4")
 async def test_medical_qa(model, dataset):
-    responses = await model.generate(dataset.prompts)
-    return {"responses": responses}
+    ...
 ```
 
 ## Accessing Metadata
@@ -59,7 +61,7 @@ Benchmark metadata is stored in the function's `_benchmark_metadata` attribute:
 @benchmark("Test Benchmark", "Description", version="1.0")
 @evaluate("gpt-4")
 async def my_test(model, dataset):
-    pass
+    ...
 
 # Access metadata
 metadata = my_test._benchmark_metadata
@@ -77,13 +79,13 @@ print(metadata["version"])      # "1.0"
 @benchmark("My Benchmark", "Description")
 @evaluate("gpt-4")
 async def correct_test(model, dataset):
-    pass
+    ...
 
 # Wrong order - will not work properly
 @evaluate("gpt-4")
 @benchmark("My Benchmark", "Description")
 async def wrong_test(model, dataset):
-    pass
+    ...
 ```
 
 ## Complete Example
@@ -159,7 +161,7 @@ async def test_customer_qa_v2(model, dataset):
 )
 @evaluate("gpt-4")
 async def test_medical(model, dataset):
-    pass
+    ...
 
 # Legal domain
 @benchmark(
@@ -171,7 +173,7 @@ async def test_medical(model, dataset):
 )
 @evaluate("gpt-4")
 async def test_legal(model, dataset):
-    pass
+    ...
 
 # Financial domain
 @benchmark(
@@ -193,21 +195,33 @@ async def test_financial(model, dataset):
 ```python
 # Good
 @benchmark("Medical QA - Cardiology", "Heart disease diagnosis questions")
+@evaluate("gpt-4")
+async def test_medical_cardiology(model, dataset):
+    ...
 
 # Less descriptive
 @benchmark("Test 1", "Some test")
+@evaluate("gpt-4")
+async def test_one(model, dataset):
+    ...
 ```
 
 ### 2. Include Version Information
 
 ```python
 @benchmark("Product QA", "Product questions", version="2.1", updated="2024-11-16")
+@evaluate("gpt-4")
+async def test_product_qa(model, dataset):
+    ...
 ```
 
 ### 3. Document Difficulty
 
 ```python
 @benchmark("Math Problems", "Algebra questions", difficulty="intermediate", grade_level="9-10")
+@evaluate("gpt-4")
+async def test_math_problems(model, dataset):
+    ...
 ```
 
 ### 4. Specify Dataset Information
@@ -220,6 +234,9 @@ async def test_financial(model, dataset):
     source="MMLU",
     sample_strategy="random"
 )
+@evaluate("gpt-4")
+async def test_mmlu(model, dataset):
+    ...
 ```
 
 ## See Also

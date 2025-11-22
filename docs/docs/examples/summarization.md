@@ -73,7 +73,31 @@ asyncio.run(main())
 ## Multi-Metric Summarization
 
 ```python
-from benchwise import evaluate, rouge_l, bleu_score, semantic_similarity
+import asyncio
+from benchwise import evaluate, create_summarization_dataset, rouge_l, bleu_score, semantic_similarity
+
+# Create summarization dataset
+documents = [
+    """Climate change refers to long-term shifts in global temperatures and weather patterns.
+    While climate variations are natural, since the 1800s human activities have been the main
+    driver of climate change, primarily due to the burning of fossil fuels like coal, oil and
+    gas, which produces heat-trapping gases.""",
+
+    """Artificial intelligence (AI) refers to the simulation of human intelligence in machines
+    that are programmed to think and learn like humans. The term may also be applied to any
+    machine that exhibits traits associated with a human mind such as learning and problem-solving."""
+]
+
+summaries = [
+    "Climate change is long-term temperature shifts mainly caused by human fossil fuel use since the 1800s.",
+    "AI is the simulation of human intelligence in machines programmed to think and learn."
+]
+
+summ_dataset = create_summarization_dataset(
+    documents=documents,
+    summaries=summaries,
+    name="news_summarization"
+)
 
 @evaluate("gpt-4", "claude-3-opus")
 async def test_with_multiple_metrics(model, dataset):
@@ -91,12 +115,26 @@ async def test_with_multiple_metrics(model, dataset):
         "semantic_similarity": similarity["mean_similarity"]
     }
 
-asyncio.run(test_with_multiple_metrics(summ_dataset))
+async def main():
+    results = await test_with_multiple_metrics(summ_dataset)
+
+    print("\n=== Multi-Metric Summarization Results ===")
+    for result in results:
+        if result.success:
+            print(f"\n{result.model_name}:")
+            print(f"  ROUGE F1: {result.result['rouge_f1']:.3f}")
+            print(f"  BLEU: {result.result['bleu']:.3f}")
+            print(f"  Semantic Similarity: {result.result['semantic_similarity']:.3f}")
+        else:
+            print(f"\n{result.model_name}: FAILED - {result.error}")
+
+asyncio.run(main())
 ```
 
 ## Abstractive vs Extractive Summarization
 
 ```python
+import asyncio
 from benchwise import evaluate, create_summarization_dataset, rouge_l
 
 article = """The stock market experienced significant volatility today, with the Dow Jones
@@ -106,6 +144,12 @@ Analysts attribute the volatility to concerns about inflation and potential inte
 
 extractive_summary = "The stock market dropped 500 points before recovering. Technology stocks declined 3-5%."
 abstractive_summary = "Markets were volatile today due to inflation concerns, with tech leading losses."
+
+abstractive_dataset = create_summarization_dataset(
+    documents=[article],
+    summaries=[abstractive_summary],
+    name="abstractive_test"
+)
 
 @evaluate("gpt-4", temperature=0)
 async def test_abstractive(model, dataset):
@@ -121,30 +165,37 @@ async def test_abstractive(model, dataset):
         "avg_length": sum(len(s.split()) for s in summaries) / len(summaries)
     }
 
-@evaluate("gpt-4", temperature=0)
-async def test_extractive(model, dataset):
-    # Encourage extractive summarization
-    prompts = [f"Create an extractive summary (use sentences from the text): {doc}"
-               for doc in dataset.prompts]
-    summaries = await model.generate(prompts)
+async def main():
+    results = await test_abstractive(abstractive_dataset)
 
-    rouge = rouge_l(summaries, dataset.references)
+    print("\n=== Abstractive Summarization Results ===")
+    for result in results:
+        if result.success:
+            print(f"\n{result.model_name}:")
+            print(f"  ROUGE F1: {result.result['rouge_f1']:.3f}")
+            print(f"  Avg Length: {result.result['avg_length']:.1f} words")
+        else:
+            print(f"\n{result.model_name}: FAILED - {result.error}")
 
-    return {
-        "rouge_f1": rouge["f1"],
-        "avg_length": sum(len(s.split()) for s in summaries) / len(summaries)
-    }
+asyncio.run(main())
 ```
 
 ## Length-Controlled Summarization
 
 ```python
+import asyncio
 from benchwise import evaluate, create_summarization_dataset, rouge_l
 
 long_articles = [
     """[Very long article about quantum computing - 1000+ words]""",
     """[Very long article about renewable energy - 1000+ words]"""
 ]
+
+long_article_dataset = create_summarization_dataset(
+    documents=long_articles,
+    summaries=["Quantum computing summary", "Renewable energy summary"],
+    name="long_articles"
+)
 
 @evaluate("gpt-4")
 async def test_different_lengths(model, dataset):
@@ -170,12 +221,30 @@ async def test_different_lengths(model, dataset):
         }
 
     return results
+
+async def main():
+    results = await test_different_lengths(long_article_dataset)
+
+    print("\n=== Length-Controlled Summarization Results ===")
+    for result in results:
+        if result.success:
+            print(f"\n{result.model_name}:")
+            for length_key, metrics in result.result.items():
+                print(f"  {length_key}:")
+                print(f"    ROUGE F1: {metrics['rouge_f1']:.3f}")
+                print(f"    Target: {metrics['target_length']}, Actual: {metrics['actual_length']:.1f}")
+                print(f"    Length Accuracy: {metrics['length_accuracy']:.2%}")
+        else:
+            print(f"\n{result.model_name}: FAILED - {result.error}")
+
+asyncio.run(main())
 ```
 
 ## Domain-Specific Summarization
 
 ```python
-from benchwise import evaluate, create_summarization_dataset
+import asyncio
+from benchwise import evaluate, create_summarization_dataset, rouge_l
 
 # Scientific paper summarization
 scientific_dataset = create_summarization_dataset(
@@ -203,13 +272,49 @@ async def test_scientific_summarization(model, dataset):
         "readability_friendly": True  # Custom metric
     }
 
-asyncio.run(test_scientific_summarization(scientific_dataset))
+async def main():
+    results = await test_scientific_summarization(scientific_dataset)
+
+    print("\n=== Scientific Summarization Results ===")
+    for result in results:
+        if result.success:
+            print(f"\n{result.model_name}:")
+            print(f"  ROUGE F1: {result.result['rouge_f1']:.3f}")
+            print(f"  Readability Friendly: {result.result['readability_friendly']}")
+        else:
+            print(f"\n{result.model_name}: FAILED - {result.error}")
+
+asyncio.run(main())
 ```
 
 ## Bullet Point Summaries
 
 ```python
-from benchwise import evaluate
+import asyncio
+from benchwise import evaluate, create_summarization_dataset, rouge_l
+
+# Create dataset
+documents = [
+    """Climate change refers to long-term shifts in global temperatures and weather patterns.
+    While climate variations are natural, since the 1800s human activities have been the main
+    driver of climate change, primarily due to the burning of fossil fuels like coal, oil and
+    gas, which produces heat-trapping gases.""",
+
+    """Artificial intelligence (AI) refers to the simulation of human intelligence in machines
+    that are programmed to think and learn like humans. The term may also be applied to any
+    machine that exhibits traits associated with a human mind such as learning and problem-solving."""
+]
+
+summaries = [
+    "• Climate change is caused by human activities\n• Fossil fuels are the main driver\n• Effects started in the 1800s",
+    "• AI simulates human intelligence\n• Machines learn and think\n• Applied to problem-solving tasks"
+]
+
+bullet_dataset = create_summarization_dataset(
+    documents=documents,
+    summaries=summaries,
+    name="bullet_summaries"
+)
 
 @evaluate("gpt-4", "claude-3-opus")
 async def test_bullet_summaries(model, dataset):
@@ -233,12 +338,28 @@ async def test_bullet_summaries(model, dataset):
         "avg_bullet_points": avg_bullets,
         "bullet_compliance": sum(1 for b in bullet_counts if 3 <= b <= 5) / len(bullet_counts)
     }
+
+async def main():
+    results = await test_bullet_summaries(bullet_dataset)
+
+    print("\n=== Bullet Point Summaries Results ===")
+    for result in results:
+        if result.success:
+            print(f"\n{result.model_name}:")
+            print(f"  ROUGE F1: {result.result['rouge_f1']:.3f}")
+            print(f"  Avg Bullet Points: {result.result['avg_bullet_points']:.1f}")
+            print(f"  Bullet Compliance: {result.result['bullet_compliance']:.2%}")
+        else:
+            print(f"\n{result.model_name}: FAILED - {result.error}")
+
+asyncio.run(main())
 ```
 
 ## Multilingual Summarization
 
 ```python
-from benchwise import evaluate, create_summarization_dataset
+import asyncio
+from benchwise import evaluate, create_summarization_dataset, rouge_l
 
 multilingual_dataset = create_summarization_dataset(
     documents=[
@@ -264,17 +385,39 @@ async def test_multilingual(model, dataset):
         "rouge_f1": rouge["f1"]
     }
 
-asyncio.run(test_multilingual(multilingual_dataset))
+async def main():
+    results = await test_multilingual(multilingual_dataset)
+
+    print("\n=== Multilingual Summarization Results ===")
+    for result in results:
+        if result.success:
+            print(f"\n{result.model_name}:")
+            print(f"  ROUGE F1: {result.result['rouge_f1']:.3f}")
+        else:
+            print(f"\n{result.model_name}: FAILED - {result.error}")
+
+asyncio.run(main())
 ```
 
 ## Real-Time News Summarization
 
 ```python
+import asyncio
 import time
-from benchwise import evaluate, load_dataset, save_results, BenchmarkResult, benchmark, rouge_l
+from benchwise import evaluate, create_summarization_dataset, save_results, BenchmarkResult, benchmark, rouge_l
 
-# Load news articles dataset
-news_dataset = load_dataset("data/news_articles.json")
+# Create news articles dataset
+news_dataset = create_summarization_dataset(
+    documents=[
+        "Stock markets rallied today with tech stocks leading gains...",
+        "Climate summit reaches historic agreement on emissions..."
+    ],
+    summaries=[
+        "Markets up, tech leads",
+        "Climate deal reached"
+    ],
+    name="news_articles"
+)
 
 @benchmark("News Summarization", "Real-time news article summarization")
 @evaluate("gpt-4o-mini", "claude-3-5-haiku-20241022", "gemini-pro")
@@ -309,7 +452,51 @@ asyncio.run(main())
 ## Saving Results
 
 ```python
-from benchwise import save_results, BenchmarkResult, ResultsAnalyzer
+import asyncio
+from benchwise import (
+    evaluate,
+    benchmark,
+    create_summarization_dataset,
+    rouge_l,
+    save_results,
+    BenchmarkResult,
+    ResultsAnalyzer
+)
+
+# Create summarization dataset
+documents = [
+    """Climate change refers to long-term shifts in global temperatures and weather patterns.
+    While climate variations are natural, since the 1800s human activities have been the main
+    driver of climate change, primarily due to the burning of fossil fuels like coal, oil and
+    gas, which produces heat-trapping gases.""",
+
+    """Artificial intelligence (AI) refers to the simulation of human intelligence in machines
+    that are programmed to think and learn like humans. The term may also be applied to any
+    machine that exhibits traits associated with a human mind such as learning and problem-solving."""
+]
+
+summaries = [
+    "Climate change is long-term temperature shifts mainly caused by human fossil fuel use since the 1800s.",
+    "AI is the simulation of human intelligence in machines programmed to think and learn."
+]
+
+summ_dataset = create_summarization_dataset(
+    documents=documents,
+    summaries=summaries,
+    name="news_summarization"
+)
+
+@benchmark("News Summarization", "Evaluates summarization quality")
+@evaluate("gpt-4", "claude-3-sonnet", "gemini-pro")
+async def test_summarization(model, dataset):
+    prompts = [f"Summarize this in one sentence: {doc}" for doc in dataset.prompts]
+    summaries = await model.generate(prompts, max_tokens=100, temperature=0)
+    rouge_scores = rouge_l(summaries, dataset.references)
+    return {
+        "rouge_l_f1": rouge_scores["f1"],
+        "rouge_l_precision": rouge_scores["precision"],
+        "rouge_l_recall": rouge_scores["recall"]
+    }
 
 async def run_and_save():
     results = await test_summarization(summ_dataset)

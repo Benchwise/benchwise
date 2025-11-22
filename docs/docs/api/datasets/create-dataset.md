@@ -14,7 +14,8 @@ def create_qa_dataset(
     answers: List[str],
     name: str = "qa_dataset",
     **kwargs
-) -> Dataset
+) -> Dataset:
+    ...
 ```
 
 Create question-answer dataset.
@@ -37,7 +38,8 @@ def create_summarization_dataset(
     summaries: List[str],
     name: str = "summarization_dataset",
     **kwargs
-) -> Dataset
+) -> Dataset:
+    ...
 ```
 
 Create summarization dataset.
@@ -60,7 +62,8 @@ def create_classification_dataset(
     labels: List[str],
     name: str = "classification_dataset",
     **kwargs
-) -> Dataset
+) -> Dataset:
+    ...
 ```
 
 Create classification dataset.
@@ -79,17 +82,20 @@ dataset = create_classification_dataset(
 
 ### load_mmlu_sample
 ```python
-def load_mmlu_sample() -> Dataset
+def load_mmlu_sample() -> Dataset:
+    ...
 ```
 
 ### load_hellaswag_sample
 ```python
-def load_hellaswag_sample() -> Dataset
+def load_hellaswag_sample() -> Dataset:
+    ...
 ```
 
 ### load_gsm8k_sample
 ```python
-def load_gsm8k_sample() -> Dataset
+def load_gsm8k_sample() -> Dataset:
+    ...
 ```
 
 ## See Also

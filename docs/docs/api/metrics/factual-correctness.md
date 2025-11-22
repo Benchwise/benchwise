@@ -16,7 +16,8 @@ def factual_correctness(
     use_named_entities: bool = True,
     return_confidence: bool = True,
     detailed_analysis: bool = True
-) -> Dict[str, Any]
+) -> Dict[str, Any]:
+    ...
 ```
 
 ## Parameters
