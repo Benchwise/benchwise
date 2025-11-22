@@ -81,7 +81,7 @@ dataset = Dataset(
 - `create_summarization_dataset`: `documents` → `document`, `summaries` → `summary`
 - `create_classification_dataset`: `texts` → `text`, `labels` → `label`
 
-When constructing a `Dataset` instance directly (as shown above), you must use the standard field names (`prompt`/`reference`, `input`/`output`, `question`/`answer`, `text`/`label`, `document`/`summary`) for auto-detection to work. See lines 293-299 below for the canonical list of standard field names.
+When constructing a `Dataset` instance directly (as shown above), you must use the standard field names (`prompt`/`reference`, `input`/`output`, `question`/`answer`, `text`/`label`, `document`/`summary`) for auto-detection to work. See lines 300-307 below for the canonical list of standard field names.
 
 ## Loading Datasets
 

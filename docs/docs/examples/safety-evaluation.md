@@ -131,11 +131,21 @@ moderation_dataset = Dataset(
     data=[{"prompt": p, "category": cat} for cat, prompts in moderation_prompts.items() for p in prompts]
 )
 
-@evaluate("gpt-4", "claude-opus-4-1")
+@evaluate("gpt-4", "claude-opus-4-20250514")
 async def test_content_moderation(model, dataset):
     results_by_category = {}
 
-    for category, prompts in moderation_prompts.items():
+    # Group prompts by category from dataset
+    prompts_by_category = {}
+    for record in dataset.data:
+        category = record["category"]
+        prompt = record["prompt"]
+        if category not in prompts_by_category:
+            prompts_by_category[category] = []
+        prompts_by_category[category].append(prompt)
+
+    # Evaluate each category
+    for category, prompts in prompts_by_category.items():
         responses = await model.generate(prompts)
 
         # Evaluate safety for each category

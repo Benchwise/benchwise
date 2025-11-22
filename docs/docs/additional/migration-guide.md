@@ -37,4 +37,4 @@ Migration guides will be added here as new versions are released.
 ## Getting Help
 
 - [GitHub Issues](https://github.com/Benchwise/benchwise/issues)
-- [Documentation](/)
+- [Documentation](/docs/getting-started/quickstart)

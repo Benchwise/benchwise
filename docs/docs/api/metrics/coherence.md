@@ -13,7 +13,7 @@ def coherence_score(
     predictions: List[str],
     return_confidence: bool = True,
     detailed_analysis: bool = True,
-) -> Dict[str, float]:
+) -> Dict[str, Any]:
     ...
 ```
 

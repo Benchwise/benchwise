@@ -44,7 +44,7 @@ Dictionary containing:
 - **std_score** (float): Standard deviation of individual scores.
 - **individual_scores** (List[float]): List of individual scores for each prediction.
 - **match_types** (List[str]): List indicating match type for each prediction ("exact", "fuzzy", "none").
-- **accuracy_confidence_interval** (Tuple[float, float], optional): 95% confidence interval for accuracy (if `return_confidence` is True).
+- **accuracy_confidence_interval** (Tuple[float, float], optional): 95% confidence interval for accuracy. This field is only included when `return_confidence=True`; otherwise, it is omitted from the returned dictionary.
 
 ## Usage
 
@@ -81,23 +81,45 @@ async def test_accuracy(model, dataset):
     }
 ```
 
-## Case Sensitivity
+## Case Sensitivity and Text Normalization
 
-By default, `accuracy` performs case-insensitive comparison if `normalize_text` is `True` (default). To enforce case-sensitive comparison, set `normalize_text` to `False` and `case_sensitive` to `True`.
+The `accuracy` function provides two independent parameters for controlling comparison behavior:
+
+- **`normalize_text`** (bool, default: `True`): Controls whether to normalize text by removing punctuation and extra whitespace
+- **`case_sensitive`** (bool, default: `False`): Controls whether to respect letter case during comparison
+
+These parameters work independently, providing four distinct comparison modes:
+
+1. **`normalize_text=True, case_sensitive=False`** (default): Normalized text, case-insensitive
+   - Removes punctuation and extra spaces, ignores case
+2. **`normalize_text=True, case_sensitive=True`**: Normalized text, case-sensitive
+   - Removes punctuation and extra spaces, respects case
+3. **`normalize_text=False, case_sensitive=False`**: Raw text, case-insensitive
+   - Strips whitespace only, ignores case
+4. **`normalize_text=False, case_sensitive=True`**: Raw text, case-sensitive
+   - Strips whitespace only, respects case
 
 ```python
 from benchwise import accuracy
 
-predictions = ["Paris", "London"]
+predictions = ["Paris!", "London"]
 references = ["paris", "London"]
 
-# Case-insensitive (default behavior with normalize_text=True)
-result_insensitive = accuracy(predictions, references)
-print(f"Case-insensitive accuracy: {result_insensitive['accuracy']:.2%}") # 100.00%
+# Default: normalized, case-insensitive
+result1 = accuracy(predictions, references)
+print(f"Normalized, case-insensitive: {result1['accuracy']:.2%}") # 100.00%
 
-# Case-sensitive comparison
-result_sensitive = accuracy(predictions, references, normalize_text=False, case_sensitive=True)
-print(f"Case-sensitive accuracy: {result_sensitive['accuracy']:.2%}") # 50.00%
+# Normalized, case-sensitive
+result2 = accuracy(predictions, references, normalize_text=True, case_sensitive=True)
+print(f"Normalized, case-sensitive: {result2['accuracy']:.2%}") # 50.00%
+
+# Raw, case-insensitive
+result3 = accuracy(predictions, references, normalize_text=False, case_sensitive=False)
+print(f"Raw, case-insensitive: {result3['accuracy']:.2%}") # 50.00%
+
+# Raw, case-sensitive
+result4 = accuracy(predictions, references, normalize_text=False, case_sensitive=True)
+print(f"Raw, case-sensitive: {result4['accuracy']:.2%}") # 50.00%
 ```
 
 ## Fuzzy Matching

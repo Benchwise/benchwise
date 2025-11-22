@@ -187,7 +187,12 @@ def custom_length_metric(predictions, references):
         pred_len = len(pred.split())
 
         # Score based on length similarity
-        ratio = min(pred_len, ref_len) / max(pred_len, ref_len)
+        max_len = max(pred_len, ref_len)
+        if max_len == 0:
+            # Empty prediction matches empty reference
+            ratio = 1.0
+        else:
+            ratio = min(pred_len, ref_len) / max_len
         scores.append(ratio)
 
     return {

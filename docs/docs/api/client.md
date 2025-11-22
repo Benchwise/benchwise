@@ -24,7 +24,17 @@ async def sync_offline_results() -> int:
 
 Sync queued offline results.
 
+### close_client
+```python
+async def close_client():
+    ...
+```
+
+Close the context-local client and release HTTP connections. Optional but recommended for clean shutdown.
+
 ## Usage
+
+The client is managed internally via context variables (singleton pattern). Calling `close_client()` is **optional** but recommended for clean shutdown.
 
 ```python
 import asyncio
@@ -37,12 +47,14 @@ benchmark = BenchmarkResult(
     metadata={"version": "1.0"}
 )
 
-# Upload results (client is managed internally)
+# Upload results
 asyncio.run(upload_results(benchmark.results, benchmark.name, benchmark.metadata))
 
-# Close client when done
+# Optionally close client when completely done (recommended at program exit)
 asyncio.run(close_client())
 ```
+
+**Note:** If you don't call `close_client()`, the HTTP connection may remain open until garbage collection. For long-running applications or scripts, call `close_client()` at the end to ensure proper cleanup and avoid resource leaks.
 
 ## See Also
 

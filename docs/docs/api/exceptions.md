@@ -20,7 +20,7 @@ BenchwiseError (base)
 └── MetricError
 ```
 
-## BenchWiseError
+## BenchwiseError
 
 Base exception for all Benchwise errors.
 

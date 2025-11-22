@@ -9,10 +9,12 @@ Evaluate factual correctness of predictions using enhanced fact-checking methods
 ## Signature
 
 ```python
+from typing import List, Dict, Any, Optional
+
 def factual_correctness(
     predictions: List[str],
     references: List[str],
-    fact_checker_endpoint: str = None,
+    fact_checker_endpoint: Optional[str] = None,
     use_named_entities: bool = True,
     return_confidence: bool = True,
     detailed_analysis: bool = True
