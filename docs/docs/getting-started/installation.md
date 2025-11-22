@@ -25,25 +25,29 @@ pip install -e .
 Benchwise has several optional dependency groups for different use cases:
 
 ```bash
-# Development tools
+# Development tools (includes test + lint)
 pip install -e ".[dev]"
 
 # Testing tools
 pip install -e ".[test]"
 
-# Evaluation metrics
+# Linting and formatting tools
+pip install -e ".[lint]"
+
+# Evaluation metrics (ROUGE, BLEU, BERT-score, etc.)
 pip install -e ".[metrics]"
 
-# LLM API clients
+# LLM API clients (OpenAI, Anthropic, Google)
 pip install -e ".[llm-apis]"
 
 # HuggingFace transformers
 pip install -e ".[transformers]"
 
-# All LLM dependencies
+# All LLM dependencies (llm-apis + transformers)
 pip install -e ".[llms]"
 
-
+# All optional dependencies
+pip install -e ".[all]"
 ```
 
 ## Set Up API Keys

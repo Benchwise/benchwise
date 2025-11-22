@@ -77,6 +77,11 @@ dev = [
     "psutil>=5.9.0"
 ]
 
+all = [
+    "benchwise[metrics,llms,test,lint]",
+    "psutil>=5.9.0"
+]
+
 [project.urls]
 Homepage = "https://github.com/Benchwise/benchwise"
 Repository = "https://github.com/Benchwise/benchwise"
