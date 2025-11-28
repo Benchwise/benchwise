@@ -78,7 +78,7 @@ dev = [
 ]
 
 all = [
-    "benchwise[metrics,llms,test,lint]",
+    "benchwise[metrics,llms]",
     "psutil>=5.9.0"
 ]
 
