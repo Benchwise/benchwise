@@ -58,7 +58,7 @@ from benchwise import BenchmarkResult, save_results
 
 # Create benchmark result container
 benchmark = BenchmarkResult(
-    name="My Benchmark",
+    benchmark_name="My Benchmark",
     metadata={"date": "2024-11-16", "version": "1.0"}
 )
 
@@ -159,14 +159,14 @@ print(f"Worst score: {comparison['worst_score']:.2%}")
 from benchwise import ResultsAnalyzer
 
 # Generate markdown report
-report = ResultsAnalyzer.generate_report(benchmark, format="markdown")
+report = ResultsAnalyzer.generate_report(benchmark, output_format="markdown")
 print(report)
 
 # Generate HTML report
-html_report = ResultsAnalyzer.generate_report(benchmark, format="html")
+html_report = ResultsAnalyzer.generate_report(benchmark, output_format="html")
 
 # Generate text report
-text_report = ResultsAnalyzer.generate_report(benchmark, format="text")
+text_report = ResultsAnalyzer.generate_report(benchmark, output_format="text")
 ```
 
 
@@ -235,7 +235,7 @@ async def main():
 
     # Create benchmark result
     benchmark = BenchmarkResult(
-        "AI Knowledge Benchmark",
+        benchmark_name="AI Knowledge Benchmark",
         metadata={"date": "2024-11-16", "version": "1.0"}
     )
 
@@ -277,7 +277,7 @@ save_results(benchmark, f"results_{timestamp}.json", format="json")
 
 ```python
 benchmark = BenchmarkResult(
-    "My Benchmark",
+    benchmark_name="My Benchmark",
     metadata={
         "date": "2024-11-16",
         "version": "2.0",
@@ -314,6 +314,10 @@ new_best = new_results.compare_models("accuracy")["best_score"]
 improvement = new_best - old_best
 print(f"Improvement: {improvement:+.2%}")
 ```
+
+:::info Complete Examples
+For comprehensive result handling examples including saving, loading, comparing, and analyzing results, see [Results](../examples/results.md).
+:::
 
 ## Next Steps
 

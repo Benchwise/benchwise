@@ -20,17 +20,20 @@ from benchwise import evaluate
 # Single model
 @evaluate("gpt-3.5-turbo")
 async def test_single(model, dataset):
-    pass
+    responses = await model.generate(dataset.prompts)
+    return {"responses": responses}
 
-# Multiple models
+# Multiple models - runs test on both
 @evaluate("gpt-3.5-turbo", "gemini-2.5-flash")
 async def test_multiple(model, dataset):
-    pass
+    responses = await model.generate(dataset.prompts)
+    return {"responses": responses}
 
 # With options
 @evaluate("gpt-3.5-turbo", temperature=0.7, upload=True)
 async def test_with_options(model, dataset):
-    pass
+    responses = await model.generate(dataset.prompts, temperature=0.7)
+    return {"responses": responses}
 ```
 
 ### @benchmark
@@ -84,7 +87,7 @@ async def test_google(model, dataset):
     ...
 
 # HuggingFace models
-@evaluate("Zephyr-7B-Beta")
+@evaluate("microsoft/DialoGPT-medium")
 async def test_huggingface(model, dataset):
     ...
 
@@ -261,7 +264,7 @@ Organize multiple results:
 ```python
 from benchwise import BenchmarkResult, save_results
 
-benchmark = BenchmarkResult("My Benchmark")
+benchmark = BenchmarkResult(benchmark_name="My Benchmark")
 for result in results:
     benchmark.add_result(result)
 

@@ -25,13 +25,17 @@ configure_benchwise(
 Automatically upload evaluation results to the Benchwise platform.
 
 ```python
-from benchwise import evaluate, benchmark
+from benchwise import evaluate, benchmark, accuracy
 
+# Note: Evaluation functions should be async to perform model generation
 @benchmark("My Benchmark", "Description")
 @evaluate("gpt-4", upload=True)
 async def my_test(model, dataset):
+    # Generate responses asynchronously
+    responses = await model.generate(dataset.prompts)
+    scores = accuracy(responses, dataset.references)
     # Results will be automatically uploaded
-    return {"accuracy": 0.85}
+    return {"accuracy": scores["accuracy"]}
 ```
 
 ## Manual Upload

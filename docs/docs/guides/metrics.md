@@ -12,9 +12,7 @@ Benchwise includes common evaluation metrics for assessing LLM outputs across di
 
 ## Accuracy
 
-Measures exact string matching between predictions and references.
 
-**Best for:** Factual QA, classification tasks where exact answers matter.
 
 Exact match accuracy for classification and QA tasks:
 
@@ -24,15 +22,13 @@ from benchwise import accuracy
 predictions = ["Paris", "George Orwell", "42"]
 references = ["Paris", "George Orwell", "42"]
 
+# Measures exact string matching between predictions and references.
 result = accuracy(predictions, references)
 print(f"Accuracy: {result['accuracy']:.2%}")  # 100%
 ```
 
 ## ROUGE
 
-Measures longest common subsequence overlap between generated and reference text. Returns F1, precision, and recall scores.
-
-**Best for:** Summarization, content generation tasks.
 
 ROUGE metrics for summarization and text generation:
 
@@ -42,6 +38,7 @@ from benchwise import rouge_l
 predictions = ["The cat sat on the mat"]
 references = ["A cat was sitting on the mat"]
 
+# Measures longest common subsequence overlap between generated and reference text. Returns F1, precision, and recall scores.
 result = rouge_l(predictions, references)
 print(f"F1: {result['f1']:.3f}")
 print(f"Precision: {result['precision']:.3f}")
@@ -49,10 +46,6 @@ print(f"Recall: {result['recall']:.3f}")
 ```
 
 ## BLEU Score
-
-Evaluates text quality by comparing n-gram overlaps. Originally designed for machine translation.
-
-**Best for:** Translation quality, text generation where word order matters.
 
 BLEU for translation and text generation quality:
 
@@ -62,15 +55,13 @@ from benchwise import bleu_score
 predictions = ["The cat is on the mat"]
 references = ["The cat sat on the mat"]
 
+# Evaluates text quality by comparing n-gram overlaps. Originally designed for machine translation.
 result = bleu_score(predictions, references)
-print(f"BLEU: {result['bleu']:.3f}")
+print(f"Corpus BLEU: {result['corpus_bleu']:.3f}")
+print(f"Sentence BLEU: {result['sentence_bleu']:.3f}")
 ```
 
 ## BERT Score
-
-Uses BERT embeddings to measure semantic similarity, understanding meaning beyond exact word matching.
-
-**Best for:** Tasks where paraphrasing is acceptable, evaluating meaning over form.
 
 Semantic similarity using BERT embeddings:
 
@@ -80,15 +71,12 @@ from benchwise import bert_score_metric
 predictions = ["AI is transforming technology"]
 references = ["Artificial intelligence is changing tech"]
 
+# Uses BERT embeddings to measure semantic similarity, understanding meaning beyond exact word matching.
 result = bert_score_metric(predictions, references)
 print(f"F1: {result['f1']:.3f}")
 ```
 
 ## Semantic Similarity
-
-Uses sentence embeddings to compare overall meaning at sentence/document level. Returns 0-1 similarity score.
-
-**Best for:** Comparing overall meaning, accepting paraphrases.
 
 Embedding-based semantic similarity:
 
@@ -98,6 +86,7 @@ from benchwise import semantic_similarity
 predictions = ["Machine learning is a subset of AI"]
 references = ["ML is part of artificial intelligence"]
 
+# Uses sentence embeddings to compare overall meaning at sentence/document level. Returns 0-1 similarity score.
 result = semantic_similarity(predictions, references)
 print(f"Mean similarity: {result['mean_similarity']:.3f}")
 print(f"Min similarity: {result['min_similarity']:.3f}")
@@ -105,10 +94,6 @@ print(f"Max similarity: {result['max_similarity']:.3f}")
 ```
 
 ## Safety Score
-
-Detects harmful, toxic, or inappropriate content. Returns 0-1 safety score (1 = safe).
-
-**Best for:** Content moderation, user-facing applications, production systems.
 
 Content safety evaluation:
 
@@ -120,15 +105,12 @@ responses = [
     "I can help you with that question..."
 ]
 
+# Detects harmful, toxic, or inappropriate content. Returns 0-1 safety score (1 = safe).
 result = safety_score(responses)
 print(f"Mean safety: {result['mean_safety']:.3f}")
 ```
 
 ## Coherence Score
-
-Measures how well text flows and maintains logical consistency between sentences.
-
-**Best for:** Evaluating text quality, detecting incoherent or rambling outputs.
 
 Text coherence evaluation:
 
@@ -140,15 +122,12 @@ texts = [
     "Random words. Not coherent. Disjointed thoughts."
 ]
 
+# Measures how well text flows and maintains logical consistency between sentences.
 result = coherence_score(texts)
 print(f"Mean coherence: {result['mean_coherence']:.3f}")
 ```
 
 ## Factual Correctness
-
-Checks if predictions contain factually correct information, even with different wording. More lenient than exact match accuracy.
-
-**Best for:** Knowledge-based tasks, fact-checking, QA where paraphrasing is acceptable.
 
 Check factual accuracy with context:
 
@@ -158,6 +137,8 @@ from benchwise import factual_correctness
 predictions = ["The capital of France is Paris"]
 references = ["Paris"]
 context = ["France is a country in Europe with Paris as its capital"]
+
+# Checks if predictions contain factually correct information, even with different wording. More lenient than exact match accuracy.
 
 result = factual_correctness(predictions, references, context)
 print(f"Correctness: {result['correctness']:.3f}")
@@ -195,17 +176,13 @@ Use predefined metric bundles:
 ```python
 from benchwise import get_text_generation_metrics, get_qa_metrics, get_safety_metrics
 
-# Text generation metrics
-text_metrics = get_text_generation_metrics()
-results = text_metrics.evaluate(predictions, references)
+# Get bundled metrics for different tasks
+text_metrics = get_text_generation_metrics()  # ROUGE, BLEU, BERT Score, Coherence
+qa_metrics = get_qa_metrics()  # Accuracy, ROUGE, BERT Score, Semantic Similarity
+safety_metrics = get_safety_metrics()  # Safety Score, Toxicity Detection
 
-# QA-specific metrics
-qa_metrics = get_qa_metrics()
-results = qa_metrics.evaluate(predictions, references)
-
-# Safety metrics
-safety_metrics = get_safety_metrics()
-results = safety_metrics.evaluate(predictions, references)
+# Use in evaluation with your predictions and references
+# results = text_metrics.evaluate(predictions, references)
 ```
 
 ## Custom Metrics
@@ -243,7 +220,7 @@ async def test_with_custom_metric(model, dataset):
     return custom_length_metric(responses, dataset.references)
 ```
 
-## Metric Best Practices
+## Best Practices
 
 ### 1. Choose Task-Appropriate Metrics
 
@@ -299,8 +276,12 @@ async def threshold_eval(model, dataset):
     return {"accuracy": acc}
 ```
 
+:::info Complete Examples
+For comprehensive, runnable examples of all metrics, see [Metrics](../examples/metrics.md).
+:::
+
 ## Next Steps
 
 - [Datasets Guide](./datasets.md) - Learn about dataset management
 - [Results Guide](./results.md) - Analyze evaluation results
-- [API Reference](../api/metrics/overview.md) - Detailed metrics documentation
+- [API Reference](../api/metrics/accuracy.md) - Detailed metrics API documentation

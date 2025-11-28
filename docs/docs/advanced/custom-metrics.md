@@ -113,9 +113,9 @@ print(f"Similarity: {results['similarity']}")
 print(f"Custom: {results['custom']}")
 ```
 
-**Note:** Built-in metrics like `accuracy`, `semantic_similarity`, `rouge_l`, `bleu_score`, etc. are imported from `benchwise`. See the [Metrics API](../api/metrics/overview.md) for all available metrics.
+**Note:** Built-in metrics like `accuracy`, `semantic_similarity`, `rouge_l`, `bleu_score`, etc. are imported from `benchwise`. See the [Metrics Guide](../guides/metrics.md) for all available metrics.
 
 ## See Also
 
 - [Metrics Guide](../guides/metrics.md)
-- [Metrics API](../api/metrics/overview.md)
+- [Metrics API Reference](../api/metrics/accuracy.md)

@@ -21,8 +21,8 @@ title: Welcome to Benchwise
 ## Quick Example
 
 ```python
-from benchwise import evaluate, create_qa_dataset, accuracy
 import asyncio
+from benchwise import evaluate, create_qa_dataset, accuracy
 
 # Create a simple dataset
 dataset = create_qa_dataset(
@@ -31,7 +31,7 @@ dataset = create_qa_dataset(
 )
 
 # Evaluate multiple models
-@evaluate("gpt-3.5-turbo", "claude-3-5-haiku-20241022")
+@evaluate("gpt-3.5-turbo", "gemini-2.5-flash")
 async def test_qa(model, dataset):
     responses = await model.generate(dataset.prompts)
     scores = accuracy(responses, dataset.references)
@@ -41,6 +41,8 @@ async def test_qa(model, dataset):
 results = asyncio.run(test_qa(dataset))
 for result in results:
     print(f"{result.model_name}: {result.result['accuracy']:.2%}")
+
+# Note: Model names shown are examples and may change. Verify available models in provider documentation.
 ```
 
 ## Key Features
@@ -49,7 +51,7 @@ for result in results:
 
 ```python
 @benchmark("medical_qa", "Medical question answering")
-@evaluate("gpt-4", "claude-3-opus")
+@evaluate("gpt-3.5-turbo", "gemini-2.5-flash")
 async def test_medical_qa(model, dataset):
     responses = await model.generate(dataset.prompts)
     return accuracy(responses, dataset.references)

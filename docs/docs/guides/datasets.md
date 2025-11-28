@@ -356,6 +356,10 @@ for chunk in process_in_chunks(large_dataset):
     results = asyncio.run(my_evaluation(chunk))
 ```
 
+:::info Complete Examples
+For comprehensive dataset examples including creation, loading, filtering, and more, see [Datasets](../examples/datasets.md). For task-specific usage, see [Question Answering](../examples/question-answering.md), [Summarization](../examples/summarization.md), and [Classification](../examples/classification.md).
+:::
+
 ## Next Steps
 
 - [Evaluation Guide](./evaluation.md) - Learn evaluation patterns

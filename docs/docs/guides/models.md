@@ -15,7 +15,7 @@ Benchwise supports multiple LLM providers through a unified interface.
 ```python
 from benchwise import evaluate
 
-@evaluate("gpt-3.5-turbo", "gemini-2.5-flash")
+@evaluate("gpt-4", "gpt-3.5-turbo")
 async def test_openai(model, dataset):
     responses = await model.generate(dataset.prompts)
     return {"responses": responses}
@@ -24,7 +24,7 @@ async def test_openai(model, dataset):
 ### Anthropic
 
 ```python
-@evaluate("gpt-3.5-turbo", "gemini-2.5-flash")
+@evaluate("claude-3-opus", "claude-3-haiku")
 async def test_anthropic(model, dataset):
     responses = await model.generate(dataset.prompts)
     return {"responses": responses}
@@ -33,7 +33,7 @@ async def test_anthropic(model, dataset):
 ### Google
 
 ```python
-@evaluate("gpt-3.5-turbo", "gemini-2.5-flash")
+@evaluate("gemini-2.5-flash", "gemini-2.0-pro")
 async def test_google(model, dataset):
     responses = await model.generate(dataset.prompts)
     return {"responses": responses}
@@ -42,7 +42,7 @@ async def test_google(model, dataset):
 ### HuggingFace
 
 ```python
-@evaluate("gpt-3.5-turbo", "gemini-2.5-flash")
+@evaluate("meta-llama/Llama-2-7b", "mistralai/Mistral-7B")
 async def test_huggingface(model, dataset):
     responses = await model.generate(dataset.prompts)
     return {"responses": responses}
@@ -182,50 +182,61 @@ async def direct_usage():
 asyncio.run(direct_usage())
 ```
 
-## Model Selection Best Practices
+## Best Practices
 
-### 1. Task-Appropriate Models
+### 1. Choose Task-Appropriate Models
+
+Select models based on task complexity and requirements:
 
 ```python
 # For complex reasoning - use larger models
 @evaluate("gpt-4", "claude-3-opus")
 async def complex_reasoning(model, dataset):
-    pass
+    responses = await model.generate(dataset.prompts, temperature=0)
+    return accuracy(responses, dataset.references)
 
 # For simple tasks - use smaller, faster models
 @evaluate("gpt-3.5-turbo", "claude-3-haiku")
 async def simple_tasks(model, dataset):
-    pass
+    responses = await model.generate(dataset.prompts)
+    return {"responses": responses}
 ```
 
-### 2. Cost-Performance Trade-offs
+### 2. Balance Cost and Performance
+
+Consider cost-performance trade-offs for your use case:
 
 ```python
-# High-accuracy tasks
+# High-accuracy tasks - prioritize quality
 @evaluate("gpt-4", "claude-3-opus", temperature=0)
 async def high_accuracy(model, dataset):
-    pass
+    responses = await model.generate(dataset.prompts, temperature=0)
+    return accuracy(responses, dataset.references)
 
-# Cost-effective bulk processing
+# Cost-effective bulk processing - prioritize speed
 @evaluate("gpt-3.5-turbo", "claude-3-haiku")
 async def bulk_processing(model, dataset):
-    pass
+    responses = await model.generate(dataset.prompts)
+    return {"count": len(responses)}
 ```
 
-### 3. Provider-Specific Features
+### 3. Leverage Provider-Specific Features
+
+Use specialized capabilities when beneficial:
 
 ```python
-# OpenAI function calling
+# OpenAI for structured outputs
 @evaluate("gpt-4")
-async def with_functions(model, dataset):
-    # Use OpenAI-specific features
-    pass
+async def structured_output(model, dataset):
+    responses = await model.generate(dataset.prompts, temperature=0)
+    return {"responses": responses}
 
-# Anthropic extended context
+# Anthropic for long context tasks
 @evaluate("claude-3-opus")
 async def long_context(model, dataset):
-    # Leverage Claude's long context window
-    pass
+    # Claude handles very long prompts well
+    responses = await model.generate(dataset.prompts)
+    return {"responses": responses}
 ```
 
 ## Error Handling
@@ -257,6 +268,10 @@ async def large_batch(model, dataset):
     responses = await model.generate(dataset.prompts)
     return {"responses": responses}
 ```
+
+:::info Complete Examples
+For model comparison examples, see [Multi-Model Comparison](../examples/multi-model-comparison.md) and [Evaluation](../examples/evaluation.md).
+:::
 
 ## Next Steps
 

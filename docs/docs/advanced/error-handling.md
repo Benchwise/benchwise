@@ -13,6 +13,7 @@ Understand how Benchwise automatically manages and reports errors during evaluat
 Benchwise automatically handles errors in evaluations:
 
 ```python
+import asyncio
 from benchwise import evaluate
 
 @evaluate("gpt-4", "invalid-model")

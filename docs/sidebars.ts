@@ -26,6 +26,18 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
+      label: 'Advanced',
+      items: [
+        'advanced/configuration',
+        'advanced/api-integration',
+        'advanced/custom-metrics',
+        'advanced/error-handling',
+        'advanced/logging',
+
+      ],
+    },
+    {
+      type: 'category',
       label: 'API Reference',
       items: [
         {
@@ -41,7 +53,6 @@ const sidebars: SidebarsConfig = {
           type: 'category',
           label: 'Metrics',
           items: [
-            'api/metrics/overview',
             'api/metrics/accuracy',
             'api/metrics/rouge',
             'api/metrics/bleu',
@@ -49,6 +60,8 @@ const sidebars: SidebarsConfig = {
             'api/metrics/semantic-similarity',
             'api/metrics/safety',
             'api/metrics/coherence',
+            'api/metrics/perplexity',
+            'api/metrics/factual-correctness',
           ],
         },
         {
@@ -89,23 +102,15 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: 'Examples',
       items: [
+        'examples/evaluation',
+        'examples/datasets',
+        'examples/results',
+        'examples/metrics',
         'examples/question-answering',
         'examples/summarization',
-        'examples/safety-evaluation',
         'examples/classification',
+        'examples/safety-evaluation',
         'examples/multi-model-comparison',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Advanced',
-      items: [
-        'advanced/configuration',
-        'advanced/api-integration',
-        'advanced/custom-metrics',
-        'advanced/error-handling',
-        'advanced/logging',
-
       ],
     },
     {
