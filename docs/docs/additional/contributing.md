@@ -8,6 +8,8 @@ Contribute to Benchwise development.
 
 ## Getting Started
 
+Instructions for setting up your development environment to contribute to Benchwise.
+
 1. Fork the repository
 2. Clone your fork
 3. Install development dependencies
@@ -19,6 +21,8 @@ pip install -e ".[dev]"
 ```
 
 ## Development Workflow
+
+Key steps and tools for local development.
 
 ### Running Tests
 
@@ -54,6 +58,8 @@ pre-commit run --all-files
 
 ## Contributing Guidelines
 
+Step-by-step process for making contributions.
+
 1. **Create a feature branch**
    ```bash
    git checkout -b feature/your-feature
@@ -88,12 +94,16 @@ pre-commit run --all-files
 
 ## Code Style
 
+Guidelines for maintaining consistent code style.
+
 - Follow PEP 8
 - Use type hints
 - Write docstrings for public APIs
 - Keep functions focused and concise
 
 ## Reporting Issues
+
+How to report bugs or suggest features.
 
 - Use [GitHub Issues](https://github.com/Benchwise/benchwise/issues)
 - Provide clear description

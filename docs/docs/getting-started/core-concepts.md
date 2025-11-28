@@ -18,17 +18,17 @@ The main decorator for running tests on multiple models:
 from benchwise import evaluate
 
 # Single model
-@evaluate("gpt-4")
+@evaluate("gpt-3.5-turbo")
 async def test_single(model, dataset):
     pass
 
 # Multiple models
-@evaluate("gpt-4", "claude-3-opus", "gemini-pro")
+@evaluate("gpt-3.5-turbo", "gemini-2.5-flash")
 async def test_multiple(model, dataset):
     pass
 
 # With options
-@evaluate("gpt-4", temperature=0.7, upload=True)
+@evaluate("gpt-3.5-turbo", temperature=0.7, upload=True)
 async def test_with_options(model, dataset):
     pass
 ```
@@ -41,7 +41,7 @@ Mark evaluations as named benchmarks:
 from benchwise import benchmark, evaluate
 
 @benchmark("Medical QA", "Evaluates medical question answering")
-@evaluate("gpt-4", "claude-3-opus")
+@evaluate("gpt-3.5-turbo", "gemini-2.5-flash")
 async def test_medical_qa(model, dataset):
     responses = await model.generate(dataset.prompts)
     return {"responses": responses}
@@ -69,22 +69,22 @@ Benchwise supports multiple LLM providers out of the box.
 
 ```python
 # OpenAI models
-@evaluate("gpt-4", "gpt-3.5-turbo", "gpt-4-turbo")
+@evaluate("gpt-3.5-turbo")
 async def test_openai(model, dataset):
     ...
 
 # Anthropic models
-@evaluate("claude-3-opus", "claude-3-sonnet", "claude-3-5-haiku-20241022")
+@evaluate("claude-4.5-sonnet")
 async def test_anthropic(model, dataset):
     ...
 
 # Google models
-@evaluate("gemini-pro", "gemini-1.5-pro")
+@evaluate("gemini-2.5-flash")
 async def test_google(model, dataset):
     ...
 
 # HuggingFace models
-@evaluate("microsoft/DialoGPT-medium")
+@evaluate("Zephyr-7B-Beta")
 async def test_huggingface(model, dataset):
     ...
 
@@ -104,6 +104,7 @@ async def my_test(model, dataset):
     responses = await model.generate(prompts, temperature=0.7, max_tokens=100)
 
     # Get token count
+    # Note: Token count is currently an estimate and may not be reliable.
     tokens = model.get_token_count(text)
 
     # Estimate cost
@@ -157,14 +158,17 @@ filtered = dataset.filter(lambda x: len(x["question"]) > 10)
 from benchwise import load_mmlu_sample, load_hellaswag_sample, load_gsm8k_sample
 
 # Load benchmark samples
+# MMLU: Measures knowledge across 57 subjects.
 mmlu = load_mmlu_sample()
+# HellaSwag: Tests common sense reasoning.
 hellaswag = load_hellaswag_sample()
+# GSM8K: Evaluates multi-step math reasoning.
 gsm8k = load_gsm8k_sample()
 ```
 
 ## Metrics
 
-Built-in metrics for evaluating model outputs.
+Built-in metrics for evaluating model outputs across different dimensions.
 
 ### Text Similarity
 
@@ -288,7 +292,7 @@ All evaluation functions are async:
 import asyncio
 
 # Define async evaluation
-@evaluate("gpt-4")
+@evaluate("gpt-3.5-turbo")
 async def my_test(model, dataset):
     responses = await model.generate(dataset.prompts)
     return {"responses": responses}

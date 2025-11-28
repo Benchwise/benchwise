@@ -16,7 +16,9 @@ pip install benchwise
 
 ```bash
 git clone https://github.com/Benchwise/benchwise.git
+
 cd benchwise
+
 pip install -e .
 ```
 
@@ -46,7 +48,7 @@ pip install -e ".[transformers]"
 # All LLM dependencies (llm-apis + transformers)
 pip install -e ".[llms]"
 
-# All optional dependencies
+# All optional dependencies (metrics, llm-apis, transformers, and psutil)
 pip install -e ".[all]"
 ```
 

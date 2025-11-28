@@ -8,6 +8,8 @@ Advanced configuration options for Benchwise.
 
 ## Configuration Sources
 
+Understanding the order of precedence for Benchwise configuration settings.
+
 Benchwise loads configuration from multiple sources (in order of precedence):
 
 1. Code-level configuration (`configure_benchwise()`)
@@ -16,6 +18,8 @@ Benchwise loads configuration from multiple sources (in order of precedence):
 4. Default values
 
 ## Programmatic Configuration
+
+Configure Benchwise settings directly within your Python code.
 
 ```python
 from benchwise import configure_benchwise
@@ -31,6 +35,8 @@ configure_benchwise(
 
 ## Environment Variables
 
+Set Benchwise configuration using environment variables.
+
 ```bash
 export BENCHWISE_API_URL="https://api.benchwise.ai"
 export BENCHWISE_API_KEY="your_key"
@@ -40,6 +46,8 @@ export BENCHWISE_DEBUG="false"
 ```
 
 ## Config File
+
+Configure Benchwise using a dedicated configuration file.
 
 Create `.benchwise.json` in your project root:
 
@@ -54,6 +62,8 @@ Create `.benchwise.json` in your project root:
 ```
 
 ## Preset Configurations
+
+Quickly apply predefined configuration settings for common scenarios.
 
 ```python
 from benchwise import get_development_config, get_production_config, get_offline_config
@@ -71,4 +81,3 @@ config = get_offline_config()
 ## See Also
 
 - [API Configuration](../api/config.md)
-- [Offline Mode](./offline-mode.md)

@@ -8,6 +8,8 @@ Create custom evaluation metrics.
 
 ## Basic Custom Metric
 
+Learn how to define a simple custom metric function.
+
 ```python
 from typing import List, Dict, Any
 
@@ -39,6 +41,8 @@ def custom_metric(predictions: List[str], references: List[str]) -> Dict[str, An
 
 ## Using Custom Metrics
 
+Integrate your custom metrics into Benchwise evaluations.
+
 ```python
 from benchwise import evaluate
 
@@ -53,6 +57,8 @@ async def test_custom(model, dataset):
 ```
 
 ## Advanced Example
+
+Explore a more complex example of a custom metric.
 
 ```python
 def length_based_metric(predictions, references):
@@ -81,6 +87,8 @@ def length_based_metric(predictions, references):
 ```
 
 ## Metric Collections
+
+Combine multiple custom and built-in metrics for comprehensive evaluation.
 
 Combine custom metrics with built-in Benchwise metrics:
 

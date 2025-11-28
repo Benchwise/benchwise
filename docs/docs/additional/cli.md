@@ -8,6 +8,8 @@ Command-line interface for Benchwise.
 
 ## Installation
 
+How to install the Benchwise CLI.
+
 The CLI is included when you install Benchwise:
 
 ```bash
@@ -15,6 +17,8 @@ pip install benchwise
 ```
 
 ## Available Commands
+
+A list of commands available through the Benchwise CLI.
 
 ### List Models
 
@@ -53,6 +57,8 @@ benchwise compare results1.json results2.json --metric accuracy
 ```
 
 ## Examples
+
+Practical examples of using Benchwise CLI commands.
 
 ```bash
 # Run QA evaluation

@@ -33,7 +33,7 @@ Adapter for OpenAI models (GPT-4o, GPT-4, etc.).
 ```python
 from benchwise import evaluate
 
-@evaluate("gpt-4o", "gpt-4o-mini", temperature=0.7)
+@evaluate("gpt-3.5-turbo", "gemini-2.5-flash", temperature=0.7)
 async def test_openai(model, dataset):
     responses = await model.generate(dataset.prompts)
     return {"responses": responses}

@@ -59,17 +59,17 @@ async def test_medical_qa(model, dataset):
 
 ```python
 # OpenAI models
-@evaluate("gpt-4", "gpt-3.5-turbo")
+@evaluate("gpt-5", "gpt-5-nano")
 async def test_openai(model, dataset):
     ...
 
 # Anthropic models
-@evaluate("claude-3-opus", "claude-3-sonnet")
+@evaluate("claude-4.5-opus", "claude-4.5-sonnet")
 async def test_anthropic(model, dataset):
     ...
 
 # Google models
-@evaluate("gemini-pro", "gemini-1.5-pro")
+@evaluate("gemini-2.5-pro", "gemini-2.5-flash")
 async def test_google(model, dataset):
     ...
 

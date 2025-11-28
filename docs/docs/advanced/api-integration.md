@@ -8,6 +8,8 @@ Integrate with the Benchwise platform API.
 
 ## Setup
 
+How to configure Benchwise for API integration.
+
 ```python
 from benchwise import configure_benchwise
 
@@ -20,6 +22,8 @@ configure_benchwise(
 
 ## Auto-Upload Results
 
+Automatically upload evaluation results to the Benchwise platform.
+
 ```python
 from benchwise import evaluate, benchmark
 
@@ -31,6 +35,8 @@ async def my_test(model, dataset):
 ```
 
 ## Manual Upload
+
+Manually upload evaluation results for fine-grained control.
 
 ```python
 import asyncio
@@ -56,22 +62,6 @@ benchmark.add_result(result)
 asyncio.run(upload_results(benchmark.results, benchmark.name, benchmark.metadata))
 ```
 
-## Offline Mode
-
-```python
-from benchwise import get_offline_config, configure_benchwise
-
-# Enable offline mode
-configure_benchwise(**get_offline_config())
-
-# Results are queued locally
-
-# Later, sync when online
-from benchwise.client import sync_offline_results
-await sync_offline_results()
-```
-
 ## See Also
 
 - [Configuration](./configuration.md)
-- [Offline Mode](./offline-mode.md)

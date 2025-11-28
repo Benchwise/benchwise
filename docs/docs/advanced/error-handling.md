@@ -8,6 +8,8 @@ Handle errors gracefully in evaluations.
 
 ## Automatic Error Handling
 
+Understand how Benchwise automatically manages and reports errors during evaluations.
+
 Benchwise automatically handles errors in evaluations:
 
 ```python
@@ -28,6 +30,8 @@ for result in results:
 
 ## Custom Error Handling
 
+Implement custom error handling logic within your evaluation functions.
+
 ```python
 @evaluate("gpt-4")
 async def robust_test(model, dataset):
@@ -40,6 +44,8 @@ async def robust_test(model, dataset):
 ```
 
 ## Retry Logic
+
+Strategies for implementing retry mechanisms for robust evaluations.
 
 ```python
 import asyncio
@@ -59,6 +65,8 @@ async def test_with_retry(model, dataset):
 ```
 
 ## Custom Exceptions
+
+Learn about Benchwise's custom exception classes for more granular error management.
 
 ```python
 from benchwise.exceptions import BenchwiseError, ModelError, DatasetError

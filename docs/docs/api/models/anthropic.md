@@ -27,7 +27,7 @@ Current Anthropic API models with canonical versioned IDs:
 ```python
 from benchwise import evaluate
 
-@evaluate("claude-sonnet-4-20250514", "claude-3-5-sonnet-20241022")
+@evaluate("gpt-3.5-turbo", "gemini-2.5-flash")
 async def test_claude(model, dataset):
     responses = await model.generate(dataset.prompts)
     return {"responses": responses}

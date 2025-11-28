@@ -8,6 +8,8 @@ API client for Benchwise platform.
 
 ## Methods
 
+Detailed documentation for the Benchwise client's public methods.
+
 ### upload_results
 ```python
 async def upload_results(results: List[EvaluationResult], test_name: str, dataset_info: Dict[str, Any]) -> bool:
@@ -33,6 +35,8 @@ async def close_client():
 Close the context-local client and release HTTP connections. Optional but recommended for clean shutdown.
 
 ## Usage
+
+Examples and guidelines for interacting with the Benchwise client.
 
 The client is managed internally via context variables (singleton pattern). Calling `close_client()` is **optional** but recommended for clean shutdown.
 

@@ -8,9 +8,13 @@ Learn how to use and combine evaluation metrics in Benchwise.
 
 ## Overview
 
-Benchwise includes common evaluation metrics for assessing LLM outputs across different tasks.
+Benchwise includes common evaluation metrics for assessing LLM outputs across different tasks. Each metric serves a specific purpose and is best suited for particular types of evaluations.
 
 ## Accuracy
+
+Measures exact string matching between predictions and references.
+
+**Best for:** Factual QA, classification tasks where exact answers matter.
 
 Exact match accuracy for classification and QA tasks:
 
@@ -25,6 +29,10 @@ print(f"Accuracy: {result['accuracy']:.2%}")  # 100%
 ```
 
 ## ROUGE
+
+Measures longest common subsequence overlap between generated and reference text. Returns F1, precision, and recall scores.
+
+**Best for:** Summarization, content generation tasks.
 
 ROUGE metrics for summarization and text generation:
 
@@ -42,6 +50,10 @@ print(f"Recall: {result['recall']:.3f}")
 
 ## BLEU Score
 
+Evaluates text quality by comparing n-gram overlaps. Originally designed for machine translation.
+
+**Best for:** Translation quality, text generation where word order matters.
+
 BLEU for translation and text generation quality:
 
 ```python
@@ -56,6 +68,10 @@ print(f"BLEU: {result['bleu']:.3f}")
 
 ## BERT Score
 
+Uses BERT embeddings to measure semantic similarity, understanding meaning beyond exact word matching.
+
+**Best for:** Tasks where paraphrasing is acceptable, evaluating meaning over form.
+
 Semantic similarity using BERT embeddings:
 
 ```python
@@ -69,6 +85,10 @@ print(f"F1: {result['f1']:.3f}")
 ```
 
 ## Semantic Similarity
+
+Uses sentence embeddings to compare overall meaning at sentence/document level. Returns 0-1 similarity score.
+
+**Best for:** Comparing overall meaning, accepting paraphrases.
 
 Embedding-based semantic similarity:
 
@@ -86,6 +106,10 @@ print(f"Max similarity: {result['max_similarity']:.3f}")
 
 ## Safety Score
 
+Detects harmful, toxic, or inappropriate content. Returns 0-1 safety score (1 = safe).
+
+**Best for:** Content moderation, user-facing applications, production systems.
+
 Content safety evaluation:
 
 ```python
@@ -102,6 +126,10 @@ print(f"Mean safety: {result['mean_safety']:.3f}")
 
 ## Coherence Score
 
+Measures how well text flows and maintains logical consistency between sentences.
+
+**Best for:** Evaluating text quality, detecting incoherent or rambling outputs.
+
 Text coherence evaluation:
 
 ```python
@@ -117,6 +145,10 @@ print(f"Mean coherence: {result['mean_coherence']:.3f}")
 ```
 
 ## Factual Correctness
+
+Checks if predictions contain factually correct information, even with different wording. More lenient than exact match accuracy.
+
+**Best for:** Knowledge-based tasks, fact-checking, QA where paraphrasing is acceptable.
 
 Check factual accuracy with context:
 
@@ -156,6 +188,8 @@ async def comprehensive_eval(model, dataset):
 
 ## Metric Collections
 
+Pre-bundled metric sets for common scenarios. Saves time and ensures comprehensive evaluation.
+
 Use predefined metric bundles:
 
 ```python
@@ -175,6 +209,8 @@ results = safety_metrics.evaluate(predictions, references)
 ```
 
 ## Custom Metrics
+
+Create domain-specific metrics when built-in ones don't capture your needs.
 
 Create your own metrics:
 
@@ -211,6 +247,8 @@ async def test_with_custom_metric(model, dataset):
 
 ### 1. Choose Task-Appropriate Metrics
 
+Select metrics that match your task type:
+
 ```python
 # For QA tasks
 @evaluate("gpt-4")
@@ -230,6 +268,8 @@ async def summ_eval(model, dataset):
 
 ### 2. Combine Multiple Metrics
 
+Use multiple metrics for comprehensive evaluation:
+
 ```python
 @evaluate("gpt-4")
 async def multi_metric_eval(model, dataset):
@@ -243,6 +283,8 @@ async def multi_metric_eval(model, dataset):
 ```
 
 ### 3. Set Thresholds
+
+Define minimum acceptable performance levels:
 
 ```python
 @evaluate("gpt-4")

@@ -8,6 +8,8 @@ Benchwise provides a comprehensive API for LLM evaluation. This section document
 
 ## Core Modules
 
+An overview of the main modules and their functionalities.
+
 ### `benchwise.core`
 
 The main module containing evaluation decorators and orchestration.

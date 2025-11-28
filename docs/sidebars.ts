@@ -105,7 +105,7 @@ const sidebars: SidebarsConfig = {
         'advanced/custom-metrics',
         'advanced/error-handling',
         'advanced/logging',
-        'advanced/offline-mode',
+
       ],
     },
     {
@@ -114,7 +114,7 @@ const sidebars: SidebarsConfig = {
       items: [
         'additional/cli',
         'additional/CHANGELOG',
-        'additional/migration-guide',
+
         'additional/contributing',
         'additional/faq',
       ],

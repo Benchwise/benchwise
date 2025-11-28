@@ -8,6 +8,8 @@ Run your first LLM evaluation in under 5 minutes.
 
 ## Your First Evaluation
 
+Learn how to perform a basic model evaluation.
+
 Create a simple evaluation to compare models on basic questions:
 
 ```python
@@ -21,7 +23,7 @@ dataset = create_qa_dataset(
 )
 
 # Evaluate multiple models
-@evaluate("gpt-4o-mini", "claude-3-5-haiku-20241022")
+@evaluate("gpt-3.5-turbo", "gemini-2.5-flash")
 async def test_qa(model, dataset):
     responses = await model.generate(dataset.prompts)
     scores = accuracy(responses, dataset.references)
@@ -45,9 +47,12 @@ Let's break down what this code does:
 
 ## Add a Benchmark
 
+Turn your evaluation into a reusable benchmark.
+
 Make your evaluation reusable by marking it as a benchmark:
 
 ```python
+import asyncio
 from benchwise import benchmark, evaluate, create_qa_dataset, accuracy
 
 dataset = create_qa_dataset(
@@ -56,20 +61,25 @@ dataset = create_qa_dataset(
 )
 
 @benchmark("AI Knowledge", "Tests basic AI understanding")
-@evaluate("gpt-4", "claude-opus-4-1")
+@evaluate("gpt-3.5-turbo", "gemini-2.5-flash")
 async def test_ai_knowledge(model, dataset):
     responses = await model.generate(dataset.prompts)
     scores = accuracy(responses, dataset.references)
     return {"accuracy": scores["accuracy"]}
 
 results = asyncio.run(test_ai_knowledge(dataset))
+for result in results:
+    print(f"{result.model_name}: {result.result['accuracy']:.2%}")
 ```
 
 ## Use Multiple Metrics
 
+Incorporate various metrics for comprehensive evaluation.
+
 Evaluate with more than just accuracy:
 
 ```python
+import asyncio 
 from benchwise import evaluate, create_qa_dataset, accuracy, semantic_similarity
 
 dataset = create_qa_dataset(
@@ -77,7 +87,7 @@ dataset = create_qa_dataset(
     answers=["Plants convert sunlight into energy through photosynthesis"]
 )
 
-@evaluate("gpt-4o-mini", "claude-3-5-haiku-20241022")
+@evaluate("gpt-3.5-turbo", "gemini-2.5-flash")
 async def test_with_metrics(model, dataset):
     responses = await model.generate(dataset.prompts)
 
@@ -91,6 +101,8 @@ async def test_with_metrics(model, dataset):
     }
 
 results = asyncio.run(test_with_metrics(dataset))
+for result in results:
+    print(f"{result.model_name}: Accuracy={result.result['accuracy']:.2%}, Semantic Similarity={result.result['semantic_similarity']:.2f}")
 ```
 
 ## Next Steps

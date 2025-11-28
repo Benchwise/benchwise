@@ -32,7 +32,7 @@ A decorator that wraps async functions to run evaluations across specified model
 ```python
 from benchwise import evaluate
 
-@evaluate("gpt-4")
+@evaluate("gpt-3.5-turbo")
 async def test_single_model(model, dataset):
     responses = await model.generate(dataset.prompts)
     return {"responses": responses}
@@ -41,7 +41,7 @@ async def test_single_model(model, dataset):
 ## Multiple Models
 
 ```python
-@evaluate("gpt-4", "claude-3-opus", "gemini-pro")
+@evaluate("gpt-3.5-turbo", "gemini-2.5-flash")
 async def test_multiple_models(model, dataset):
     ...
 ```
@@ -49,7 +49,7 @@ async def test_multiple_models(model, dataset):
 ## With Parameters
 
 ```python
-@evaluate("gpt-4", temperature=0.7, max_tokens=500)
+@evaluate("gpt-3.5-turbo", temperature=0.7, max_tokens=500)
 async def test_with_params(model, dataset):
     ...
 ```
@@ -82,6 +82,7 @@ Inside the decorated function, the `model` parameter provides:
 responses = await model.generate(prompts, temperature=0.7, max_tokens=100)
 
 # Get token count
+# Note: Token count is currently an estimate and may not be reliable.
 tokens = model.get_token_count(text)
 
 # Estimate cost
@@ -115,7 +116,7 @@ dataset = create_qa_dataset(
     answers=["Artificial Intelligence"]
 )
 
-@evaluate("gpt-4", "claude-3-opus", temperature=0)
+@evaluate("gpt-3.5-turbo", "gemini-2.5-flash", temperature=0)
 async def test_qa(model, dataset):
     responses = await model.generate(dataset.prompts)
     scores = accuracy(responses, dataset.references)
@@ -139,7 +140,7 @@ for result in results:
 from benchwise import benchmark, evaluate
 
 @benchmark("QA Benchmark", "Question answering evaluation")
-@evaluate("gpt-4", "claude-3-opus")
+@evaluate("gpt-3.5-turbo", "gemini-2.5-flash")
 async def test_qa_benchmark(model, dataset):
     responses = await model.generate(dataset.prompts)
     return {"accuracy": accuracy(responses, dataset.references)}
@@ -150,7 +151,7 @@ async def test_qa_benchmark(model, dataset):
 The decorator automatically handles errors:
 
 ```python
-@evaluate("gpt-4", "invalid-model")
+@evaluate("gpt-3.5-turbo", "invalid-model")
 async def test_with_error(model, dataset):
     ...
 
@@ -167,7 +168,7 @@ for result in results:
 Enable automatic upload to Benchwise API:
 
 ```python
-@evaluate("gpt-4", upload=True)
+@evaluate("gpt-3.5-turbo", upload=True)
 async def test_with_upload(model, dataset):
     ...
 ```

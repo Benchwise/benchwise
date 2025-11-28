@@ -8,6 +8,8 @@ Main dataset class for organizing evaluation data.
 
 ## Class Definition
 
+The Python class representing a dataset within Benchwise.
+
 ```python
 @dataclass
 class Dataset:
@@ -18,6 +20,8 @@ class Dataset:
 ```
 
 ## Properties
+
+Key attributes and data accessors for the Dataset class.
 
 ### prompts
 ```python
@@ -36,6 +40,8 @@ def references(self) -> List[str]:
 Auto-detects and returns references from fields: `reference`, `output`, `answer`, `target`, or `summary`.
 
 ## Methods
+
+Functions available for manipulating and querying Dataset objects.
 
 ### sample
 ```python
@@ -59,6 +65,8 @@ def split(self, train_ratio: float = 0.8, random_state: Optional[int] = None) ->
 Splits into train and test sets.
 
 ## Usage
+
+Examples demonstrating how to work with Dataset objects.
 
 ```python
 from benchwise import Dataset

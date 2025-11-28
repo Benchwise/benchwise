@@ -4,7 +4,7 @@ sidebar_position: 3
 
 # Dataset Creation Helpers
 
-Helper functions for creating common dataset types.
+Helper functions for programmatically creating and loading common dataset types.
 
 ## create_qa_dataset
 
@@ -78,24 +78,29 @@ dataset = create_classification_dataset(
 )
 ```
 
-## Standard Benchmarks
+## Loading Pre-built Datasets
+
+Functions to load pre-built benchmark datasets for common tasks.
 
 ### load_mmlu_sample
 ```python
 def load_mmlu_sample() -> Dataset:
     ...
+Loads a sample of the Massive Multitask Language Understanding (MMLU) dataset.
 ```
 
 ### load_hellaswag_sample
 ```python
 def load_hellaswag_sample() -> Dataset:
     ...
+Loads a sample of the HellaSwag dataset, a common sense reasoning benchmark.
 ```
 
 ### load_gsm8k_sample
 ```python
 def load_gsm8k_sample() -> Dataset:
     ...
+Loads a sample of the GSM8K dataset, a grade school math word problems benchmark.
 ```
 
 ## See Also

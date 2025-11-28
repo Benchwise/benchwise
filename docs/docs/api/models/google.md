@@ -16,7 +16,7 @@ Adapter for Google Gemini models.
 ```python
 from benchwise import evaluate
 
-@evaluate("gemini-pro", "gemini-1.5-pro")
+@evaluate("gpt-3.5-turbo", "gemini-2.5-flash")
 async def test_gemini(model, dataset):
     responses = await model.generate(dataset.prompts)
     return {"responses": responses}

@@ -15,7 +15,7 @@ Benchwise supports multiple LLM providers through a unified interface.
 ```python
 from benchwise import evaluate
 
-@evaluate("gpt-4", "gpt-3.5-turbo", "gpt-4-turbo")
+@evaluate("gpt-3.5-turbo", "gemini-2.5-flash")
 async def test_openai(model, dataset):
     responses = await model.generate(dataset.prompts)
     return {"responses": responses}
@@ -24,7 +24,7 @@ async def test_openai(model, dataset):
 ### Anthropic
 
 ```python
-@evaluate("claude-3-opus", "claude-3-sonnet", "claude-3-5-haiku-20241022")
+@evaluate("gpt-3.5-turbo", "gemini-2.5-flash")
 async def test_anthropic(model, dataset):
     responses = await model.generate(dataset.prompts)
     return {"responses": responses}
@@ -33,7 +33,7 @@ async def test_anthropic(model, dataset):
 ### Google
 
 ```python
-@evaluate("gemini-pro", "gemini-1.5-pro")
+@evaluate("gpt-3.5-turbo", "gemini-2.5-flash")
 async def test_google(model, dataset):
     responses = await model.generate(dataset.prompts)
     return {"responses": responses}
@@ -42,7 +42,7 @@ async def test_google(model, dataset):
 ### HuggingFace
 
 ```python
-@evaluate("microsoft/DialoGPT-medium", "gpt2")
+@evaluate("gpt-3.5-turbo", "gemini-2.5-flash")
 async def test_huggingface(model, dataset):
     responses = await model.generate(dataset.prompts)
     return {"responses": responses}
@@ -67,7 +67,7 @@ All model adapters provide a consistent async interface:
 ### Generate Text
 
 ```python
-@evaluate("gpt-4")
+@evaluate("gpt-3.5-turbo")
 async def generate_example(model, dataset):
     # Basic generation
     responses = await model.generate(dataset.prompts)
@@ -86,7 +86,7 @@ async def generate_example(model, dataset):
 ### Get Token Count
 
 ```python
-@evaluate("gpt-4")
+@evaluate("gpt-3.5-turbo")
 async def token_counting(model, dataset):
     prompt = "How many tokens is this?"
 

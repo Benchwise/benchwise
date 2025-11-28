@@ -8,6 +8,8 @@ Frequently asked questions about Benchwise.
 
 ## General
 
+Common questions about Benchwise's purpose and availability.
+
 ### What is Benchwise?
 
 Benchwise is an open-source Python SDK for LLM evaluation with PyTest-like syntax. It allows you to create custom evaluations, run benchmarks across multiple models, and share results with the community.
@@ -24,6 +26,8 @@ Yes, Benchwise is open-source and free to use under the MIT license. You only pa
 - HuggingFace (any model)
 
 ## Usage
+
+How to use Benchwise for evaluation and benchmarking.
 
 ### How do I get started?
 
@@ -48,11 +52,11 @@ async def my_test(model, dataset):
     pass
 ```
 
-### Can I run evaluations offline?
 
-Yes, use offline mode to cache results locally. See [Offline Mode](../advanced/offline-mode.md).
 
 ## Technical
+
+Answers to technical questions about Benchwise's architecture and features.
 
 ### Why async/await?
 
@@ -68,6 +72,8 @@ Yes, results are automatically cached. Use `cache.clear_cache()` to clear when n
 
 ## Community
 
+Information on contributing to and getting support for Benchwise.
+
 ### How do I share benchmarks?
 
 The community sharing platform is coming soon! You'll be able to upload and discover benchmarks.
@@ -82,6 +88,8 @@ See the [Contributing Guide](./contributing.md).
 - [Documentation](/)
 
 ## Troubleshooting
+
+Solutions to common issues encountered while using Benchwise.
 
 ### API key errors?
 

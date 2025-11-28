@@ -31,7 +31,7 @@ A decorator that adds benchmark metadata to the evaluation function.
 from benchwise import benchmark, evaluate
 
 @benchmark("General QA", "Tests general knowledge questions")
-@evaluate("gpt-4", "claude-3-opus")
+@evaluate("gpt-3.5-turbo", "gemini-2.5-flash")
 async def test_general_qa(model, dataset):
     responses = await model.generate(dataset.prompts)
     return {"responses": responses}
@@ -48,7 +48,7 @@ async def test_general_qa(model, dataset):
     difficulty="hard",
     dataset_size=100
 )
-@evaluate("gpt-4")
+@evaluate("gpt-3.5-turbo")
 async def test_medical_qa(model, dataset):
     ...
 ```
@@ -59,7 +59,7 @@ Benchmark metadata is stored in the function's `_benchmark_metadata` attribute:
 
 ```python
 @benchmark("Test Benchmark", "Description", version="1.0")
-@evaluate("gpt-4")
+@evaluate("gpt-3.5-turbo")
 async def my_test(model, dataset):
     ...
 
@@ -77,12 +77,12 @@ print(metadata["version"])      # "1.0"
 ```python
 # Correct order
 @benchmark("My Benchmark", "Description")
-@evaluate("gpt-4")
+@evaluate("gpt-3.5-turbo")
 async def correct_test(model, dataset):
     ...
 
 # Wrong order - will not work properly
-@evaluate("gpt-4")
+@evaluate("gpt-3.5-turbo")
 @benchmark("My Benchmark", "Description")
 async def wrong_test(model, dataset):
     ...
@@ -107,7 +107,7 @@ dataset = create_qa_dataset(
     difficulty="beginner",
     language="english"
 )
-@evaluate("gpt-4", "claude-3-opus", "gemini-pro")
+@evaluate("gpt-3.5-turbo", "gemini-2.5-flash")
 async def test_ai_knowledge(model, dataset):
     responses = await model.generate(dataset.prompts, temperature=0)
     scores = accuracy(responses, dataset.references)
@@ -142,7 +142,7 @@ async def test_customer_qa_v1(model, dataset):
     pass
 
 @benchmark("Customer QA", "Customer support QA", version="2.0")
-@evaluate("gpt-4")
+@evaluate("gpt-3.5-turbo")
 async def test_customer_qa_v2(model, dataset):
     # Updated version with improvements
     pass
@@ -159,7 +159,7 @@ async def test_customer_qa_v2(model, dataset):
     specialty="general_medicine",
     risk_level="high"
 )
-@evaluate("gpt-4")
+@evaluate("gpt-3.5-turbo")
 async def test_medical(model, dataset):
     ...
 
@@ -171,7 +171,7 @@ async def test_medical(model, dataset):
     jurisdiction="US",
     contract_type="commercial"
 )
-@evaluate("gpt-4")
+@evaluate("gpt-3.5-turbo")
 async def test_legal(model, dataset):
     ...
 
@@ -183,7 +183,7 @@ async def test_legal(model, dataset):
     market="NYSE",
     timeframe="daily"
 )
-@evaluate("gpt-4")
+@evaluate("gpt-3.5-turbo")
 async def test_financial(model, dataset):
     pass
 ```
@@ -195,13 +195,13 @@ async def test_financial(model, dataset):
 ```python
 # Good
 @benchmark("Medical QA - Cardiology", "Heart disease diagnosis questions")
-@evaluate("gpt-4")
+@evaluate("gpt-3.5-turbo")
 async def test_medical_cardiology(model, dataset):
     ...
 
 # Less descriptive
 @benchmark("Test 1", "Some test")
-@evaluate("gpt-4")
+@evaluate("gpt-3.5-turbo")
 async def test_one(model, dataset):
     ...
 ```
@@ -210,7 +210,7 @@ async def test_one(model, dataset):
 
 ```python
 @benchmark("Product QA", "Product questions", version="2.1", updated="2024-11-16")
-@evaluate("gpt-4")
+@evaluate("gpt-3.5-turbo")
 async def test_product_qa(model, dataset):
     ...
 ```
@@ -219,7 +219,7 @@ async def test_product_qa(model, dataset):
 
 ```python
 @benchmark("Math Problems", "Algebra questions", difficulty="intermediate", grade_level="9-10")
-@evaluate("gpt-4")
+@evaluate("gpt-3.5-turbo")
 async def test_math_problems(model, dataset):
     ...
 ```
@@ -234,7 +234,7 @@ async def test_math_problems(model, dataset):
     source="MMLU",
     sample_strategy="random"
 )
-@evaluate("gpt-4")
+@evaluate("gpt-3.5-turbo")
 async def test_mmlu(model, dataset):
     ...
 ```

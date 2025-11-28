@@ -10,7 +10,7 @@ Decorator for performance and load testing with concurrent requests.
 
 ```python
 @stress_test(concurrent_requests=10, duration=60)
-@evaluate("model_name")
+@evaluate("gpt-3.5-turbo")
 async def stress_test_function(model, dataset):
     ...
 ```
@@ -88,7 +88,7 @@ async def test_throughput(model, dataset):
 
 ```python
 @stress_test(concurrent_requests=10, duration=30)
-@evaluate("gpt-4", "gpt-3.5-turbo")
+@evaluate("gpt-3.5-turbo", "gemini-2.5-flash")
 async def test_latency(model, dataset):
     ...
 ```
@@ -106,7 +106,7 @@ async def test_under_load(model, dataset):
 
 ```python
 @stress_test(concurrent_requests=100, duration=60)
-@evaluate("gpt-4")
+@evaluate("gpt-3.5-turbo")
 async def test_rate_limits(model, dataset):
     ...
 ```
@@ -115,7 +115,7 @@ async def test_rate_limits(model, dataset):
 
 ```python
 @stress_test(concurrent_requests=20, duration=60)
-@evaluate("gpt-4", "gpt-4o-mini")
+@evaluate("gpt-3.5-turbo", "gemini-2.5-flash")
 async def test_cost_under_load(model, dataset):
     ...
 ```
@@ -127,7 +127,7 @@ from benchwise import benchmark
 
 @benchmark("Performance Benchmark", "Tests model performance under load")
 @stress_test(concurrent_requests=10, duration=60)
-@evaluate("gpt-3.5-turbo", "claude-3-haiku")
+@evaluate("gpt-3.5-turbo", "gemini-2.5-flash")
 async def performance_benchmark(model, dataset):
     start = time.time()
     response = await model.generate(dataset.prompts[:1])
@@ -145,13 +145,13 @@ async def performance_benchmark(model, dataset):
 ```python
 # Start with low concurrency
 @stress_test(concurrent_requests=5, duration=30)
-@evaluate("gpt-4")
+@evaluate("gpt-3.5-turbo")
 async def gradual_test(model, dataset):
     ...
 
 # Gradually increase
 @stress_test(concurrent_requests=50, duration=60)
-@evaluate("gpt-4")
+@evaluate("gpt-3.5-turbo")
 async def heavy_test(model, dataset):
     ...
 ```
@@ -160,7 +160,7 @@ async def heavy_test(model, dataset):
 
 ```python
 @stress_test(concurrent_requests=10, duration=30)
-@evaluate("gpt-4")
+@evaluate("gpt-3.5-turbo")
 async def cost_aware_test(model, dataset):
     ...
 ```

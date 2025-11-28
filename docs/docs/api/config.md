@@ -8,6 +8,8 @@ Detailed API reference for Benchwise configuration management.
 
 ## BenchwiseConfig
 
+The core dataclass defining all configurable parameters for Benchwise.
+
 ```python
 @dataclass
 class BenchwiseConfig:
@@ -27,6 +29,8 @@ class BenchwiseConfig:
 Configuration class for Benchwise SDK. Attributes can be set programmatically or via environment variables/config files.
 
 ## Functions
+
+Detailed documentation for functions related to managing Benchwise configuration.
 
 ### configure_benchwise
 

@@ -20,12 +20,16 @@ def load_dataset(source: Union[str, Path, Dict[str, Any]], **kwargs) -> Dataset:
 
 ## Supported Formats
 
+Overview of the various file and data formats supported for dataset loading.
+
 - JSON files (`.json`)
 - CSV files (`.csv`)
 - URLs (http/https)
 - Python dictionaries (passed directly as `source`)
 
 ## Usage
+
+Examples demonstrating how to load datasets from different sources.
 
 ```python
 from benchwise import load_dataset
@@ -53,6 +57,8 @@ dataset = load_dataset(
 
 ## JSON Format
 
+Example of the expected JSON structure for loading datasets.
+
 ```json
 {
   "name": "my_dataset",
@@ -65,6 +71,8 @@ dataset = load_dataset(
 
 ## CSV Format
 
+Example of the expected CSV structure for loading datasets.
+
 ```csv
 question,answer
 What is AI?,Artificial Intelligence
@@ -72,6 +80,8 @@ What is ML?,Machine Learning
 ```
 
 ## Error Handling
+
+Strategies for handling potential errors during dataset loading.
 
 Handle potential errors when loading datasets:
 
