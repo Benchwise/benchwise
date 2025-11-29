@@ -102,9 +102,9 @@ async def main():
 asyncio.run(main())
 ```
 
-## 3. Factual Correctness with Context
+## 3. Factual Correctness
 
-Factual Correctness assesses whether a model's response contains accurate information, often leveraging a provided context to verify claims.
+Factual Correctness assesses whether a model's response contains accurate information by comparing predictions against reference answers using keyword matching and semantic analysis.
 
 ```python
 import asyncio
@@ -117,20 +117,17 @@ factual_dataset = Dataset(
         {
             "prompt": "What is the capital of France?",
             "prediction": "Paris is the capital of France.",
-            "reference": "Paris",
-            "context": "France is a country in Western Europe. Its capital city is Paris."
+            "reference": "Paris"
         },
         {
             "prompt": "Who discovered gravity?",
             "prediction": "Albert Einstein discovered gravity.",
-            "reference": "Isaac Newton",
-            "context": "Isaac Newton developed the theory of universal gravitation."
+            "reference": "Isaac Newton"
         },
         {
             "prompt": "What is the largest ocean?",
             "prediction": "The Pacific Ocean is the largest and deepest of Earth's oceanic divisions.",
-            "reference": "Pacific Ocean",
-            "context": "The Pacific Ocean covers about one-third of the surface of the Earth."
+            "reference": "Pacific Ocean"
         }
     ]
 )
@@ -140,14 +137,20 @@ async def test_factual_correctness(model, dataset):
     # In a real scenario, `predictions` would come from `await model.generate(dataset.prompts)`
     predictions = [record["prediction"] for record in dataset.data]
     references = [record["reference"] for record in dataset.data]
-    contexts = [record["context"] for record in dataset.data]
 
     # Calculate Factual Correctness
-    factual_scores = factual_correctness(predictions, references, contexts)
+    # Using keyword and semantic analysis (set use_named_entities=False to avoid spaCy dependency)
+    factual_scores = factual_correctness(
+        predictions,
+        references,
+        use_named_entities=False,
+        detailed_analysis=True
+    )
 
     return {
-        "mean_correctness": factual_scores["correctness"],
-        "individual_results": factual_scores["results"] # For detailed analysis
+        "mean_correctness": factual_scores["mean_correctness"],
+        "median_correctness": factual_scores["median_correctness"],
+        "individual_scores": factual_scores["scores"]
     }
 
 async def main():
@@ -158,7 +161,8 @@ async def main():
         if result.success:
             print(f"\nModel: {result.model_name}")
             print(f"  Mean Factual Correctness Score: {result.result['mean_correctness']:.3f}")
-            print(f"  Individual Results: {result.result['individual_results']}")
+            print(f"  Median Factual Correctness Score: {result.result['median_correctness']:.3f}")
+            print(f"  Individual Scores: {result.result['individual_scores']}")
         else:
             print(f"\nModel: {result.model_name}, FAILED - Error: {result.error}")
 
@@ -229,7 +233,7 @@ async def main():
     print("\nRunning Metric Collections Example (Text Generation)...")
     text_gen_results = await test_metric_collections(text_gen_dataset)
     for result in text_gen_results:
-        if result.success:
+        if result.success and 'collection_type' in result.result:
             print(f"\nModel: {result.model_name}, Collection: {result.result['collection_type']}")
             for metric_name, value in result.result['metrics'].items():
                 if isinstance(value, float):
@@ -237,12 +241,13 @@ async def main():
                 else:
                     print(f"  {metric_name}: {value}")
         else:
-            print(f"\nModel: {result.model_name}, FAILED - Error: {result.error}")
+            error_msg = result.error if not result.success else result.result.get('error', 'Unknown error')
+            print(f"\nModel: {result.model_name}, FAILED - Error: {error_msg}")
 
     print("\nRunning Metric Collections Example (QA)...")
     qa_results = await test_metric_collections(qa_dataset)
     for result in qa_results:
-        if result.success:
+        if result.success and 'collection_type' in result.result:
             print(f"\nModel: {result.model_name}, Collection: {result.result['collection_type']}")
             for metric_name, value in result.result['metrics'].items():
                 if isinstance(value, float):
@@ -250,12 +255,13 @@ async def main():
                 else:
                     print(f"  {metric_name}: {value}")
         else:
-            print(f"\nModel: {result.model_name}, FAILED - Error: {result.error}")
+            error_msg = result.error if not result.success else result.result.get('error', 'Unknown error')
+            print(f"\nModel: {result.model_name}, FAILED - Error: {error_msg}")
 
     print("\nRunning Metric Collections Example (Safety)...")
     safety_results = await test_metric_collections(safety_dataset)
     for result in safety_results:
-        if result.success:
+        if result.success and 'collection_type' in result.result:
             print(f"\nModel: {result.model_name}, Collection: {result.result['collection_type']}")
             for metric_name, value in result.result['metrics'].items():
                 if isinstance(value, float):
@@ -263,7 +269,8 @@ async def main():
                 else:
                     print(f"  {metric_name}: {value}")
         else:
-            print(f"\nModel: {result.model_name}, FAILED - Error: {result.error}")
+            error_msg = result.error if not result.success else result.result.get('error', 'Unknown error')
+            print(f"\nModel: {result.model_name}, FAILED - Error: {error_msg}")
 
 asyncio.run(main())
 ```

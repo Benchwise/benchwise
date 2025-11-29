@@ -424,13 +424,13 @@ print("\n=== Text Report ===\n")
 text_report = ResultsAnalyzer.generate_report(benchmark, output_format="text")
 print(text_report)
 
-# Get statistics for accuracy
+# Get statistics for accuracy using compare_models
 print("\n=== Accuracy Statistics ===")
-stats = ResultsAnalyzer.get_statistics(benchmark, "accuracy")
-print(f"Mean: {stats['mean']:.2%}")
-print(f"Std Dev: {stats['std']:.3f}")
-print(f"Min: {stats['min']:.2%}")
-print(f"Max: {stats['max']:.2%}")
+comparison = benchmark.compare_models("accuracy")
+print(f"Mean: {comparison['mean_score']:.2%}")
+print(f"Std Dev: {comparison['std_score']:.3f}")
+print(f"Best: {comparison['best_score']:.2%} ({comparison['best_model']})")
+print(f"Worst: {comparison['worst_score']:.2%} ({comparison['worst_model']})")
 ```
 
 ## Scenario 10: Result Caching
@@ -564,13 +564,13 @@ async def main():
     report = ResultsAnalyzer.generate_report(benchmark_obj, output_format="text")
     print(report)
 
-    # Step 8: Get statistics
+    # Step 8: Get statistics using compare_models
     print("\n=== Statistics ===")
-    acc_stats = ResultsAnalyzer.get_statistics(benchmark_obj, "accuracy")
-    print(f"Accuracy - Mean: {acc_stats['mean']:.2%}, Std: {acc_stats['std']:.3f}")
+    acc_comparison = benchmark_obj.compare_models("accuracy")
+    print(f"Accuracy - Mean: {acc_comparison['mean_score']:.2%}, Std: {acc_comparison['std_score']:.3f}")
 
-    sim_stats = ResultsAnalyzer.get_statistics(benchmark_obj, "similarity")
-    print(f"Similarity - Mean: {sim_stats['mean']:.2%}, Std: {sim_stats['std']:.3f}")
+    sim_comparison = benchmark_obj.compare_models("similarity")
+    print(f"Similarity - Mean: {sim_comparison['mean_score']:.2%}, Std: {sim_comparison['std_score']:.3f}")
 
     # Cleanup
     import os

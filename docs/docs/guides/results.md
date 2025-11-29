@@ -253,13 +253,13 @@ async def main():
     print(f"Best accuracy: {comparison['best_score']:.2%}")
 
     # Generate report
-    report = ResultsAnalyzer.generate_report(benchmark, "markdown")
+    report = ResultsAnalyzer.generate_report(benchmark, output_format="markdown")
     print("\n" + report)
 
-    # Statistics
-    stats = ResultsAnalyzer.get_statistics(benchmark, "accuracy")
-    print(f"\nMean accuracy: {stats['mean']:.2%}")
-    print(f"Std deviation: {stats['std']:.3f}")
+    # Statistics using compare_models
+    comparison = benchmark.compare_models("accuracy")
+    print(f"\nMean accuracy: {comparison['mean_score']:.2%}")
+    print(f"Std deviation: {comparison['std_score']:.3f}")
 
 asyncio.run(main())
 ```

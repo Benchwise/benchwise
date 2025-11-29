@@ -171,7 +171,6 @@ async def comprehensive_eval(model, dataset):
 
 Pre-bundled metric sets for common scenarios. Saves time and ensures comprehensive evaluation.
 
-Use predefined metric bundles:
 
 ```python
 from benchwise import get_text_generation_metrics, get_qa_metrics, get_safety_metrics
@@ -189,7 +188,6 @@ safety_metrics = get_safety_metrics()  # Safety Score, Toxicity Detection
 
 Create domain-specific metrics when built-in ones don't capture your needs.
 
-Create your own metrics:
 
 ```python
 def custom_length_metric(predictions, references):
