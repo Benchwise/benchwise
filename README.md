@@ -1,6 +1,6 @@
 # Getting Started with Benchwise
 
-Welcome to Benchwise! This guide will help you get up and running with evaluating LLMs using our platform.
+Welcome to Benchwise! This guide will help you get up and running with evaluating LLMs using benchwise.
 
 ## What is Benchwise?
 
