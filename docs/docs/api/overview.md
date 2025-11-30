@@ -2,7 +2,7 @@
 sidebar_position: 1
 ---
 
-# API Reference Overview
+# Overview
 
 Benchwise provides a comprehensive API for LLM evaluation. This section documents all public APIs.
 
@@ -152,49 +152,6 @@ report = ResultsAnalyzer.generate_report(benchmark, "markdown")
 print(report)
 ```
 
-### `benchwise.config`
-
-Configuration management.
-
-- **`BenchwiseConfig`** - Main configuration dataclass
-- **`configure_benchwise(**kwargs)`** - Programmatic configuration
-- **`get_development_config()`** - Development preset
-- **`get_production_config()`** - Production preset
-- **`get_offline_config()`** - Offline mode preset
-
-**Example:**
-```python
-from benchwise import configure_benchwise, get_development_config
-
-# Programmatic configuration
-configure_benchwise(
-    api_url="https://api.benchwise.ai",
-    upload_enabled=True,
-    cache_enabled=True
-)
-
-# Use preset
-config = get_development_config()
-```
-
-### `benchwise.client`
-
-API client for Benchwise platform.
-
-- **`BenchwiseClient`** - Async HTTP client
-- **`upload_results(results)`** - Upload evaluation results
-- **`sync_offline_results()`** - Sync queued offline results
-- **`get_client()`** - Get singleton client instance
-- **`close_client()`** - Close client connection
-
-**Example:**
-```python
-from benchwise.client import get_client, upload_results
-
-client = get_client()
-await upload_results(benchmark_results)
-```
-
 ## Type Definitions
 
 ### `EvaluationResult`
@@ -228,6 +185,5 @@ class Dataset:
 
 ## Next Steps
 
-- [Usage Guide](/docs/usage-guide) - Detailed examples and patterns
-- [Examples](/docs/examples) - Real-world use cases
-- [GitHub](https://github.com/Benchwise/benchwise) - Source code and issues
+- [Getting Started](../guides/evaluation.md) - Learn how to use Benchwise
+- [Examples](../examples/evaluation.md) - Practical examples
