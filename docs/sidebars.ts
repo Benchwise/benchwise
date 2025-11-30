@@ -39,6 +39,7 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: 'API Reference',
       items: [
+        'api/overview',
         {
           type: 'category',
           label: 'Decorators',
