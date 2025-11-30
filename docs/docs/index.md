@@ -14,7 +14,7 @@ title: Welcome to Benchwise
 - **Multi-Provider Support** - OpenAI, Anthropic, Google, HuggingFace
 - **Built-in Metrics** - ROUGE, BLEU, BERT-score, semantic similarity, and more
 - **Async-First** - Built for performance with async/await throughout
-- **Results Management** - Caching, offline mode, and API upload
+- **Results Management** - Caching, offline mode
 - **Dataset Tools** - Load standard benchmarks (MMLU, HellaSwag, GSM8K)
 - **Community Sharing** - Share and discover benchmarks (Coming Soon)
 

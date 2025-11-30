@@ -29,7 +29,6 @@ const sidebars: SidebarsConfig = {
       label: 'Advanced',
       items: [
         'advanced/configuration',
-        'advanced/api-integration',
         'advanced/custom-metrics',
         'advanced/error-handling',
         'advanced/logging',
@@ -93,8 +92,8 @@ const sidebars: SidebarsConfig = {
             'api/results/results-analyzer',
           ],
         },
-        'api/config',
-        'api/client',
+        // 'api/config',
+        // 'api/client',
         'api/exceptions',
       ],
     },

@@ -44,12 +44,6 @@ benchwise eval gpt-4 claude-3-opus --dataset data.json --metrics accuracy rouge_
 benchwise validate dataset.json
 ```
 
-### Configure Settings
-
-```bash
-benchwise configure --api-key your_key --upload true
-```
-
 ### Compare Results
 
 ```bash

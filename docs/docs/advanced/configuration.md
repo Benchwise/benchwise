@@ -17,51 +17,17 @@ Benchwise loads configuration from multiple sources (in order of precedence):
 3. Config files (`.benchwise.json`, `~/.benchwise/config.json`)
 4. Default values
 
-## Programmatic Configuration
-
-Configure Benchwise settings directly within your Python code.
-
-```python
-from benchwise import configure_benchwise
-
-configure_benchwise(
-    api_url="https://api.benchwise.ai",
-    api_key="your_key",
-    upload_enabled=True,
-    cache_enabled=True,
-    debug=False
-)
-```
 
 ## Environment Variables
 
 Set Benchwise configuration using environment variables.
 
 ```bash
-export BENCHWISE_API_URL="https://api.benchwise.ai"
-export BENCHWISE_API_KEY="your_key"
-export BENCHWISE_UPLOAD="true"
 export BENCHWISE_CACHE="true"
 export BENCHWISE_DEBUG="false"
 ```
 
-## Config File
-
-Configure Benchwise using a dedicated configuration file.
-
-Create `.benchwise.json` in your project root:
-
-```json
-{
-  "api_url": "https://api.benchwise.ai",
-  "api_key": "your_key",
-  "upload_enabled": true,
-  "cache_enabled": true,
-  "debug": false
-}
-```
-
-## Preset Configurations
+## Preset Configurations (Under development)
 
 Quickly apply predefined configuration settings for common scenarios.
 
