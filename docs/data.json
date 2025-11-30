@@ -1,0 +1,10 @@
+[
+  {
+    "prompt": "What is the capital of France?",
+    "reference": "Paris"
+  },
+  {
+    "prompt": "Who wrote 'Hamlet'?",
+    "reference": "William Shakespeare"
+  }
+]

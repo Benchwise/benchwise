@@ -72,6 +72,7 @@ class Dataset:
                 or item.get("answer")
                 or item.get("target")
                 or item.get("summary")
+                or item.get("label")  
             )
             if ref:
                 references.append(str(ref))

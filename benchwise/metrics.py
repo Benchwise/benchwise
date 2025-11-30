@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple, Optional
 import numpy as np
 from rouge_score import rouge_scorer
 from sacrebleu import BLEU
@@ -721,11 +721,11 @@ def perplexity(predictions: List[str], model_name: str = "gpt2") -> Dict[str, fl
 def factual_correctness(
     predictions: List[str],
     references: List[str],
-    fact_checker_endpoint: str = None,
+    fact_checker_endpoint: Optional[str] = None,
     use_named_entities: bool = True,
     return_confidence: bool = True,
     detailed_analysis: bool = True,
-) -> Dict[str, float]:
+) -> Dict[str, Any]:
     """
     Evaluate factual correctness of predictions using enhanced fact-checking methods.
 
@@ -1011,7 +1011,7 @@ def coherence_score(
     predictions: List[str],
     return_confidence: bool = True,
     detailed_analysis: bool = True,
-) -> Dict[str, float]:
+) -> Dict[str, Any]:
     """
     Evaluate text coherence using enhanced linguistic and statistical metrics.
 
