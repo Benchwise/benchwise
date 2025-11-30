@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "benchwise"
-version = "0.1.0a1"
+version = "0.1.0a3"
 description = "The GitHub of LLM Evaluation - Python SDK"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -74,6 +74,11 @@ lint = [
 
 dev = [
     "benchwise[test,lint]",
+    "psutil>=5.9.0"
+]
+
+all = [
+    "benchwise[metrics,llms]",
     "psutil>=5.9.0"
 ]
 

@@ -1,5 +1,5 @@
 """
-BenchWise Configuration Management
+Benchwise Configuration Management
 
 Handles configuration for API connection, authentication, and upload settings.
 Supports environment variables and configuration files.
@@ -13,12 +13,12 @@ import json
 
 
 @dataclass
-class BenchWiseConfig:
+class BenchwiseConfig:
     """
-    Configuration class for BenchWise SDK.
+    Configuration class for Benchwise SDK.
 
     Attributes:
-        api_url: URL of the BenchWise API
+        api_url: URL of the Benchwise API
         api_key: API key for authentication
         upload_enabled: Whether to automatically upload results
         cache_enabled: Whether to cache results locally
@@ -232,7 +232,7 @@ class BenchWiseConfig:
 
     def print_config(self):
         """Print current configuration in a readable format."""
-        print("🔧 BenchWise Configuration:")
+        print("🔧 Benchwise Configuration:")
         print("=" * 30)
 
         config_dict = self.to_dict()
@@ -240,30 +240,30 @@ class BenchWiseConfig:
             print(f"  {key}: {value}")
 
 
-_global_config: Optional[BenchWiseConfig] = None
+_global_config: Optional[BenchwiseConfig] = None
 
 
-def get_api_config() -> BenchWiseConfig:
+def get_api_config() -> BenchwiseConfig:
     """
-    Get the global BenchWise configuration.
+    Get the global Benchwise configuration.
 
     Returns:
-        BenchWiseConfig instance
+        BenchwiseConfig instance
     """
     global _global_config
 
     if _global_config is None:
-        _global_config = BenchWiseConfig()
+        _global_config = BenchwiseConfig()
 
     return _global_config
 
 
-def set_api_config(config: BenchWiseConfig):
+def set_api_config(config: BenchwiseConfig):
     """
-    Set the global BenchWise configuration.
+    Set the global Benchwise configuration.
 
     Args:
-        config: BenchWiseConfig instance to set as global
+        config: BenchwiseConfig instance to set as global
     """
     global _global_config
     _global_config = config
@@ -276,12 +276,12 @@ def configure_benchwise(
     cache_enabled: Optional[bool] = None,
     debug: Optional[bool] = None,
     **kwargs,
-) -> BenchWiseConfig:
+) -> BenchwiseConfig:
     """
-    Configure BenchWise settings programmatically.
+    Configure Benchwise settings programmatically.
 
     Args:
-        api_url: BenchWise API URL
+        api_url: Benchwise API URL
         api_key: API key for authentication
         upload_enabled: Whether to automatically upload results
         cache_enabled: Whether to enable local caching
@@ -289,7 +289,7 @@ def configure_benchwise(
         **kwargs: Additional configuration options
 
     Returns:
-        Updated BenchWiseConfig instance
+        Updated BenchwiseConfig instance
     """
     config = get_api_config()
 
@@ -323,7 +323,7 @@ def reset_config():
 
 def is_api_available() -> bool:
     """
-    Check if BenchWise API configuration is available.
+    Check if Benchwise API configuration is available.
 
     Returns:
         True if API URL is configured
@@ -358,9 +358,9 @@ def get_cache_dir() -> Path:
     return Path(config.cache_dir)
 
 
-def get_development_config() -> BenchWiseConfig:
+def get_development_config() -> BenchwiseConfig:
     """Get configuration optimized for development."""
-    return BenchWiseConfig(
+    return BenchwiseConfig(
         api_url="http://localhost:8000",
         upload_enabled=False,
         cache_enabled=True,
@@ -369,9 +369,9 @@ def get_development_config() -> BenchWiseConfig:
     )
 
 
-def get_production_config(api_url: str, api_key: str) -> BenchWiseConfig:
+def get_production_config(api_url: str, api_key: str) -> BenchwiseConfig:
     """Get configuration optimized for production."""
-    return BenchWiseConfig(
+    return BenchwiseConfig(
         api_url=api_url,
         api_key=api_key,
         upload_enabled=True,
@@ -384,9 +384,9 @@ def get_production_config(api_url: str, api_key: str) -> BenchWiseConfig:
     )
 
 
-def get_offline_config() -> BenchWiseConfig:
+def get_offline_config() -> BenchwiseConfig:
     """Get configuration for offline usage."""
-    return BenchWiseConfig(
+    return BenchwiseConfig(
         upload_enabled=False,
         cache_enabled=True,
         offline_mode=True,
@@ -395,7 +395,7 @@ def get_offline_config() -> BenchWiseConfig:
     )
 
 
-def validate_api_connection(config: BenchWiseConfig) -> bool:
+def validate_api_connection(config: BenchwiseConfig) -> bool:
     """
     Validate API connection and configuration.
 
@@ -422,7 +422,7 @@ def validate_api_connection(config: BenchWiseConfig) -> bool:
         return False
 
 
-def validate_api_keys(config: BenchWiseConfig) -> Dict[str, bool]:
+def validate_api_keys(config: BenchwiseConfig) -> Dict[str, bool]:
     """
     NEW: Validate external API keys by making test calls.
 
@@ -482,14 +482,14 @@ def validate_api_keys(config: BenchWiseConfig) -> Dict[str, bool]:
     return results
 
 
-def print_configuration_status(config: BenchWiseConfig):
+def print_configuration_status(config: BenchwiseConfig):
     """
     NEW: Print comprehensive configuration status.
 
     Args:
         config: Configuration to check
     """
-    print("BenchWise Configuration Status")
+    print("Benchwise Configuration Status")
     print("=" * 40)
 
     config.print_config()

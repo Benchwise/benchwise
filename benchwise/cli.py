@@ -1,5 +1,5 @@
 """
-BenchWise CLI - Command line interface for LLM evaluation
+Benchwise CLI - Command line interface for LLM evaluation
 """
 
 import argparse
@@ -18,11 +18,11 @@ from .client import get_client, sync_offline_results
 def create_parser() -> argparse.ArgumentParser:
     """Create the main argument parser."""
     parser = argparse.ArgumentParser(
-        prog="benchwise", description="BenchWise CLI - The GitHub of LLM Evaluation"
+        prog="benchwise", description="Benchwise CLI - The GitHub of LLM Evaluation"
     )
 
     parser.add_argument(
-        "--version", action="version", version=f"BenchWise {__version__}"
+        "--version", action="version", version=f"Benchwise {__version__}"
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
@@ -51,7 +51,7 @@ def create_parser() -> argparse.ArgumentParser:
         "--max-tokens", type=int, default=1000, help="Maximum tokens to generate"
     )
     eval_parser.add_argument(
-        "--upload", action="store_true", help="Upload results to BenchWise API"
+        "--upload", action="store_true", help="Upload results to Benchwise API"
     )
     eval_parser.add_argument(
         "--no-upload", action="store_true", help="Disable result upload"
@@ -77,9 +77,9 @@ def create_parser() -> argparse.ArgumentParser:
 
     # Configure command
     config_parser = subparsers.add_parser(
-        "configure", help="Configure BenchWise settings"
+        "configure", help="Configure Benchwise settings"
     )
-    config_parser.add_argument("--api-url", help="BenchWise API URL")
+    config_parser.add_argument("--api-url", help="Benchwise API URL")
     config_parser.add_argument("--api-key", help="API authentication key")
     config_parser.add_argument(
         "--upload", choices=["true", "false"], help="Enable/disable automatic uploads"
@@ -100,7 +100,7 @@ def create_parser() -> argparse.ArgumentParser:
     )
 
     # Status command
-    status_parser = subparsers.add_parser("status", help="Show BenchWise status")
+    status_parser = subparsers.add_parser("status", help="Show Benchwise status")
     status_parser.add_argument(
         "--api", action="store_true", help="Check API connectivity"
     )
@@ -273,7 +273,7 @@ async def run_evaluation(
                     benchmark_result.metadata,
                 )
                 if success:
-                    print("✅ Results uploaded to BenchWise API")
+                    print("✅ Results uploaded to Benchwise API")
                 else:
                     print("⚠️ Results cached for offline sync")
             except Exception as e:
@@ -286,7 +286,7 @@ async def run_evaluation(
 
 
 async def configure_api(args):
-    """Configure BenchWise API settings."""
+    """Configure Benchwise API settings."""
     from .config import reset_config
 
     if args.reset:
@@ -355,12 +355,12 @@ async def sync_offline(args):
 
 
 async def show_status(args):
-    """Show BenchWise status information."""
+    """Show Benchwise status information."""
     config = get_api_config()
     client = None
 
     try:
-        print("🔧 BenchWise Status")
+        print("🔧 Benchwise Status")
         print("=" * 20)
 
         # Basic configuration

@@ -1,5 +1,5 @@
 """
-BenchWise SDK - Python SDK for LLM Evaluation
+Benchwise SDK - Python SDK for LLM Evaluation
 
 The GitHub of LLM Evaluation
 """
@@ -52,21 +52,37 @@ from .results import (
 from .config import (
     get_api_config,
     configure_benchwise,
-    BenchWiseConfig,
+    BenchwiseConfig,
     get_development_config,
     get_production_config,
     get_offline_config,
 )
 from .client import (
-    BenchWiseClient,
-    BenchWiseAPIError,
+    BenchwiseClient,
+    BenchwiseAPIError,
     upload_results,
     sync_offline_results,
     get_client,
     close_client,
 )
+from .logging import (
+    setup_logging,
+    get_logger,
+    set_log_level,
+)
+from .exceptions import (
+    BenchwiseError,
+    AuthenticationError,
+    RateLimitError,
+    ValidationError,
+    NetworkError,
+    ConfigurationError,
+    DatasetError,
+    ModelError,
+    MetricError,
+)
 
-__version__ = "0.1.0a1"
+__version__ = "0.1.0a3"
 __all__ = [
     # Core evaluation framework
     "evaluate",
@@ -113,17 +129,31 @@ __all__ = [
     "load_results",
     "cache",
     # API Integration
-    "BenchWiseClient",
-    "BenchWiseAPIError",
+    "BenchwiseClient",
+    "BenchwiseAPIError",
     "get_client",
     "close_client",
     "upload_results",
     "sync_offline_results",
     # Configuration
-    "BenchWiseConfig",
+    "BenchwiseConfig",
     "get_api_config",
     "configure_benchwise",
     "get_development_config",
     "get_production_config",
     "get_offline_config",
+    # Logging
+    "setup_logging",
+    "get_logger",
+    "set_log_level",
+    # Exceptions
+    "BenchwiseError",
+    "AuthenticationError",
+    "RateLimitError",
+    "ValidationError",
+    "NetworkError",
+    "ConfigurationError",
+    "DatasetError",
+    "ModelError",
+    "MetricError",
 ]

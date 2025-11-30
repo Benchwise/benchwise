@@ -1,5 +1,5 @@
 """
-Integration tests for BenchWise SDK
+Integration tests for Benchwise SDK
 
 These tests verify that the main components work together correctly.
 """
@@ -181,9 +181,9 @@ class TestDataFlowIntegration:
         assert benchmark.results[0].dataset_info == sample_dataset.metadata
 
     def test_config_to_evaluation_flow(self):
-        from benchwise.config import BenchWiseConfig, set_api_config
+        from benchwise.config import BenchwiseConfig, set_api_config
 
-        test_config = BenchWiseConfig(upload_enabled=False, debug=True)
+        test_config = BenchwiseConfig(upload_enabled=False, debug=True)
 
         original_config = get_api_config()
         set_api_config(test_config)

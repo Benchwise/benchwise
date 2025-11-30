@@ -1,22 +1,37 @@
 import httpx
 import asyncio
+import uuid
+import logging
 from typing import Dict, Any, Optional, List
 from datetime import datetime
+from contextvars import ContextVar
 
 from .config import get_api_config
 from .results import EvaluationResult, BenchmarkResult
 
+# Set up logger
+logger = logging.getLogger("benchwise.client")
 
-class BenchWiseAPIError(Exception):
+# Context-local client storage (thread-safe)
+_client_context: ContextVar[Optional['BenchwiseClient']] = ContextVar('_client_context', default=None)
+
+
+class BenchwiseAPIError(Exception):
     """Enhanced exception with error codes and retry info."""
 
-    def __init__(self, message: str, status_code: int = None, retry_after: int = None):
+    def __init__(self, message: str, status_code: int = None, retry_after: int = None, request_id: str = None):
         super().__init__(message)
         self.status_code = status_code
         self.retry_after = retry_after
+        self.request_id = request_id
 
 
-class BenchWiseClient:
+def generate_request_id() -> str:
+    """Generate unique request ID for tracing."""
+    return f"benchwise-{uuid.uuid4().hex[:16]}"
+
+
+class BenchwiseClient:
     def __init__(self, api_url: Optional[str] = None, api_key: Optional[str] = None):
         config = get_api_config()
         self.api_url = api_url or config.api_url
@@ -26,7 +41,7 @@ class BenchWiseClient:
         # Setup HTTP client with proper headers
         headers = {
             "Content-Type": "application/json",
-            "User-Agent": "BenchWise-SDK/0.1.0",
+            "User-Agent": "Benchwise-SDK/0.1.0a3",
         }
 
         self.client = httpx.AsyncClient(
@@ -46,6 +61,8 @@ class BenchWiseClient:
 
         # Track if client is closed
         self._closed = False
+        
+        logger.debug(f"BenchwiseClient initialized with API URL: {self.api_url}")
 
     async def __aenter__(self):
         return self
@@ -58,13 +75,22 @@ class BenchWiseClient:
         if not self._closed:
             await self.client.aclose()
             self._closed = True
+            logger.debug("BenchwiseClient closed")
 
     async def _make_request_with_retry(
         self, method: str, url: str, **kwargs
     ) -> httpx.Response:
-        """Make HTTP request with automatic retry logic."""
+        """Make HTTP request with automatic retry logic and request ID tracking."""
         max_retries = 3
         base_delay = 1
+        
+        # Generate and add request ID
+        request_id = generate_request_id()
+        if 'headers' not in kwargs:
+            kwargs['headers'] = {}
+        kwargs['headers']['X-Request-ID'] = request_id
+        
+        logger.debug(f"Making {method} request to {url} [Request-ID: {request_id}]")
 
         for attempt in range(max_retries + 1):
             try:
@@ -72,6 +98,7 @@ class BenchWiseClient:
 
                 # Success
                 if response.status_code < 400:
+                    logger.debug(f"Request successful [Request-ID: {request_id}]")
                     return response
 
                 # Rate limiting - respect retry-after header
@@ -79,6 +106,7 @@ class BenchWiseClient:
                     retry_after = int(
                         response.headers.get("retry-after", base_delay * (2**attempt))
                     )
+                    logger.warning(f"Rate limited, retrying after {retry_after}s [Request-ID: {request_id}]")
                     if attempt < max_retries:
                         await asyncio.sleep(retry_after)
                         continue
@@ -93,40 +121,46 @@ class BenchWiseClient:
                 except Exception:
                     pass
 
-                raise BenchWiseAPIError(
-                    f"{error_detail}", status_code=response.status_code
+                logger.error(f"Request failed: {error_detail} [Request-ID: {request_id}]")
+                raise BenchwiseAPIError(
+                    f"{error_detail}", 
+                    status_code=response.status_code,
+                    request_id=request_id
                 )
 
             except httpx.RequestError as e:
+                logger.warning(f"Network error (attempt {attempt + 1}/{max_retries + 1}): {e} [Request-ID: {request_id}]")
                 if attempt < max_retries:
                     delay = base_delay * (2**attempt)
                     await asyncio.sleep(delay)
                     continue
-                raise BenchWiseAPIError(f"Network error: {e}")
+                raise BenchwiseAPIError(f"Network error: {e}", request_id=request_id)
 
-        raise BenchWiseAPIError("Max retries exceeded")
+        raise BenchwiseAPIError("Max retries exceeded", request_id=request_id)
 
     def _set_auth_header(self):
         """Set JWT authorization header if token is available."""
         if self.jwt_token:
             self.client.headers["Authorization"] = f"Bearer {self.jwt_token}"
+            logger.debug("Authorization header set")
         elif "Authorization" in self.client.headers:
             del self.client.headers["Authorization"]
+            logger.debug("Authorization header removed")
 
     async def health_check(self) -> bool:
-        """Check if the BenchWise API is available."""
+        """Check if the Benchwise API is available."""
         try:
             response = await self.client.get("/health", timeout=5.0)
-            return response.status_code == 200
-        except Exception:
+            is_healthy = response.status_code == 200
+            logger.info(f"Health check: {'healthy' if is_healthy else 'unhealthy'}")
+            return is_healthy
+        except Exception as e:
+            logger.warning(f"Health check failed: {e}")
             return False
-        finally:
-            # Ensure no hanging connections
-            pass
 
     async def login(self, username: str, password: str) -> Dict[str, Any]:
         """
-        FIXED: Login with username/password to get JWT token.
+        Login with username/password to get JWT token.
 
         Args:
             username: Username or email
@@ -135,6 +169,7 @@ class BenchWiseClient:
         Returns:
             User information and token data
         """
+        logger.info(f"Attempting login for user: {username}")
         try:
             response = await self.client.post(
                 "/api/v1/users/login", json={"username": username, "password": password}
@@ -147,20 +182,24 @@ class BenchWiseClient:
 
                 # Get user info
                 user_info = await self.get_current_user()
+                logger.info(f"Login successful for user: {username}")
                 return {"token": token_data, "user": user_info}
             elif response.status_code == 401:
-                raise BenchWiseAPIError("Invalid username or password")
+                logger.error("Login failed: Invalid credentials")
+                raise BenchwiseAPIError("Invalid username or password")
             else:
-                raise BenchWiseAPIError(f"Login failed: {response.status_code}")
+                logger.error(f"Login failed with status: {response.status_code}")
+                raise BenchwiseAPIError(f"Login failed: {response.status_code}")
 
         except httpx.RequestError as e:
-            raise BenchWiseAPIError(f"Network error during login: {e}")
+            logger.error(f"Network error during login: {e}")
+            raise BenchwiseAPIError(f"Network error during login: {e}")
 
     async def register(
         self, username: str, email: str, password: str, full_name: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        FIXED: Register a new user account.
+        Register a new user account.
 
         Args:
             username: Unique username
@@ -171,6 +210,7 @@ class BenchWiseClient:
         Returns:
             Created user information
         """
+        logger.info(f"Attempting registration for user: {username}")
         try:
             user_data = {
                 "username": username,
@@ -184,25 +224,29 @@ class BenchWiseClient:
             response = await self.client.post("/api/v1/users/register", json=user_data)
 
             if response.status_code == 201:
+                logger.info(f"Registration successful for user: {username}")
                 return response.json()
             elif response.status_code == 400:
                 error_detail = response.json().get("detail", "Registration failed")
-                raise BenchWiseAPIError(f"Registration failed: {error_detail}")
+                logger.error(f"Registration failed: {error_detail}")
+                raise BenchwiseAPIError(f"Registration failed: {error_detail}")
             else:
-                raise BenchWiseAPIError(f"Registration failed: {response.status_code}")
+                logger.error(f"Registration failed with status: {response.status_code}")
+                raise BenchwiseAPIError(f"Registration failed: {response.status_code}")
 
         except httpx.RequestError as e:
-            raise BenchWiseAPIError(f"Network error during registration: {e}")
+            logger.error(f"Network error during registration: {e}")
+            raise BenchwiseAPIError(f"Network error during registration: {e}")
 
     async def get_current_user(self) -> Dict[str, Any]:
         """
-        FIXED: Get current authenticated user information.
+        Get current authenticated user information.
 
         Returns:
             User information
         """
         if not self.jwt_token:
-            raise BenchWiseAPIError("Not authenticated - please login first")
+            raise BenchwiseAPIError("Not authenticated - please login first")
 
         try:
             response = await self.client.get("/api/v1/users/me")
@@ -210,14 +254,34 @@ class BenchWiseClient:
             if response.status_code == 200:
                 return response.json()
             elif response.status_code == 401:
-                raise BenchWiseAPIError("Authentication expired - please login again")
+                logger.warning("Authentication expired")
+                raise BenchwiseAPIError("Authentication expired - please login again")
             else:
-                raise BenchWiseAPIError(
+                raise BenchwiseAPIError(
                     f"Failed to get user info: {response.status_code}"
                 )
 
         except httpx.RequestError as e:
-            raise BenchWiseAPIError(f"Network error getting user info: {e}")
+            raise BenchwiseAPIError(f"Network error getting user info: {e}")
+
+    # WIP: Simplified upload workflow (to be completed in future release)
+    async def upload_benchmark_result_simple(
+        self, benchmark_result: BenchmarkResult
+    ) -> Dict[str, Any]:
+        """
+        WIP: Simplified single-call upload for benchmark results.
+        
+        This will be the primary upload method in the next release.
+        Currently redirects to the existing multi-step workflow.
+        
+        Args:
+            benchmark_result: BenchmarkResult object to upload
+
+        Returns:
+            API response data
+        """
+        logger.warning("Using legacy multi-step upload workflow. Simplified workflow coming in next release.")
+        return await self.upload_benchmark_result(benchmark_result)
 
     async def register_model(
         self,
@@ -227,7 +291,7 @@ class BenchWiseClient:
         description: Optional[str] = None,
     ) -> int:
         """
-        FIXED: Register a model and return its database ID.
+        Register a model and return its database ID.
 
         Args:
             model_name: Display name for the model
@@ -241,8 +305,10 @@ class BenchWiseClient:
         # Check cache first
         cache_key = f"{provider}:{model_id}"
         if cache_key in self.model_cache:
+            logger.debug(f"Using cached model ID for {cache_key}")
             return self.model_cache[cache_key]
 
+        logger.info(f"Registering model: {model_name} ({provider})")
         try:
             model_data = {
                 "name": model_name,
@@ -259,20 +325,22 @@ class BenchWiseClient:
                 model_info = response.json()
                 model_db_id = model_info["id"]
                 self.model_cache[cache_key] = model_db_id
+                logger.info(f"Model registered successfully with ID: {model_db_id}")
                 return model_db_id
             elif response.status_code == 400:
                 # Model might already exist - try to get it
+                logger.debug("Model may already exist, attempting to retrieve")
                 return await self._get_existing_model(provider, model_id)
             else:
-                raise BenchWiseAPIError(
+                raise BenchwiseAPIError(
                     f"Failed to register model: {response.status_code}"
                 )
 
         except httpx.RequestError as e:
-            raise BenchWiseAPIError(f"Network error registering model: {e}")
+            raise BenchwiseAPIError(f"Network error registering model: {e}")
 
     async def _get_existing_model(self, provider: str, model_id: str) -> int:
-        """FIXED: Get existing model ID from backend using correct parameters."""
+        """Get existing model ID from backend using correct parameters."""
         try:
             # Use supported parameters: skip, limit, provider, is_active
             response = await self.client.get(
@@ -287,22 +355,23 @@ class BenchWiseClient:
                     if model["provider"] == provider and model["model_id"] == model_id:
                         cache_key = f"{provider}:{model_id}"
                         self.model_cache[cache_key] = model["id"]
+                        logger.debug(f"Found existing model with ID: {model['id']}")
                         return model["id"]
 
-                raise BenchWiseAPIError(f"Model {provider}:{model_id} not found")
+                raise BenchwiseAPIError(f"Model {provider}:{model_id} not found")
             else:
-                raise BenchWiseAPIError(
+                raise BenchwiseAPIError(
                     f"Failed to search models: {response.status_code}"
                 )
 
         except httpx.RequestError as e:
-            raise BenchWiseAPIError(f"Network error searching models: {e}")
+            raise BenchwiseAPIError(f"Network error searching models: {e}")
 
     async def register_benchmark(
         self, benchmark_name: str, description: str, dataset_info: Dict[str, Any]
     ) -> int:
         """
-        FIXED: Register a benchmark and return its database ID.
+        Register a benchmark and return its database ID.
 
         Args:
             benchmark_name: Name of the benchmark
@@ -314,15 +383,17 @@ class BenchWiseClient:
         """
         # Check cache first
         if benchmark_name in self.benchmark_cache:
+            logger.debug(f"Using cached benchmark ID for {benchmark_name}")
             return self.benchmark_cache[benchmark_name]
 
         # First try to find existing benchmark (more efficient)
         try:
             return await self._get_existing_benchmark(benchmark_name)
-        except BenchWiseAPIError:
+        except BenchwiseAPIError:
             # Benchmark doesn't exist, try to create it
             pass
 
+        logger.info(f"Registering benchmark: {benchmark_name}")
         try:
             benchmark_data = {
                 "name": benchmark_name,
@@ -342,20 +413,22 @@ class BenchWiseClient:
                 benchmark_info = response.json()
                 benchmark_db_id = benchmark_info["id"]
                 self.benchmark_cache[benchmark_name] = benchmark_db_id
+                logger.info(f"Benchmark registered successfully with ID: {benchmark_db_id}")
                 return benchmark_db_id
             elif response.status_code == 400:
                 # Benchmark might already exist - try to get it
+                logger.debug("Benchmark may already exist, attempting to retrieve")
                 return await self._get_existing_benchmark(benchmark_name)
             else:
-                raise BenchWiseAPIError(
+                raise BenchwiseAPIError(
                     f"Failed to register benchmark: {response.status_code}"
                 )
 
         except httpx.RequestError as e:
-            raise BenchWiseAPIError(f"Network error registering benchmark: {e}")
+            raise BenchwiseAPIError(f"Network error registering benchmark: {e}")
 
     async def _get_existing_benchmark(self, benchmark_name: str) -> int:
-        """FIXED: Get existing benchmark ID from backend using correct parameters."""
+        """Get existing benchmark ID from backend using correct parameters."""
         try:
             # Use 'search' parameter instead of 'name' which doesn't exist
             response = await self.client.get(
@@ -369,22 +442,24 @@ class BenchWiseClient:
                 for benchmark in benchmarks:
                     if benchmark["name"] == benchmark_name:
                         self.benchmark_cache[benchmark_name] = benchmark["id"]
+                        logger.debug(f"Found existing benchmark with ID: {benchmark['id']}")
                         return benchmark["id"]
 
                 # If no exact match, try partial match
                 for benchmark in benchmarks:
                     if benchmark_name.lower() in benchmark["name"].lower():
                         self.benchmark_cache[benchmark_name] = benchmark["id"]
+                        logger.debug(f"Found similar benchmark with ID: {benchmark['id']}")
                         return benchmark["id"]
 
-                raise BenchWiseAPIError(f"Benchmark {benchmark_name} not found")
+                raise BenchwiseAPIError(f"Benchmark {benchmark_name} not found")
             else:
-                raise BenchWiseAPIError(
+                raise BenchwiseAPIError(
                     f"Failed to search benchmarks: {response.status_code}"
                 )
 
         except httpx.RequestError as e:
-            raise BenchWiseAPIError(f"Network error searching benchmarks: {e}")
+            raise BenchwiseAPIError(f"Network error searching benchmarks: {e}")
 
     async def create_evaluation(
         self,
@@ -394,7 +469,7 @@ class BenchWiseClient:
         metadata: Optional[Dict] = None,
     ) -> int:
         """
-        FIXED: Create evaluation with correct backend format.
+        Create evaluation with correct backend format.
 
         Args:
             name: Evaluation name
@@ -405,6 +480,7 @@ class BenchWiseClient:
         Returns:
             Evaluation ID
         """
+        logger.info(f"Creating evaluation: {name}")
         try:
             evaluation_data = {
                 "name": name,
@@ -420,16 +496,17 @@ class BenchWiseClient:
 
             if response.status_code == 201:
                 evaluation_info = response.json()
+                logger.info(f"Evaluation created successfully with ID: {evaluation_info['id']}")
                 return evaluation_info["id"]
             elif response.status_code == 401:
-                raise BenchWiseAPIError(
+                raise BenchwiseAPIError(
                     "Authentication required for creating evaluations"
                 )
             elif response.status_code == 422:
                 error_detail = response.json().get("detail", "Validation error")
-                raise BenchWiseAPIError(f"Invalid evaluation data: {error_detail}")
+                raise BenchwiseAPIError(f"Invalid evaluation data: {error_detail}")
             else:
-                raise BenchWiseAPIError(
+                raise BenchwiseAPIError(
                     f"Failed to create evaluation: {response.status_code}"
                 )
 
@@ -437,7 +514,7 @@ class BenchWiseClient:
             await self._add_to_offline_queue(
                 {"type": "create_evaluation", "data": evaluation_data}
             )
-            raise BenchWiseAPIError(f"Network error creating evaluation: {e}")
+            raise BenchwiseAPIError(f"Network error creating evaluation: {e}")
         except Exception as e:
             await self._add_to_offline_queue(
                 {"type": "create_evaluation", "data": evaluation_data}
@@ -448,7 +525,7 @@ class BenchWiseClient:
         self, evaluation_id: int, results: List[Dict[str, Any]]
     ) -> bool:
         """
-        FIXED: Upload results to an existing evaluation using the correct endpoint.
+        Upload results to an existing evaluation using the correct endpoint.
 
         Args:
             evaluation_id: Evaluation ID
@@ -457,6 +534,7 @@ class BenchWiseClient:
         Returns:
             True if successful
         """
+        logger.info(f"Uploading results for evaluation ID: {evaluation_id}")
         try:
             # Use the new SDK-specific endpoint
             response = await self.client.post(
@@ -464,9 +542,10 @@ class BenchWiseClient:
             )
 
             if response.status_code == 200:
+                logger.info("Results uploaded successfully")
                 return True
             else:
-                raise BenchWiseAPIError(
+                raise BenchwiseAPIError(
                     f"Failed to upload results: {response.status_code}"
                 )
 
@@ -478,7 +557,7 @@ class BenchWiseClient:
                     "results": results,
                 }
             )
-            raise BenchWiseAPIError(f"Network error uploading results: {e}")
+            raise BenchwiseAPIError(f"Network error uploading results: {e}")
         except Exception as e:
             await self._add_to_offline_queue(
                 {
@@ -493,7 +572,7 @@ class BenchWiseClient:
         self, benchmark_result: BenchmarkResult
     ) -> Dict[str, Any]:
         """
-        FIXED: Upload a complete benchmark result using correct workflow.
+        Upload a complete benchmark result using correct workflow.
 
         Args:
             benchmark_result: BenchmarkResult object to upload
@@ -502,8 +581,9 @@ class BenchWiseClient:
             API response data
         """
         if not self.jwt_token:
-            raise BenchWiseAPIError("Authentication required - please login first")
+            raise BenchwiseAPIError("Authentication required - please login first")
 
+        logger.info(f"Uploading benchmark result: {benchmark_result.benchmark_name}")
         try:
             # Step 1: Register benchmark if needed
             benchmark_name = benchmark_result.benchmark_name
@@ -537,7 +617,7 @@ class BenchWiseClient:
                     model_name_to_id[model_name] = model_db_id
 
             if not model_ids:
-                raise BenchWiseAPIError("No successful results to upload")
+                raise BenchwiseAPIError("No successful results to upload")
 
             # Step 3: Create evaluation
             evaluation_id = await self.create_evaluation(
@@ -568,6 +648,7 @@ class BenchWiseClient:
             # Step 5: Upload results
             await self.upload_evaluation_results(evaluation_id, results_data)
 
+            logger.info(f"Benchmark result uploaded successfully. Evaluation ID: {evaluation_id}")
             return {
                 "id": evaluation_id,
                 "benchmark_id": benchmark_id,
@@ -578,6 +659,7 @@ class BenchWiseClient:
 
         except Exception as e:
             # Add to offline queue for later sync
+            logger.warning(f"Upload failed, adding to offline queue: {e}")
             try:
                 await self._add_to_offline_queue(
                     {
@@ -612,8 +694,8 @@ class BenchWiseClient:
             return "huggingface"
         else:
             # Default fallback with logging
-            print(
-                f"⚠️ Unknown model provider for {model_name}, defaulting to huggingface"
+            logger.warning(
+                f"Unknown model provider for {model_name}, defaulting to huggingface"
             )
             return "huggingface"
 
@@ -629,12 +711,12 @@ class BenchWiseClient:
             if response.status_code == 200:
                 return response.json()
             else:
-                raise BenchWiseAPIError(
+                raise BenchwiseAPIError(
                     f"Failed to retrieve benchmarks: {response.status_code}"
                 )
 
         except httpx.RequestError as e:
-            raise BenchWiseAPIError(f"Network error retrieving benchmarks: {e}")
+            raise BenchwiseAPIError(f"Network error retrieving benchmarks: {e}")
 
     async def get_evaluations(
         self, limit: int = 50, skip: int = 0
@@ -648,12 +730,12 @@ class BenchWiseClient:
             if response.status_code == 200:
                 return response.json()
             else:
-                raise BenchWiseAPIError(
+                raise BenchwiseAPIError(
                     f"Failed to retrieve evaluations: {response.status_code}"
                 )
 
         except httpx.RequestError as e:
-            raise BenchWiseAPIError(f"Network error retrieving evaluations: {e}")
+            raise BenchwiseAPIError(f"Network error retrieving evaluations: {e}")
 
     async def _add_to_offline_queue(self, data: Dict[str, Any]):
         """Add data to offline queue for later upload."""
@@ -661,7 +743,7 @@ class BenchWiseClient:
             {"data": data, "timestamp": datetime.now().isoformat()}
         )
         self.offline_mode = True
-        print(f"📦 Added to offline queue (size: {len(self.offline_queue)})")
+        logger.info(f"Added to offline queue (size: {len(self.offline_queue)})")
 
     async def sync_offline_queue(self) -> int:
         """Sync offline queue with the API when connection is restored."""
@@ -671,7 +753,7 @@ class BenchWiseClient:
         synced_count = 0
         failed_items = []
 
-        print(f"🔄 Syncing {len(self.offline_queue)} offline items...")
+        logger.info(f"Syncing {len(self.offline_queue)} offline items...")
 
         for item in self.offline_queue:
             try:
@@ -692,18 +774,18 @@ class BenchWiseClient:
                     )
 
                 synced_count += 1
-                print(f"✅ Synced item from {item['timestamp']}")
+                logger.info(f"Synced item from {item['timestamp']}")
 
             except Exception as e:
                 failed_items.append(item)
-                print(f"❌ Failed to sync item: {e}")
+                logger.error(f"Failed to sync item: {e}")
 
         # Keep failed items in queue
         self.offline_queue = failed_items
 
         if not self.offline_queue:
             self.offline_mode = False
-            print("🎉 All offline items synced successfully!")
+            logger.info("All offline items synced successfully!")
 
         return synced_count
 
@@ -715,7 +797,7 @@ class BenchWiseClient:
         self, benchmark_id: int, dataset_path: str
     ) -> str:
         """
-        NEW: Upload dataset file for a benchmark.
+        Upload dataset file for a benchmark.
 
         Args:
             benchmark_id: ID of the benchmark
@@ -726,6 +808,7 @@ class BenchWiseClient:
         """
         import os
 
+        logger.info(f"Uploading dataset for benchmark {benchmark_id}")
         try:
             with open(dataset_path, "rb") as f:
                 files = {"file": (os.path.basename(dataset_path), f)}
@@ -736,20 +819,21 @@ class BenchWiseClient:
 
             if response.status_code == 200:
                 result = response.json()
+                logger.info("Dataset uploaded successfully")
                 return result["file_info"]["url"]
             else:
-                raise BenchWiseAPIError(
+                raise BenchwiseAPIError(
                     f"Failed to upload dataset: {response.status_code}"
                 )
 
         except Exception as e:
-            raise BenchWiseAPIError(f"Error uploading dataset: {e}")
+            raise BenchwiseAPIError(f"Error uploading dataset: {e}")
 
     async def create_benchmark_with_dataset(
         self, name: str, description: str, dataset_path: str, category: str = "general"
     ) -> int:
         """
-        NEW: Create benchmark and upload dataset in one operation.
+        Create benchmark and upload dataset in one operation.
 
         Args:
             name: Benchmark name
@@ -760,6 +844,7 @@ class BenchWiseClient:
         Returns:
             Benchmark ID
         """
+        logger.info(f"Creating benchmark with dataset: {name}")
         # 1. Create benchmark
         benchmark_data = {
             "name": name,
@@ -770,7 +855,7 @@ class BenchWiseClient:
 
         response = await self.client.post("/api/v1/benchmarks", json=benchmark_data)
         if response.status_code != 201:
-            raise BenchWiseAPIError(
+            raise BenchwiseAPIError(
                 f"Failed to create benchmark: {response.status_code}"
             )
 
@@ -790,43 +875,47 @@ class BenchWiseClient:
             )
 
             if response.status_code != 200:
-                print("⚠️ Warning: Failed to update benchmark with dataset URL")
+                logger.warning("Failed to update benchmark with dataset URL")
         except Exception as e:
-            print(f"⚠️ Warning: Failed to upload dataset: {e}")
+            logger.warning(f"Failed to upload dataset: {e}")
 
         return benchmark_id
 
 
-# Global client instance
-_global_client: Optional[BenchWiseClient] = None
-
-
-async def get_client() -> BenchWiseClient:
-    """Get or create the global BenchWise API client."""
-    global _global_client
-
-    if _global_client is None:
-        _global_client = BenchWiseClient()
-
-    return _global_client
+async def get_client() -> BenchwiseClient:
+    """
+    Get or create a context-local Benchwise API client.
+    
+    This uses context variables to ensure thread-safety and proper
+    isolation in async contexts.
+    """
+    client = _client_context.get()
+    
+    if client is None or client._closed:
+        client = BenchwiseClient()
+        _client_context.set(client)
+        logger.debug("Created new context-local client")
+    
+    return client
 
 
 async def close_client():
-    """Close the global client."""
-    global _global_client
-
-    if _global_client and not _global_client._closed:
+    """Close the context-local client."""
+    client = _client_context.get()
+    
+    if client and not client._closed:
         try:
-            await _global_client.close()
+            await client.close()
         finally:
-            _global_client = None
+            _client_context.set(None)
+            logger.debug("Closed context-local client")
 
 
 async def upload_results(
     results: List[EvaluationResult], test_name: str, dataset_info: Dict[str, Any]
 ) -> bool:
     """
-    FIXED: Convenience function to upload evaluation results.
+    Convenience function to upload evaluation results.
 
     Args:
         results: List of evaluation results
@@ -841,7 +930,7 @@ async def upload_results(
 
         # Check if API is available
         if not await client.health_check():
-            print("⚠️ BenchWise API not available, results will be cached offline")
+            logger.warning("Benchwise API not available, results will be cached offline")
             from .results import BenchmarkResult
 
             benchmark_result = BenchmarkResult(
@@ -859,7 +948,7 @@ async def upload_results(
 
         # Check authentication
         if not client.jwt_token:
-            print("⚠️ Not authenticated - results will be cached offline")
+            logger.warning("Not authenticated - results will be cached offline")
             from .results import BenchmarkResult
 
             benchmark_result = BenchmarkResult(
@@ -885,15 +974,12 @@ async def upload_results(
         )
 
         response = await client.upload_benchmark_result(benchmark_result)
-        print(f"✅ Results uploaded to BenchWise: Evaluation {response.get('id')}")
+        logger.info(f"Results uploaded to Benchwise: Evaluation {response.get('id')}")
         return True
 
     except Exception as e:
-        print(f"⚠️ Failed to upload results: {e}")
+        logger.error(f"Failed to upload results: {e}")
         return False
-    finally:
-        # Don't close the global client here as it may be used elsewhere
-        pass
 
 
 async def sync_offline_results() -> int:
@@ -907,8 +993,5 @@ async def sync_offline_results() -> int:
         client = await get_client()
         return await client.sync_offline_queue()
     except Exception as e:
-        print(f"❌ Failed to sync offline results: {e}")
+        logger.error(f"Failed to sync offline results: {e}")
         return 0
-    finally:
-        # Don't close global client here
-        pass

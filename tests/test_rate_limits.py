@@ -4,7 +4,7 @@ import time
 from unittest.mock import patch
 from benchwise import evaluate, create_qa_dataset
 from benchwise.models import OpenAIAdapter
-from benchwise.client import BenchWiseClient
+from benchwise.client import BenchwiseClient
 
 
 @pytest.mark.rate_limit
@@ -88,7 +88,7 @@ class TestRateLimiting:
                 )(),
             ]
 
-            client = BenchWiseClient()
+            client = BenchwiseClient()
 
             start_time = time.time()
             # This should retry and succeed
@@ -126,7 +126,7 @@ class TestRateLimiting:
                 )(),
             ]
 
-            client = BenchWiseClient()
+            client = BenchwiseClient()
 
             start_time = time.time()
             response = await client._make_request_with_retry("GET", "/test")
