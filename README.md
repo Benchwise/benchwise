@@ -4,7 +4,7 @@ Welcome to Benchwise! This guide will help you get up and running with evaluatin
 
 ## What is Benchwise?
 
-Benchwise is an open-source platform that makes LLM evaluation as easy as writing unit tests. With PyTest-like syntax, you can create custom evaluations, share benchmarks with the community, and monitor your models in production.
+Benchwise is an open-source library that makes LLM evaluation as easy as writing unit tests. With PyTest-like syntax, you can create custom evaluations, share benchmarks with the community, and monitor your models in production.
 
 ## Quick Start
 
