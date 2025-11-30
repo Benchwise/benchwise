@@ -62,5 +62,4 @@ asyncio.run(close_client())
 
 ## See Also
 
-- [API Integration](../advanced/api-integration.md)
 - [Configuration](./config.md)

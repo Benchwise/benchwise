@@ -322,5 +322,5 @@ For comprehensive result handling examples including saving, loading, comparing,
 ## Next Steps
 
 - [Advanced Configuration](../advanced/configuration.md) - Configure Benchwise
-- [API Integration](../advanced/api-integration.md) - Upload results to platform
+- [Client Configuration](../api/config.md) - Configure API client
 - [API Reference](../api/results/evaluation-result.md) - Detailed results API
