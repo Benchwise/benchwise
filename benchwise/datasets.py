@@ -1,10 +1,12 @@
-from typing import List, Dict, Any, Optional, Union
+from typing import List, Dict, Any, Optional, Union, Callable
 import json
 import pandas as pd
 from pathlib import Path
 import requests
 from dataclasses import dataclass
 import hashlib
+
+from benchwise.types import DatasetItem, DatasetMetadata
 
 
 @dataclass
@@ -24,7 +26,7 @@ class Dataset:
     metadata: Optional[Dict[str, Any]] = None
     schema: Optional[Dict[str, Any]] = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.metadata is None:
             self.metadata = {}
 
@@ -78,13 +80,14 @@ class Dataset:
                 references.append(str(ref))
         return references
 
-    def filter(self, condition: callable) -> "Dataset":
+    def filter(self, condition: Callable[[Dict[str, Any]], bool]) -> "Dataset":
         """Filter dataset items based on condition."""
         filtered_data = [item for item in self.data if condition(item)]
+        metadata = self.metadata or {}
         return Dataset(
             name=f"{self.name}_filtered",
             data=filtered_data,
-            metadata={**self.metadata, "filtered": True, "original_size": self.size},
+            metadata={**metadata, "filtered": True, "original_size": self.size},
         )
 
     def sample(self, n: int, random_state: Optional[int] = None) -> "Dataset":
@@ -95,6 +98,7 @@ class Dataset:
             random.seed(random_state)
 
         sampled_data = random.sample(self.data, min(n, len(self.data)))
+        metadata = self.metadata or {}
         return Dataset(
             name=f"{self.name}_sample_{n}",
             data=sampled_data,

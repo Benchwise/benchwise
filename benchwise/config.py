@@ -7,9 +7,11 @@ Supports environment variables and configuration files.
 
 import os
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from dataclasses import dataclass, field
 import json
+
+from benchwise.types import ConfigDict
 
 
 @dataclass
@@ -52,16 +54,16 @@ class BenchwiseConfig:
     verbose: bool = False
 
     # User preferences
-    default_models: list = field(default_factory=list)
-    default_metrics: list = field(default_factory=list)
+    default_models: List[str] = field(default_factory=list)
+    default_metrics: List[str] = field(default_factory=list)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Load configuration from environment variables and config file."""
         self._load_from_env()
         self._load_from_file()
         self._validate_config()
 
-    def _load_from_env(self):
+    def _load_from_env(self) -> None:
         """Load configuration from environment variables."""
 
         # API Configuration
@@ -113,7 +115,7 @@ class BenchwiseConfig:
         if verbose_env in ("true", "1", "yes", "on"):
             self.verbose = True
 
-    def _load_from_file(self):
+    def _load_from_file(self) -> None:
         """Load configuration from config file."""
         config_paths = [
             Path.cwd() / ".benchwise.json",
@@ -140,7 +142,7 @@ class BenchwiseConfig:
                     if self.verbose:
                         print(f"⚠️ Failed to load config from {config_path}: {e}")
 
-    def _validate_config(self):
+    def _validate_config(self) -> None:
         """Validate configuration values."""
 
         # Validate API URL
@@ -169,7 +171,7 @@ class BenchwiseConfig:
                 )
                 self.cache_enabled = False
 
-    def save_to_file(self, file_path: Optional[Path] = None):
+    def save_to_file(self, file_path: Optional[Path] = None) -> None:
         """
         Save current configuration to file.
 
@@ -212,7 +214,7 @@ class BenchwiseConfig:
         except OSError as e:
             print(f"Failed to save configuration: {e}")
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> ConfigDict:
         """Convert configuration to dictionary."""
         return {
             "api_url": self.api_url,
@@ -230,7 +232,7 @@ class BenchwiseConfig:
             "default_metrics": self.default_metrics,
         }
 
-    def print_config(self):
+    def print_config(self) -> None:
         """Print current configuration in a readable format."""
         print("🔧 Benchwise Configuration:")
         print("=" * 30)
@@ -258,7 +260,7 @@ def get_api_config() -> BenchwiseConfig:
     return _global_config
 
 
-def set_api_config(config: BenchwiseConfig):
+def set_api_config(config: BenchwiseConfig) -> None:
     """
     Set the global Benchwise configuration.
 
@@ -275,7 +277,7 @@ def configure_benchwise(
     upload_enabled: Optional[bool] = None,
     cache_enabled: Optional[bool] = None,
     debug: Optional[bool] = None,
-    **kwargs,
+    **kwargs: Any,
 ) -> BenchwiseConfig:
     """
     Configure Benchwise settings programmatically.
@@ -315,7 +317,7 @@ def configure_benchwise(
     return config
 
 
-def reset_config():
+def reset_config() -> None:
     """Reset configuration to default values."""
     global _global_config
     _global_config = None
@@ -409,10 +411,10 @@ def validate_api_connection(config: BenchwiseConfig) -> bool:
         import asyncio
         import httpx
 
-        async def check_connection():
+        async def check_connection() -> bool:
             async with httpx.AsyncClient(timeout=5.0) as client:
                 response = await client.get(f"{config.api_url}/health")
-                return response.status_code == 200
+                return bool(response.status_code == 200)
 
         return asyncio.run(check_connection())
 
@@ -482,7 +484,7 @@ def validate_api_keys(config: BenchwiseConfig) -> Dict[str, bool]:
     return results
 
 
-def print_configuration_status(config: BenchwiseConfig):
+def print_configuration_status(config: BenchwiseConfig) -> None:
     """
     NEW: Print comprehensive configuration status.
 

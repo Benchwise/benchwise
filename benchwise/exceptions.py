@@ -4,6 +4,8 @@ Benchwise Custom Exceptions
 Provides specific exception types for better error handling.
 """
 
+from typing import Optional
+
 
 class BenchwiseError(Exception):
     """Base exception for all Benchwise errors."""
@@ -17,8 +19,8 @@ class AuthenticationError(BenchwiseError):
 
 class RateLimitError(BenchwiseError):
     """Raised when API rate limit is exceeded."""
-    
-    def __init__(self, message: str = "Rate limit exceeded", retry_after: int = None):
+
+    def __init__(self, message: str = "Rate limit exceeded", retry_after: Optional[int] = None) -> None:
         super().__init__(message)
         self.retry_after = retry_after
 
