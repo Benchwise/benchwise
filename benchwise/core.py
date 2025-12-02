@@ -41,17 +41,17 @@ def evaluate(
             return accuracy(responses, dataset.references)
     """
 
-    def decorator(test_func: Callable[..., Awaitable[Any]]) -> Callable[[Dataset, Any], Awaitable[List[EvaluationResult]]]:
+    def decorator(test_func: Callable[..., Awaitable[Any]]) -> Callable[..., Awaitable[List[EvaluationResult]]]:
         if not inspect.iscoroutinefunction(test_func):
             raise TypeError(
                 f"{test_func.__name__} must be an async function. "
                 f"Use: async def {test_func.__name__}(model, dataset):"
             )
-        
+
         @wraps(test_func)
-        async def wrapper(dataset: Dataset, **test_kwargs) -> List[EvaluationResult]:
+        async def wrapper(dataset: Dataset, **test_kwargs: Any) -> List[EvaluationResult]:
             return await _run_evaluation(test_func, dataset, models, upload, kwargs, test_kwargs)
-        
+
         if hasattr(test_func, "_benchmark_metadata"):
             wrapper._benchmark_metadata = test_func._benchmark_metadata  # type: ignore[attr-defined]
 
@@ -154,7 +154,7 @@ def benchmark(name: str, description: str = "", **kwargs: Any) -> Callable[[Call
     return decorator
 
 
-def stress_test(concurrent_requests: int = 10, duration: int = 60) -> Callable[[Callable[P, Awaitable[R]]], Callable[P, Awaitable[List[Union[R, Exception]]]]]:
+def stress_test(concurrent_requests: int = 10, duration: int = 60) -> Callable[[Callable[P, Awaitable[R]]], Callable[P, Awaitable[List[Union[R, BaseException]]]]]:
     """
     Decorator for stress testing LLMs.
 
@@ -166,12 +166,12 @@ def stress_test(concurrent_requests: int = 10, duration: int = 60) -> Callable[[
             pass
     """
 
-    def decorator(test_func: Callable[P, Awaitable[R]]) -> Callable[P, Awaitable[List[Union[R, Exception]]]]:
+    def decorator(test_func: Callable[P, Awaitable[R]]) -> Callable[P, Awaitable[List[Union[R, BaseException]]]]:
         @wraps(test_func)
-        async def wrapper(*args: P.args, **kwargs: P.kwargs) -> List[Union[R, Exception]]:
+        async def wrapper(*args: P.args, **kwargs: P.kwargs) -> List[Union[R, BaseException]]:
             logger.info(f"Starting stress test: {concurrent_requests} concurrent requests for {duration}s")
 
-            tasks: List[Union[R, Exception]] = []
+            tasks: List[Union[R, BaseException]] = []
             start_time = time.time()
 
             while time.time() - start_time < duration:

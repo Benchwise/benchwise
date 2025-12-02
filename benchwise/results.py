@@ -57,7 +57,7 @@ class EvaluationResult:
             "success": self.success,
         }
 
-    def get_score(self, metric_name: str = None) -> Union[float, Any]:
+    def get_score(self, metric_name: Optional[str] = None) -> Union[float, Any]:
         """
         Extract a specific score from the result.
 
@@ -93,7 +93,7 @@ class BenchmarkResult:
     metadata: Dict[str, Any] = field(default_factory=dict)
     timestamp: datetime = field(default_factory=datetime.now)
 
-    def add_result(self, result: EvaluationResult):
+    def add_result(self, result: EvaluationResult) -> None:
         """Add an evaluation result to the benchmark."""
         self.results.append(result)
 
@@ -119,7 +119,7 @@ class BenchmarkResult:
             return 0.0
         return len(self.successful_results) / len(self.results)
 
-    def get_best_model(self, metric_name: str = None) -> Optional[EvaluationResult]:
+    def get_best_model(self, metric_name: Optional[str] = None) -> Optional[EvaluationResult]:
         """
         Get the best performing model result.
 
@@ -135,7 +135,7 @@ class BenchmarkResult:
 
         return max(successful_results, key=lambda r: r.get_score(metric_name) or 0)
 
-    def get_worst_model(self, metric_name: str = None) -> Optional[EvaluationResult]:
+    def get_worst_model(self, metric_name: Optional[str] = None) -> Optional[EvaluationResult]:
         """
         Get the worst performing model result.
 
@@ -153,7 +153,7 @@ class BenchmarkResult:
             successful_results, key=lambda r: r.get_score(metric_name) or float("inf")
         )
 
-    def compare_models(self, metric_name: str = None) -> Dict[str, Any]:
+    def compare_models(self, metric_name: Optional[str] = None) -> Dict[str, Any]:
         """
         Compare all models in the benchmark.
 
@@ -241,12 +241,12 @@ class BenchmarkResult:
 
         return pd.DataFrame(data)
 
-    def save_to_json(self, file_path: Union[str, Path]):
+    def save_to_json(self, file_path: Union[str, Path]) -> None:
         """Save benchmark results to JSON file."""
         with open(file_path, "w") as f:
             json.dump(self.to_dict(), f, indent=2, default=str)
 
-    def save_to_csv(self, file_path: Union[str, Path]):
+    def save_to_csv(self, file_path: Union[str, Path]) -> None:
         """Save benchmark results to CSV file."""
         df = self.to_dataframe()
         df.to_csv(file_path, index=False)
@@ -257,7 +257,7 @@ class ResultsAnalyzer:
 
     @staticmethod
     def compare_benchmarks(
-        benchmark_results: List[BenchmarkResult], metric_name: str = None
+        benchmark_results: List[BenchmarkResult], metric_name: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Compare results across multiple benchmarks.
@@ -269,7 +269,7 @@ class ResultsAnalyzer:
         Returns:
             Dictionary with cross-benchmark comparison
         """
-        comparison = {"benchmarks": [], "models": set(), "cross_benchmark_scores": {}}
+        comparison: Dict[str, Any] = {"benchmarks": [], "models": set(), "cross_benchmark_scores": {}}
 
         for benchmark in benchmark_results:
             benchmark_info = {
@@ -300,7 +300,7 @@ class ResultsAnalyzer:
 
     @staticmethod
     def analyze_model_performance(
-        results: List[EvaluationResult], metric_name: str = None
+        results: List[EvaluationResult], metric_name: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Analyze performance of a single model across multiple evaluations.
@@ -480,7 +480,7 @@ class ResultsCache:
         key_data = f"{model_name}_{test_name}_{dataset_hash}"
         return hashlib.md5(key_data.encode()).hexdigest()
 
-    def save_result(self, result: EvaluationResult, dataset_hash: str):
+    def save_result(self, result: EvaluationResult, dataset_hash: str) -> None:
         """Save evaluation result to cache."""
         cache_key = self._get_cache_key(
             result.model_name, result.test_name, dataset_hash
@@ -516,7 +516,7 @@ class ResultsCache:
         except Exception:
             return None
 
-    def clear_cache(self):
+    def clear_cache(self) -> None:
         """Clear all cached results."""
         for cache_file in self.cache_dir.glob("*.json"):
             cache_file.unlink()
@@ -546,7 +546,7 @@ cache = ResultsCache()
 
 def save_results(
     benchmark_result: BenchmarkResult, file_path: Union[str, Path], format: str = "json"
-):
+) -> None:
     """
     Save benchmark results to file.
 

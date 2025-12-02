@@ -697,7 +697,7 @@ def perplexity(predictions: List[str], model_name: str = "gpt2") -> Dict[str, An
             "transformers and torch packages not installed. Please install them with: pip install 'benchwise[transformers]' or pip install transformers torch"
         )
 
-    tokenizer = AutoTokenizer.from_pretrained(model_name)  # type: ignore[no-untyped-call]
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
     model = AutoModelForCausalLM.from_pretrained(model_name)
 
     perplexities = []

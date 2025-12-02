@@ -5,7 +5,7 @@ Benchwise CLI - Command line interface for LLM evaluation
 import argparse
 import asyncio
 import sys
-from typing import List, Optional
+from typing import List, Optional, Any, Dict
 
 from . import __version__
 from .datasets import load_dataset
@@ -206,7 +206,7 @@ async def run_evaluation(
             for metric_name in metrics:
                 try:
                     if metric_name == "accuracy":
-                        metric_result = accuracy(responses, references)
+                        metric_result: Any = accuracy(responses, references)
                         results["accuracy"] = metric_result["accuracy"]
                     elif metric_name == "rouge_l":
                         metric_result = rouge_l(responses, references)
@@ -285,7 +285,7 @@ async def run_evaluation(
     return benchmark_result
 
 
-async def configure_api(args):
+async def configure_api(args: Any) -> None:
     """Configure Benchwise API settings."""
     from .config import reset_config
 
@@ -321,7 +321,7 @@ async def configure_api(args):
         print("No configuration changes specified. Use --show to see current config.")
 
 
-async def sync_offline(args):
+async def sync_offline(args: Any) -> None:
     """Sync offline results with the API."""
     try:
         client = await get_client()
@@ -354,7 +354,7 @@ async def sync_offline(args):
         pass
 
 
-async def show_status(args):
+async def show_status(args: Any) -> None:
     """Show Benchwise status information."""
     config = get_api_config()
     client = None
@@ -412,7 +412,7 @@ async def show_status(args):
         pass
 
 
-def list_resources(resource_type: str):
+def list_resources(resource_type: str) -> None:
     """List available resources."""
     if resource_type == "models":
         print("Available model adapters:")
@@ -440,7 +440,7 @@ def list_resources(resource_type: str):
         )
 
 
-def validate_dataset(dataset_path: str):
+def validate_dataset(dataset_path: str) -> None:
     """Validate dataset format."""
     try:
         dataset = load_dataset(dataset_path)
@@ -478,7 +478,7 @@ def validate_dataset(dataset_path: str):
         sys.exit(1)
 
 
-async def compare_results(result_paths: List[str], metric: Optional[str] = None):
+async def compare_results(result_paths: List[str], metric: Optional[str] = None) -> None:
     """Compare evaluation results."""
     from .results import load_results, ResultsAnalyzer
 
@@ -509,7 +509,7 @@ async def compare_results(result_paths: List[str], metric: Optional[str] = None)
         sys.exit(1)
 
 
-def main():
+def main() -> None:
     """Main CLI entry point."""
     parser = create_parser()
     args = parser.parse_args()
