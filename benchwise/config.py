@@ -200,9 +200,9 @@ class BenchwiseConfig:
 
         # Don't save sensitive information like API key
         if self.api_key and not os.getenv("BENCHWISE_SAVE_API_KEY"):
-            config_dict[
-                "_note"
-            ] = "API key not saved for security. Set BENCHWISE_API_KEY environment variable."
+            config_dict["_note"] = (
+                "API key not saved for security. Set BENCHWISE_API_KEY environment variable."
+            )
 
         try:
             with open(file_path, "w") as f:

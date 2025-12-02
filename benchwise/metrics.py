@@ -282,9 +282,9 @@ def bleu_score(
     # Add confidence intervals if requested
     if return_confidence and len(sentence_scores) > 1:
         try:
-            result[
-                "sentence_bleu_confidence_interval"
-            ] = _bootstrap_confidence_interval(sentence_scores)
+            result["sentence_bleu_confidence_interval"] = (
+                _bootstrap_confidence_interval(sentence_scores)
+            )
         except Exception as e:
             warnings.warn(f"Could not calculate BLEU confidence intervals: {e}")
 
@@ -414,9 +414,9 @@ def bert_score_metric(
                 result["f1_confidence_interval"] = _bootstrap_confidence_interval(
                     F1_scores
                 )
-                result[
-                    "precision_confidence_interval"
-                ] = _bootstrap_confidence_interval(P_scores)
+                result["precision_confidence_interval"] = (
+                    _bootstrap_confidence_interval(P_scores)
+                )
                 result["recall_confidence_interval"] = _bootstrap_confidence_interval(
                     R_scores
                 )
