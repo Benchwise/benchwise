@@ -68,7 +68,7 @@ def get_logger(name: str = "benchwise") -> logging.Logger:
     return logging.getLogger(name)
 
 
-def set_log_level(level: str):
+def set_log_level(level: str) -> None:
     """
     Change the log level for all Benchwise loggers.
     
