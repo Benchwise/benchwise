@@ -442,8 +442,8 @@ def validate_api_keys(config: BenchwiseConfig) -> Dict[str, bool]:
         try:
             import openai
 
-            client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-            client.models.list()
+            openai_client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+            openai_client.models.list()
             results["openai"] = True
         except Exception:
             results["openai"] = False
@@ -452,7 +452,7 @@ def validate_api_keys(config: BenchwiseConfig) -> Dict[str, bool]:
         try:
             import anthropic
 
-            client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+            anthropic_client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
             # Note: Anthropic doesn't have a simple test endpoint
             results["anthropic"] = True  # Assume valid if key exists
         except Exception:
