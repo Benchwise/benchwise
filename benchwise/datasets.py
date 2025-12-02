@@ -102,7 +102,7 @@ class Dataset:
         return Dataset(
             name=f"{self.name}_sample_{n}",
             data=sampled_data,
-            metadata={**self.metadata, "sampled": True, "sample_size": n},
+            metadata={**metadata, "sampled": True, "sample_size": n},
         )
 
     def split(
