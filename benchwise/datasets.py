@@ -6,8 +6,6 @@ import requests
 from dataclasses import dataclass
 import hashlib
 
-from benchwise.types import DatasetItem, DatasetMetadata
-
 
 @dataclass
 class Dataset:
@@ -74,7 +72,7 @@ class Dataset:
                 or item.get("answer")
                 or item.get("target")
                 or item.get("summary")
-                or item.get("label")  
+                or item.get("label")
             )
             if ref:
                 references.append(str(ref))
@@ -124,13 +122,21 @@ class Dataset:
         train_dataset = Dataset(
             name=f"{self.name}_train",
             data=train_data,
-            metadata={**(self.metadata or {}), "split": "train", "train_ratio": train_ratio},
+            metadata={
+                **(self.metadata or {}),
+                "split": "train",
+                "train_ratio": train_ratio,
+            },
         )
 
         test_dataset = Dataset(
             name=f"{self.name}_test",
             data=test_data,
-            metadata={**(self.metadata or {}), "split": "test", "train_ratio": train_ratio},
+            metadata={
+                **(self.metadata or {}),
+                "split": "test",
+                "train_ratio": train_ratio,
+            },
         )
 
         return train_dataset, test_dataset
@@ -192,8 +198,12 @@ class Dataset:
                         ) / len(values)
                     elif all(isinstance(v, (int, float)) for v in values):
                         # Type narrowing: we know values are numeric here
-                        numeric_values = [v for v in values if isinstance(v, (int, float))]
-                        stats[f"{field}_mean"] = sum(numeric_values) / len(numeric_values)
+                        numeric_values = [
+                            v for v in values if isinstance(v, (int, float))
+                        ]
+                        stats[f"{field}_mean"] = sum(numeric_values) / len(
+                            numeric_values
+                        )
                         stats[f"{field}_min"] = min(numeric_values)
                         stats[f"{field}_max"] = max(numeric_values)
 
@@ -291,12 +301,12 @@ def load_dataset(source: Union[str, Path, Dict[str, Any]], **kwargs: Any) -> Dat
                 f"Unsupported file format '{source_path.suffix}'. Supported formats: .json, .csv"
             )
 
-    raise ValueError(
-        f"Unable to load dataset from source: {source}"
-    )
+    raise ValueError(f"Unable to load dataset from source: {source}")
 
 
-def create_qa_dataset(questions: List[str], answers: List[str], **kwargs: Any) -> Dataset:
+def create_qa_dataset(
+    questions: List[str], answers: List[str], **kwargs: Any
+) -> Dataset:
     """
     Create a question-answering dataset.
 

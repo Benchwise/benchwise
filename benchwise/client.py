@@ -13,13 +13,21 @@ from .results import EvaluationResult, BenchmarkResult
 logger = logging.getLogger("benchwise.client")
 
 # Context-local client storage (thread-safe)
-_client_context: ContextVar[Optional['BenchwiseClient']] = ContextVar('_client_context', default=None)
+_client_context: ContextVar[Optional["BenchwiseClient"]] = ContextVar(
+    "_client_context", default=None
+)
 
 
 class BenchwiseAPIError(Exception):
     """Enhanced exception with error codes and retry info."""
 
-    def __init__(self, message: str, status_code: Optional[int] = None, retry_after: Optional[int] = None, request_id: Optional[str] = None):
+    def __init__(
+        self,
+        message: str,
+        status_code: Optional[int] = None,
+        retry_after: Optional[int] = None,
+        request_id: Optional[str] = None,
+    ):
         super().__init__(message)
         self.status_code = status_code
         self.retry_after = retry_after
@@ -83,13 +91,13 @@ class BenchwiseClient:
         """Make HTTP request with automatic retry logic and request ID tracking."""
         max_retries = 3
         base_delay = 1
-        
+
         # Generate and add request ID
         request_id = generate_request_id()
-        if 'headers' not in kwargs:
-            kwargs['headers'] = {}
-        kwargs['headers']['X-Request-ID'] = request_id
-        
+        if "headers" not in kwargs:
+            kwargs["headers"] = {}
+        kwargs["headers"]["X-Request-ID"] = request_id
+
         logger.debug(f"Making {method} request to {url} [Request-ID: {request_id}]")
 
         for attempt in range(max_retries + 1):
@@ -106,7 +114,9 @@ class BenchwiseClient:
                     retry_after = int(
                         response.headers.get("retry-after", base_delay * (2**attempt))
                     )
-                    logger.warning(f"Rate limited, retrying after {retry_after}s [Request-ID: {request_id}]")
+                    logger.warning(
+                        f"Rate limited, retrying after {retry_after}s [Request-ID: {request_id}]"
+                    )
                     if attempt < max_retries:
                         await asyncio.sleep(retry_after)
                         continue
@@ -121,15 +131,19 @@ class BenchwiseClient:
                 except Exception:
                     pass
 
-                logger.error(f"Request failed: {error_detail} [Request-ID: {request_id}]")
+                logger.error(
+                    f"Request failed: {error_detail} [Request-ID: {request_id}]"
+                )
                 raise BenchwiseAPIError(
-                    f"{error_detail}", 
+                    f"{error_detail}",
                     status_code=response.status_code,
-                    request_id=request_id
+                    request_id=request_id,
                 )
 
             except httpx.RequestError as e:
-                logger.warning(f"Network error (attempt {attempt + 1}/{max_retries + 1}): {e} [Request-ID: {request_id}]")
+                logger.warning(
+                    f"Network error (attempt {attempt + 1}/{max_retries + 1}): {e} [Request-ID: {request_id}]"
+                )
                 if attempt < max_retries:
                     delay = base_delay * (2**attempt)
                     await asyncio.sleep(delay)
@@ -151,7 +165,7 @@ class BenchwiseClient:
         """Check if the Benchwise API is available."""
         try:
             response = await self.client.get("/health", timeout=5.0)
-            is_healthy = response.status_code == 200
+            is_healthy = bool(response.status_code == 200)
             logger.info(f"Health check: {'healthy' if is_healthy else 'unhealthy'}")
             return is_healthy
         except Exception as e:
@@ -270,17 +284,19 @@ class BenchwiseClient:
     ) -> Dict[str, Any]:
         """
         WIP: Simplified single-call upload for benchmark results.
-        
+
         This will be the primary upload method in the next release.
         Currently redirects to the existing multi-step workflow.
-        
+
         Args:
             benchmark_result: BenchmarkResult object to upload
 
         Returns:
             API response data
         """
-        logger.warning("Using legacy multi-step upload workflow. Simplified workflow coming in next release.")
+        logger.warning(
+            "Using legacy multi-step upload workflow. Simplified workflow coming in next release."
+        )
         return await self.upload_benchmark_result(benchmark_result)
 
     async def register_model(
@@ -414,7 +430,9 @@ class BenchwiseClient:
                 benchmark_info = cast(Dict[str, Any], response.json())
                 benchmark_db_id = cast(int, benchmark_info["id"])
                 self.benchmark_cache[benchmark_name] = benchmark_db_id
-                logger.info(f"Benchmark registered successfully with ID: {benchmark_db_id}")
+                logger.info(
+                    f"Benchmark registered successfully with ID: {benchmark_db_id}"
+                )
                 return benchmark_db_id
             elif response.status_code == 400:
                 # Benchmark might already exist - try to get it
@@ -444,7 +462,9 @@ class BenchwiseClient:
                     if benchmark["name"] == benchmark_name:
                         benchmark_id_value = cast(int, benchmark["id"])
                         self.benchmark_cache[benchmark_name] = benchmark_id_value
-                        logger.debug(f"Found existing benchmark with ID: {benchmark_id_value}")
+                        logger.debug(
+                            f"Found existing benchmark with ID: {benchmark_id_value}"
+                        )
                         return benchmark_id_value
 
                 # If no exact match, try partial match
@@ -452,7 +472,9 @@ class BenchwiseClient:
                     if benchmark_name.lower() in benchmark["name"].lower():
                         benchmark_id_value = cast(int, benchmark["id"])
                         self.benchmark_cache[benchmark_name] = benchmark_id_value
-                        logger.debug(f"Found similar benchmark with ID: {benchmark_id_value}")
+                        logger.debug(
+                            f"Found similar benchmark with ID: {benchmark_id_value}"
+                        )
                         return benchmark_id_value
 
                 raise BenchwiseAPIError(f"Benchmark {benchmark_name} not found")
@@ -652,7 +674,9 @@ class BenchwiseClient:
             # Step 5: Upload results
             await self.upload_evaluation_results(evaluation_id, results_data)
 
-            logger.info(f"Benchmark result uploaded successfully. Evaluation ID: {evaluation_id}")
+            logger.info(
+                f"Benchmark result uploaded successfully. Evaluation ID: {evaluation_id}"
+            )
             return {
                 "id": evaluation_id,
                 "benchmark_id": benchmark_id,
@@ -890,17 +914,17 @@ class BenchwiseClient:
 async def get_client() -> BenchwiseClient:
     """
     Get or create a context-local Benchwise API client.
-    
+
     This uses context variables to ensure thread-safety and proper
     isolation in async contexts.
     """
     client = _client_context.get()
-    
+
     if client is None or client._closed:
         client = BenchwiseClient()
         _client_context.set(client)
         logger.debug("Created new context-local client")
-    
+
     return client
 
 
@@ -935,7 +959,9 @@ async def upload_results(
 
         # Check if API is available
         if not await client.health_check():
-            logger.warning("Benchwise API not available, results will be cached offline")
+            logger.warning(
+                "Benchwise API not available, results will be cached offline"
+            )
             from .results import BenchmarkResult
 
             benchmark_result = BenchmarkResult(

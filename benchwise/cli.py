@@ -5,7 +5,7 @@ Benchwise CLI - Command line interface for LLM evaluation
 import argparse
 import asyncio
 import sys
-from typing import List, Optional, Any, Dict
+from typing import List, Optional, Any
 
 from . import __version__
 from .datasets import load_dataset
@@ -478,7 +478,9 @@ def validate_dataset(dataset_path: str) -> None:
         sys.exit(1)
 
 
-async def compare_results(result_paths: List[str], metric: Optional[str] = None) -> None:
+async def compare_results(
+    result_paths: List[str], metric: Optional[str] = None
+) -> None:
     """Compare evaluation results."""
     from .results import load_results, ResultsAnalyzer
 

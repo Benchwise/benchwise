@@ -1,7 +1,6 @@
-from typing import List, Dict, Any, Tuple, Optional, Union, Callable
+from typing import List, Dict, Any, Tuple, Optional, Callable
 import numpy as np
-from numpy.typing import NDArray
-from benchwise.types import RougeScores, BleuScores, BertScoreResults, AccuracyResults
+from benchwise.types import RougeScores
 from rouge_score import rouge_scorer
 from sacrebleu import BLEU
 import bert_score
@@ -98,7 +97,13 @@ def rouge_l(
     scorer = rouge_scorer.RougeScorer(
         ["rougeL", "rouge1", "rouge2"], use_stemmer=use_stemmer
     )
-    scores: Dict[str, List[float]] = {"precision": [], "recall": [], "f1": [], "rouge1_f1": [], "rouge2_f1": []}
+    scores: Dict[str, List[float]] = {
+        "precision": [],
+        "recall": [],
+        "f1": [],
+        "rouge1_f1": [],
+        "rouge2_f1": [],
+    }
 
     for pred, ref in zip(predictions, references):
         # Handle empty strings gracefully
@@ -206,7 +211,9 @@ def bleu_score(
 
     # Calculate sentence-level BLEU with improved handling
     sentence_scores = []
-    ngram_precisions: Dict[str, List[float]] = {f"bleu_{i}": [] for i in range(1, max_n + 1)}
+    ngram_precisions: Dict[str, List[float]] = {
+        f"bleu_{i}": [] for i in range(1, max_n + 1)
+    }
 
     for pred, ref in zip(predictions, references):
         try:
@@ -834,7 +841,10 @@ def factual_correctness(
 
 
 def _analyze_factual_correctness(
-    prediction: str, reference: str, nlp_model: Any = None, use_named_entities: bool = True
+    prediction: str,
+    reference: str,
+    nlp_model: Any = None,
+    use_named_entities: bool = True,
 ) -> Dict[str, float]:
     """
     Analyze factual correctness using multiple approaches.
@@ -1106,12 +1116,13 @@ def _analyze_text_coherence(text: str) -> Dict[str, float]:
     # 1. Sentence consistency (length and structure)
     sentence_lengths = [len(s.split()) for s in sentences]
     if len(sentence_lengths) > 1:
-        length_cv = (
-            np.std(sentence_lengths) / np.mean(sentence_lengths)
+        length_cv: float = (
+            float(np.std(sentence_lengths) / np.mean(sentence_lengths))
             if np.mean(sentence_lengths) > 0
-            else 1
+            else 1.0
         )
-        sentence_consistency = float(max(0, 1 - (length_cv / 2)))  # Normalize to 0-1
+        cv_value: float = length_cv / 2.0
+        sentence_consistency = max(0.0, 1.0 - cv_value)  # Normalize to 0-1
     else:
         sentence_consistency = 1.0 if sentence_lengths else 0.0
 
@@ -1487,7 +1498,9 @@ class MetricCollection:
     def __init__(self) -> None:
         self.metrics: Dict[str, Tuple[Callable[..., Any], Dict[str, Any]]] = {}
 
-    def add_metric(self, name: str, metric_func: Callable[..., Any], **kwargs: Any) -> None:
+    def add_metric(
+        self, name: str, metric_func: Callable[..., Any], **kwargs: Any
+    ) -> None:
         """Add a metric to the collection."""
         self.metrics[name] = (metric_func, kwargs)
 

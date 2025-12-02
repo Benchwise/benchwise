@@ -452,7 +452,8 @@ def validate_api_keys(config: BenchwiseConfig) -> Dict[str, bool]:
         try:
             import anthropic
 
-            anthropic_client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+            # Create client to verify API key is valid
+            _ = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
             # Note: Anthropic doesn't have a simple test endpoint
             results["anthropic"] = True  # Assume valid if key exists
         except Exception:
