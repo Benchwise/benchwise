@@ -124,13 +124,13 @@ class Dataset:
         train_dataset = Dataset(
             name=f"{self.name}_train",
             data=train_data,
-            metadata={**self.metadata, "split": "train", "train_ratio": train_ratio},
+            metadata={**(self.metadata or {}), "split": "train", "train_ratio": train_ratio},
         )
 
         test_dataset = Dataset(
             name=f"{self.name}_test",
             data=test_data,
-            metadata={**self.metadata, "split": "test", "train_ratio": train_ratio},
+            metadata={**(self.metadata or {}), "split": "test", "train_ratio": train_ratio},
         )
 
         return train_dataset, test_dataset
@@ -154,7 +154,7 @@ class Dataset:
 
         return json_data
 
-    def to_csv(self, file_path: str):
+    def to_csv(self, file_path: str) -> None:
         """Export dataset to CSV format."""
         df = pd.DataFrame(self.data)
         df.to_csv(file_path, index=False)
@@ -175,14 +175,15 @@ class Dataset:
 
     def get_statistics(self) -> Dict[str, Any]:
         """Get dataset statistics."""
-        stats = {
+        fields: List[str] = list(self.data[0].keys()) if self.data else []
+        stats: Dict[str, Any] = {
             "size": self.size,
-            "fields": list(self.data[0].keys()) if self.data else [],
+            "fields": fields,
             "metadata": self.metadata,
         }
 
         if self.data:
-            for field in stats["fields"]:
+            for field in fields:
                 values = [item.get(field) for item in self.data if field in item]
                 if values:
                     if all(isinstance(v, str) for v in values):
@@ -190,14 +191,16 @@ class Dataset:
                             len(str(v)) for v in values
                         ) / len(values)
                     elif all(isinstance(v, (int, float)) for v in values):
-                        stats[f"{field}_mean"] = sum(values) / len(values)
-                        stats[f"{field}_min"] = min(values)
-                        stats[f"{field}_max"] = max(values)
+                        # Type narrowing: we know values are numeric here
+                        numeric_values = [v for v in values if isinstance(v, (int, float))]
+                        stats[f"{field}_mean"] = sum(numeric_values) / len(numeric_values)
+                        stats[f"{field}_min"] = min(numeric_values)
+                        stats[f"{field}_max"] = max(numeric_values)
 
         return stats
 
 
-def load_dataset(source: Union[str, Path, Dict[str, Any]], **kwargs) -> Dataset:
+def load_dataset(source: Union[str, Path, Dict[str, Any]], **kwargs: Any) -> Dataset:
     """
     Load dataset from various sources.
 
@@ -237,10 +240,15 @@ def load_dataset(source: Union[str, Path, Dict[str, Any]], **kwargs) -> Dataset:
                     data=data,
                     metadata=kwargs.get("metadata", {}),
                 )
+            else:
+                raise ValueError(
+                    f"Invalid JSON format in '{source_path}'. Expected a list or a dict with 'data' key."
+                )
 
         elif source_path.suffix == ".csv":
             df = pd.read_csv(source_path)
-            data = df.to_dict("records")
+            # Type cast: pandas to_dict returns dict[Hashable, Any] but we need dict[str, Any]
+            data = [dict(record) for record in df.to_dict("records")]
 
             return Dataset(
                 name=kwargs.get("name", source_path.stem),
@@ -249,10 +257,12 @@ def load_dataset(source: Union[str, Path, Dict[str, Any]], **kwargs) -> Dataset:
             )
 
         elif str(source).startswith(("http://", "https://")):
-            response = requests.get(source)
+            # Convert to str for requests.get
+            source_str = str(source)
+            response = requests.get(source_str)
             response.raise_for_status()
 
-            if source.endswith(".json"):
+            if source_str.endswith(".json"):
                 data = response.json()
                 if isinstance(data, dict) and "data" in data:
                     return Dataset(
@@ -267,14 +277,26 @@ def load_dataset(source: Union[str, Path, Dict[str, Any]], **kwargs) -> Dataset:
                         data=data,
                         metadata=kwargs.get("metadata", {}),
                     )
+                else:
+                    raise ValueError(
+                        f"Invalid JSON format from '{source_str}'. Expected a list or a dict with 'data' key."
+                    )
+            else:
+                raise ValueError(
+                    f"Unsupported URL format '{source_str}'. Only .json URLs are supported."
+                )
 
         else:
             raise ValueError(
                 f"Unsupported file format '{source_path.suffix}'. Supported formats: .json, .csv"
             )
 
+    raise ValueError(
+        f"Unable to load dataset from source: {source}"
+    )
 
-def create_qa_dataset(questions: List[str], answers: List[str], **kwargs) -> Dataset:
+
+def create_qa_dataset(questions: List[str], answers: List[str], **kwargs: Any) -> Dataset:
     """
     Create a question-answering dataset.
 
@@ -311,7 +333,7 @@ def create_qa_dataset(questions: List[str], answers: List[str], **kwargs) -> Dat
 
 
 def create_summarization_dataset(
-    documents: List[str], summaries: List[str], **kwargs
+    documents: List[str], summaries: List[str], **kwargs: Any
 ) -> Dataset:
     """
     Create a text summarization dataset.
@@ -351,7 +373,7 @@ def create_summarization_dataset(
 
 
 def create_classification_dataset(
-    texts: List[str], labels: List[str], **kwargs
+    texts: List[str], labels: List[str], **kwargs: Any
 ) -> Dataset:
     """
     Create a text classification dataset.
@@ -389,10 +411,10 @@ def create_classification_dataset(
 class DatasetRegistry:
     """Registry for managing multiple datasets."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.datasets: Dict[str, Dataset] = {}
 
-    def register(self, dataset: Dataset):
+    def register(self, dataset: Dataset) -> None:
         self.datasets[dataset.name] = dataset
 
     def get(self, name: str) -> Optional[Dataset]:
@@ -401,11 +423,11 @@ class DatasetRegistry:
     def list(self) -> List[str]:
         return list(self.datasets.keys())
 
-    def remove(self, name: str):
+    def remove(self, name: str) -> None:
         if name in self.datasets:
             del self.datasets[name]
 
-    def clear(self):
+    def clear(self) -> None:
         self.datasets.clear()
 
 

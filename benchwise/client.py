@@ -2,7 +2,7 @@ import httpx
 import asyncio
 import uuid
 import logging
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, cast
 from datetime import datetime
 from contextvars import ContextVar
 
@@ -19,7 +19,7 @@ _client_context: ContextVar[Optional['BenchwiseClient']] = ContextVar('_client_c
 class BenchwiseAPIError(Exception):
     """Enhanced exception with error codes and retry info."""
 
-    def __init__(self, message: str, status_code: int = None, retry_after: int = None, request_id: str = None):
+    def __init__(self, message: str, status_code: Optional[int] = None, retry_after: Optional[int] = None, request_id: Optional[str] = None):
         super().__init__(message)
         self.status_code = status_code
         self.retry_after = retry_after
@@ -56,21 +56,21 @@ class BenchwiseClient:
         self.benchmark_cache: Dict[str, int] = {}
 
         # Offline queue for storing results when API is unavailable
-        self.offline_queue = []
+        self.offline_queue: List[Dict[str, Any]] = []
         self.offline_mode = False
 
         # Track if client is closed
         self._closed = False
-        
+
         logger.debug(f"BenchwiseClient initialized with API URL: {self.api_url}")
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> "BenchwiseClient":
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         await self.close()
 
-    async def close(self):
+    async def close(self) -> None:
         """Close the HTTP client."""
         if not self._closed:
             await self.client.aclose()
@@ -78,7 +78,7 @@ class BenchwiseClient:
             logger.debug("BenchwiseClient closed")
 
     async def _make_request_with_retry(
-        self, method: str, url: str, **kwargs
+        self, method: str, url: str, **kwargs: Any
     ) -> httpx.Response:
         """Make HTTP request with automatic retry logic and request ID tracking."""
         max_retries = 3
@@ -138,7 +138,7 @@ class BenchwiseClient:
 
         raise BenchwiseAPIError("Max retries exceeded", request_id=request_id)
 
-    def _set_auth_header(self):
+    def _set_auth_header(self) -> None:
         """Set JWT authorization header if token is available."""
         if self.jwt_token:
             self.client.headers["Authorization"] = f"Bearer {self.jwt_token}"
@@ -225,7 +225,7 @@ class BenchwiseClient:
 
             if response.status_code == 201:
                 logger.info(f"Registration successful for user: {username}")
-                return response.json()
+                return cast(Dict[str, Any], response.json())
             elif response.status_code == 400:
                 error_detail = response.json().get("detail", "Registration failed")
                 logger.error(f"Registration failed: {error_detail}")
@@ -252,7 +252,7 @@ class BenchwiseClient:
             response = await self.client.get("/api/v1/users/me")
 
             if response.status_code == 200:
-                return response.json()
+                return cast(Dict[str, Any], response.json())
             elif response.status_code == 401:
                 logger.warning("Authentication expired")
                 raise BenchwiseAPIError("Authentication expired - please login again")
@@ -322,8 +322,8 @@ class BenchwiseClient:
             response = await self.client.post("/api/v1/models", json=model_data)
 
             if response.status_code == 201:
-                model_info = response.json()
-                model_db_id = model_info["id"]
+                model_info = cast(Dict[str, Any], response.json())
+                model_db_id = cast(int, model_info["id"])
                 self.model_cache[cache_key] = model_db_id
                 logger.info(f"Model registered successfully with ID: {model_db_id}")
                 return model_db_id
@@ -349,14 +349,15 @@ class BenchwiseClient:
             )
 
             if response.status_code == 200:
-                models = response.json()
+                models = cast(List[Dict[str, Any]], response.json())
                 # Filter in Python since backend doesn't support model_id parameter
                 for model in models:
                     if model["provider"] == provider and model["model_id"] == model_id:
                         cache_key = f"{provider}:{model_id}"
-                        self.model_cache[cache_key] = model["id"]
-                        logger.debug(f"Found existing model with ID: {model['id']}")
-                        return model["id"]
+                        model_id_value = cast(int, model["id"])
+                        self.model_cache[cache_key] = model_id_value
+                        logger.debug(f"Found existing model with ID: {model_id_value}")
+                        return model_id_value
 
                 raise BenchwiseAPIError(f"Model {provider}:{model_id} not found")
             else:
@@ -410,8 +411,8 @@ class BenchwiseClient:
             response = await self.client.post("/api/v1/benchmarks", json=benchmark_data)
 
             if response.status_code == 201:
-                benchmark_info = response.json()
-                benchmark_db_id = benchmark_info["id"]
+                benchmark_info = cast(Dict[str, Any], response.json())
+                benchmark_db_id = cast(int, benchmark_info["id"])
                 self.benchmark_cache[benchmark_name] = benchmark_db_id
                 logger.info(f"Benchmark registered successfully with ID: {benchmark_db_id}")
                 return benchmark_db_id
@@ -437,20 +438,22 @@ class BenchwiseClient:
             )
 
             if response.status_code == 200:
-                benchmarks = response.json()
+                benchmarks = cast(List[Dict[str, Any]], response.json())
                 # Look for exact name match first, then partial match
                 for benchmark in benchmarks:
                     if benchmark["name"] == benchmark_name:
-                        self.benchmark_cache[benchmark_name] = benchmark["id"]
-                        logger.debug(f"Found existing benchmark with ID: {benchmark['id']}")
-                        return benchmark["id"]
+                        benchmark_id_value = cast(int, benchmark["id"])
+                        self.benchmark_cache[benchmark_name] = benchmark_id_value
+                        logger.debug(f"Found existing benchmark with ID: {benchmark_id_value}")
+                        return benchmark_id_value
 
                 # If no exact match, try partial match
                 for benchmark in benchmarks:
                     if benchmark_name.lower() in benchmark["name"].lower():
-                        self.benchmark_cache[benchmark_name] = benchmark["id"]
-                        logger.debug(f"Found similar benchmark with ID: {benchmark['id']}")
-                        return benchmark["id"]
+                        benchmark_id_value = cast(int, benchmark["id"])
+                        self.benchmark_cache[benchmark_name] = benchmark_id_value
+                        logger.debug(f"Found similar benchmark with ID: {benchmark_id_value}")
+                        return benchmark_id_value
 
                 raise BenchwiseAPIError(f"Benchmark {benchmark_name} not found")
             else:
@@ -466,7 +469,7 @@ class BenchwiseClient:
         name: str,
         benchmark_id: int,
         model_ids: List[int],
-        metadata: Optional[Dict] = None,
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> int:
         """
         Create evaluation with correct backend format.
@@ -495,9 +498,10 @@ class BenchwiseClient:
             )
 
             if response.status_code == 201:
-                evaluation_info = response.json()
-                logger.info(f"Evaluation created successfully with ID: {evaluation_info['id']}")
-                return evaluation_info["id"]
+                evaluation_info = cast(Dict[str, Any], response.json())
+                evaluation_id = cast(int, evaluation_info["id"])
+                logger.info(f"Evaluation created successfully with ID: {evaluation_id}")
+                return evaluation_id
             elif response.status_code == 401:
                 raise BenchwiseAPIError(
                     "Authentication required for creating evaluations"
@@ -709,7 +713,7 @@ class BenchwiseClient:
             )
 
             if response.status_code == 200:
-                return response.json()
+                return cast(List[Dict[str, Any]], response.json())
             else:
                 raise BenchwiseAPIError(
                     f"Failed to retrieve benchmarks: {response.status_code}"
@@ -728,7 +732,7 @@ class BenchwiseClient:
             )
 
             if response.status_code == 200:
-                return response.json()
+                return cast(List[Dict[str, Any]], response.json())
             else:
                 raise BenchwiseAPIError(
                     f"Failed to retrieve evaluations: {response.status_code}"
@@ -737,7 +741,7 @@ class BenchwiseClient:
         except httpx.RequestError as e:
             raise BenchwiseAPIError(f"Network error retrieving evaluations: {e}")
 
-    async def _add_to_offline_queue(self, data: Dict[str, Any]):
+    async def _add_to_offline_queue(self, data: Dict[str, Any]) -> None:
         """Add data to offline queue for later upload."""
         self.offline_queue.append(
             {"data": data, "timestamp": datetime.now().isoformat()}
@@ -818,9 +822,10 @@ class BenchwiseClient:
                 )
 
             if response.status_code == 200:
-                result = response.json()
+                result = cast(Dict[str, Any], response.json())
+                file_url = cast(str, result["file_info"]["url"])
                 logger.info("Dataset uploaded successfully")
-                return result["file_info"]["url"]
+                return file_url
             else:
                 raise BenchwiseAPIError(
                     f"Failed to upload dataset: {response.status_code}"
@@ -859,8 +864,8 @@ class BenchwiseClient:
                 f"Failed to create benchmark: {response.status_code}"
             )
 
-        benchmark = response.json()
-        benchmark_id = benchmark["id"]
+        benchmark = cast(Dict[str, Any], response.json())
+        benchmark_id = cast(int, benchmark["id"])
 
         # 2. Upload dataset
         try:
@@ -899,10 +904,10 @@ async def get_client() -> BenchwiseClient:
     return client
 
 
-async def close_client():
+async def close_client() -> None:
     """Close the context-local client."""
     client = _client_context.get()
-    
+
     if client and not client._closed:
         try:
             await client.close()
