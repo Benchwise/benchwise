@@ -80,8 +80,9 @@ class TestGetModelAdapter:
 
     def test_get_huggingface_adapter_default(self):
         # Use a mock model name that won't trigger real HuggingFace download
-        with patch("transformers.AutoTokenizer"), patch(
-            "transformers.AutoModelForCausalLM"
+        with (
+            patch("transformers.AutoTokenizer"),
+            patch("transformers.AutoModelForCausalLM"),
         ):
             adapter = get_model_adapter("test/unknown-model-name")
             assert isinstance(adapter, HuggingFaceAdapter)
@@ -197,15 +198,17 @@ class TestGoogleAdapter:
 
 class TestHuggingFaceAdapter:
     def test_huggingface_adapter_creation(self):
-        with patch("transformers.AutoTokenizer"), patch(
-            "transformers.AutoModelForCausalLM"
+        with (
+            patch("transformers.AutoTokenizer"),
+            patch("transformers.AutoModelForCausalLM"),
         ):
             adapter = HuggingFaceAdapter("gpt2")
             assert adapter.model_name == "gpt2"
 
     def test_huggingface_cost_estimate(self):
-        with patch("transformers.AutoTokenizer"), patch(
-            "transformers.AutoModelForCausalLM"
+        with (
+            patch("transformers.AutoTokenizer"),
+            patch("transformers.AutoModelForCausalLM"),
         ):
             adapter = HuggingFaceAdapter("gpt2")
             cost = adapter.get_cost_estimate(1000, 500)

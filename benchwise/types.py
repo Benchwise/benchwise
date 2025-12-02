@@ -5,14 +5,25 @@ This module contains TypedDict definitions, Protocols, Literal types, and type v
 used throughout the BenchWise codebase for improved type safety and IDE support.
 """
 
-from typing import Any, Dict, List, Literal, Optional, Protocol, TypeVar, ParamSpec, Tuple, TypedDict
+from typing import (
+    Any,
+    Dict,
+    List,
+    Literal,
+    Optional,
+    Protocol,
+    TypeVar,
+    ParamSpec,
+    Tuple,
+    TypedDict,
+)
 
 # Type Variables
-T = TypeVar('T')
-R = TypeVar('R')
-P = ParamSpec('P')
-ModelT = TypeVar('ModelT')
-DatasetT = TypeVar('DatasetT')
+T = TypeVar("T")
+R = TypeVar("R")
+P = ParamSpec("P")
+ModelT = TypeVar("ModelT")
+DatasetT = TypeVar("DatasetT")
 
 # Literal Types
 HttpMethod = Literal["GET", "POST", "PUT", "DELETE", "PATCH"]
@@ -23,6 +34,7 @@ ExportFormat = Literal["json", "csv", "markdown"]
 # Model Configuration Types
 class ModelConfig(TypedDict, total=False):
     """Configuration options for model adapters."""
+
     api_key: str
     temperature: float
     max_tokens: int
@@ -35,6 +47,7 @@ class ModelConfig(TypedDict, total=False):
 
 class PricingInfo(TypedDict):
     """Pricing information for a model."""
+
     input: float  # Cost per 1K input tokens
     output: float  # Cost per 1K output tokens
 
@@ -42,6 +55,7 @@ class PricingInfo(TypedDict):
 # Metric Return Types
 class RougeScores(TypedDict, total=False):
     """Return type for ROUGE metric scores."""
+
     precision: float
     recall: float
     f1: float
@@ -60,6 +74,7 @@ class RougeScores(TypedDict, total=False):
 
 class BleuScores(TypedDict, total=False):
     """Return type for BLEU metric scores."""
+
     bleu: float
     bleu1: float
     bleu2: float
@@ -75,6 +90,7 @@ class BleuScores(TypedDict, total=False):
 
 class BertScoreResults(TypedDict, total=False):
     """Return type for BERT-Score metric."""
+
     precision: float
     recall: float
     f1: float
@@ -90,6 +106,7 @@ class BertScoreResults(TypedDict, total=False):
 
 class AccuracyResults(TypedDict, total=False):
     """Return type for accuracy metric."""
+
     accuracy: float
     correct: int
     total: int
@@ -101,6 +118,7 @@ class AccuracyResults(TypedDict, total=False):
 
 class SemanticSimilarityResults(TypedDict, total=False):
     """Return type for semantic similarity metric."""
+
     similarity: float
     std_similarity: float
     scores: List[float]
@@ -110,6 +128,7 @@ class SemanticSimilarityResults(TypedDict, total=False):
 
 class CoherenceResults(TypedDict, total=False):
     """Return type for coherence score metric."""
+
     coherence: float
     std_coherence: float
     scores: List[float]
@@ -119,6 +138,7 @@ class CoherenceResults(TypedDict, total=False):
 
 class SafetyResults(TypedDict, total=False):
     """Return type for safety score metric."""
+
     safety: float
     is_safe: bool
     flagged_categories: List[str]
@@ -130,6 +150,7 @@ class SafetyResults(TypedDict, total=False):
 
 class FactualCorrectnessResults(TypedDict, total=False):
     """Return type for factual correctness metric."""
+
     correctness: float
     is_correct: bool
     std_correctness: float
@@ -141,6 +162,7 @@ class FactualCorrectnessResults(TypedDict, total=False):
 # Dataset Types
 class DatasetItem(TypedDict, total=False):
     """A single item in a dataset."""
+
     # Common field names
     prompt: str
     input: str
@@ -159,6 +181,7 @@ class DatasetItem(TypedDict, total=False):
 
 class DatasetMetadata(TypedDict, total=False):
     """Metadata for a dataset."""
+
     name: str
     description: str
     source: str
@@ -170,6 +193,7 @@ class DatasetMetadata(TypedDict, total=False):
 
 class DatasetSchema(TypedDict, total=False):
     """Schema definition for a dataset."""
+
     prompt_field: str
     reference_field: str
     required_fields: List[str]
@@ -179,6 +203,7 @@ class DatasetSchema(TypedDict, total=False):
 # Configuration Types
 class ConfigDict(TypedDict, total=False):
     """Configuration dictionary for BenchWise."""
+
     api_url: str
     api_key: Optional[str]
     upload_enabled: bool
@@ -197,6 +222,7 @@ class ConfigDict(TypedDict, total=False):
 # Results Types
 class EvaluationResultDict(TypedDict, total=False):
     """Serialized evaluation result."""
+
     model: str
     prompt: str
     response: str
@@ -210,6 +236,7 @@ class EvaluationResultDict(TypedDict, total=False):
 
 class BenchmarkResultDict(TypedDict, total=False):
     """Serialized benchmark result."""
+
     benchmark_name: str
     benchmark_description: str
     results: List[EvaluationResultDict]
@@ -219,6 +246,7 @@ class BenchmarkResultDict(TypedDict, total=False):
 
 class ComparisonResult(TypedDict):
     """Result of model comparison."""
+
     best_model: str
     best_score: float
     rankings: List[Tuple[str, float]]
@@ -228,12 +256,14 @@ class ComparisonResult(TypedDict):
 # API Response Types
 class LoginResponse(TypedDict):
     """Response from login endpoint."""
+
     token: Dict[str, str]
     user: Dict[str, Any]
 
 
 class UserInfo(TypedDict, total=False):
     """User information from API."""
+
     id: int
     username: str
     email: str
@@ -243,6 +273,7 @@ class UserInfo(TypedDict, total=False):
 
 class UploadResultsResponse(TypedDict):
     """Response from upload results endpoint."""
+
     id: int
     benchmark_id: int
     model_ids: List[int]
@@ -286,6 +317,8 @@ class SupportsCache(Protocol):
 class SupportsMetrics(Protocol):
     """Protocol for objects that support metric evaluation."""
 
-    def evaluate(self, predictions: List[str], references: List[str], **kwargs: Any) -> Dict[str, float]:
+    def evaluate(
+        self, predictions: List[str], references: List[str], **kwargs: Any
+    ) -> Dict[str, float]:
         """Evaluate predictions against references."""
         ...

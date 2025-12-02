@@ -119,7 +119,9 @@ class BenchmarkResult:
             return 0.0
         return len(self.successful_results) / len(self.results)
 
-    def get_best_model(self, metric_name: Optional[str] = None) -> Optional[EvaluationResult]:
+    def get_best_model(
+        self, metric_name: Optional[str] = None
+    ) -> Optional[EvaluationResult]:
         """
         Get the best performing model result.
 
@@ -135,7 +137,9 @@ class BenchmarkResult:
 
         return max(successful_results, key=lambda r: r.get_score(metric_name) or 0)
 
-    def get_worst_model(self, metric_name: Optional[str] = None) -> Optional[EvaluationResult]:
+    def get_worst_model(
+        self, metric_name: Optional[str] = None
+    ) -> Optional[EvaluationResult]:
         """
         Get the worst performing model result.
 
@@ -269,7 +273,11 @@ class ResultsAnalyzer:
         Returns:
             Dictionary with cross-benchmark comparison
         """
-        comparison: Dict[str, Any] = {"benchmarks": [], "models": set(), "cross_benchmark_scores": {}}
+        comparison: Dict[str, Any] = {
+            "benchmarks": [],
+            "models": set(),
+            "cross_benchmark_scores": {},
+        }
 
         for benchmark in benchmark_results:
             benchmark_info = {
