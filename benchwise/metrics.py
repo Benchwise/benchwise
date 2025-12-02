@@ -1,5 +1,7 @@
-from typing import List, Dict, Any, Tuple, Optional
+from typing import List, Dict, Any, Tuple, Optional, Union
 import numpy as np
+from numpy.typing import NDArray
+from benchwise.types import RougeScores, BleuScores, BertScoreResults, AccuracyResults
 from rouge_score import rouge_scorer
 from sacrebleu import BLEU
 import bert_score
@@ -26,7 +28,7 @@ def _bootstrap_confidence_interval(
 ) -> Tuple[float, float]:
     """Calculate bootstrap confidence interval for a list of scores."""
     if len(scores) < 2:
-        return (np.mean(scores), np.mean(scores))
+        return (float(np.mean(scores)), float(np.mean(scores)))
 
     bootstrap_means = []
     for _ in range(n_bootstrap):
@@ -38,8 +40,8 @@ def _bootstrap_confidence_interval(
     upper_percentile = (1 - alpha / 2) * 100
 
     return (
-        np.percentile(bootstrap_means, lower_percentile),
-        np.percentile(bootstrap_means, upper_percentile),
+        float(np.percentile(bootstrap_means, lower_percentile)),
+        float(np.percentile(bootstrap_means, upper_percentile)),
     )
 
 
@@ -65,7 +67,7 @@ def rouge_l(
     use_stemmer: bool = True,
     alpha: float = 0.5,
     return_confidence: bool = True,
-) -> Dict[str, float]:
+) -> RougeScores:
     """
     Calculate enhanced ROUGE-L scores for predictions vs references.
 
@@ -96,7 +98,7 @@ def rouge_l(
     scorer = rouge_scorer.RougeScorer(
         ["rougeL", "rouge1", "rouge2"], use_stemmer=use_stemmer
     )
-    scores = {"precision": [], "recall": [], "f1": [], "rouge1_f1": [], "rouge2_f1": []}
+    scores: Dict[str, List[float]] = {"precision": [], "recall": [], "f1": [], "rouge1_f1": [], "rouge2_f1": []}
 
     for pred, ref in zip(predictions, references):
         # Handle empty strings gracefully
