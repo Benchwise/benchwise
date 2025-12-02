@@ -253,3 +253,5 @@ celery-beat-schedule
 
 # AI files
 CLAUDE.md
+GEMINI.md
+test_single_doc_file.py

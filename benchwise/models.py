@@ -1,16 +1,18 @@
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any, Optional
 
+from benchwise.types import ModelConfig, PricingInfo
+
 
 class ModelAdapter(ABC):
     """Abstract base class for model adapters."""
 
-    def __init__(self, model_name: str, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, model_name: str, config: Optional[ModelConfig] = None) -> None:
         self.model_name = model_name
-        self.config = config or {}
+        self.config: ModelConfig = config or {}
 
     @abstractmethod
-    async def generate(self, prompts: List[str], **kwargs) -> List[str]:
+    async def generate(self, prompts: List[str], **kwargs: Any) -> List[str]:
         """Generate responses for a list of prompts."""
         pass
 
@@ -28,7 +30,7 @@ class ModelAdapter(ABC):
 class OpenAIAdapter(ModelAdapter):
     """Adapter for OpenAI models."""
 
-    def __init__(self, model_name: str, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, model_name: str, config: Optional[ModelConfig] = None) -> None:
         super().__init__(model_name, config)
         try:
             import openai
@@ -42,16 +44,16 @@ class OpenAIAdapter(ModelAdapter):
             )
 
         # Model pricing (per 1K tokens)
-        self.pricing = {
+        self.pricing: Dict[str, PricingInfo] = {
             "gpt-4": {"input": 0.03, "output": 0.06},
             "gpt-4-turbo": {"input": 0.01, "output": 0.03},
             "gpt-3.5-turbo": {"input": 0.001, "output": 0.002},
             "gpt-4o": {"input": 0.005, "output": 0.015},
         }
 
-    async def generate(self, prompts: List[str], **kwargs) -> List[str]:
+    async def generate(self, prompts: List[str], **kwargs: Any) -> List[str]:
         """Generate responses using OpenAI API."""
-        responses = []
+        responses: List[str] = []
 
         # Default parameters - exclude api_key from generation params
         generation_params = {
@@ -85,15 +87,15 @@ class OpenAIAdapter(ModelAdapter):
         model_pricing = self.pricing.get(
             self.model_name, {"input": 0.01, "output": 0.03}
         )
-        input_cost = (input_tokens / 1000) * model_pricing["input"]
-        output_cost = (output_tokens / 1000) * model_pricing["output"]
+        input_cost = (input_tokens / 1000) * float(model_pricing["input"])
+        output_cost = (output_tokens / 1000) * float(model_pricing["output"])
         return input_cost + output_cost
 
 
 class AnthropicAdapter(ModelAdapter):
     """Adapter for Anthropic Claude models."""
 
-    def __init__(self, model_name: str, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, model_name: str, config: Optional[ModelConfig] = None) -> None:
         super().__init__(model_name, config)
         try:
             import anthropic
@@ -107,16 +109,16 @@ class AnthropicAdapter(ModelAdapter):
             )
 
         # Model pricing (per 1K tokens)
-        self.pricing = {
+        self.pricing: Dict[str, PricingInfo] = {
             "claude-3-opus": {"input": 0.015, "output": 0.075},
             "claude-3-sonnet": {"input": 0.003, "output": 0.015},
             "claude-3-haiku": {"input": 0.00025, "output": 0.00125},
             "claude-3.5-sonnet": {"input": 0.003, "output": 0.015},
         }
 
-    async def generate(self, prompts: List[str], **kwargs) -> List[str]:
+    async def generate(self, prompts: List[str], **kwargs: Any) -> List[str]:
         """Generate responses using Anthropic API."""
-        responses = []
+        responses: List[str] = []
 
         # Default parameters - exclude api_key from generation params
         generation_params = {
@@ -150,15 +152,15 @@ class AnthropicAdapter(ModelAdapter):
         model_pricing = self.pricing.get(
             self.model_name, {"input": 0.003, "output": 0.015}
         )
-        input_cost = (input_tokens / 1000) * model_pricing["input"]
-        output_cost = (output_tokens / 1000) * model_pricing["output"]
+        input_cost = (input_tokens / 1000) * float(model_pricing["input"])
+        output_cost = (output_tokens / 1000) * float(model_pricing["output"])
         return input_cost + output_cost
 
 
 class GoogleAdapter(ModelAdapter):
     """Adapter for Google Gemini models."""
 
-    def __init__(self, model_name: str, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, model_name: str, config: Optional[ModelConfig] = None) -> None:
         super().__init__(model_name, config)
         try:
             import google.generativeai as genai
@@ -172,9 +174,9 @@ class GoogleAdapter(ModelAdapter):
                 "Google Generative AI package not installed. Please install it with: pip install 'benchwise[llm-apis]' or pip install google-generativeai"
             )
 
-    async def generate(self, prompts: List[str], **kwargs) -> List[str]:
+    async def generate(self, prompts: List[str], **kwargs: Any) -> List[str]:
         """Generate responses using Google Gemini API."""
-        responses = []
+        responses: List[str] = []
 
         for prompt in prompts:
             try:
@@ -206,7 +208,7 @@ class GoogleAdapter(ModelAdapter):
 class HuggingFaceAdapter(ModelAdapter):
     """Adapter for Hugging Face models."""
 
-    def __init__(self, model_name: str, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, model_name: str, config: Optional[ModelConfig] = None) -> None:
         super().__init__(model_name, config)
         try:
             from transformers import AutoTokenizer, AutoModelForCausalLM
@@ -218,9 +220,9 @@ class HuggingFaceAdapter(ModelAdapter):
                 "Transformers package not installed. Please install it with: pip install 'benchwise[transformers]' or pip install transformers torch"
             )
 
-    async def generate(self, prompts: List[str], **kwargs) -> List[str]:
+    async def generate(self, prompts: List[str], **kwargs: Any) -> List[str]:
         """Generate responses using Hugging Face models."""
-        responses = []
+        responses: List[str] = []
 
         for prompt in prompts:
             try:
@@ -251,10 +253,10 @@ class HuggingFaceAdapter(ModelAdapter):
 class MockAdapter(ModelAdapter):
     """Mock adapter for testing without API dependencies."""
 
-    def __init__(self, model_name: str, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, model_name: str, config: Optional[ModelConfig] = None) -> None:
         super().__init__(model_name, config)
 
-    async def generate(self, prompts: List[str], **kwargs) -> List[str]:
+    async def generate(self, prompts: List[str], **kwargs: Any) -> List[str]:
         """Generate mock responses."""
         return [
             f"Mock response from {self.model_name} for: {prompt[:50]}..."
@@ -271,7 +273,7 @@ class MockAdapter(ModelAdapter):
 
 
 def get_model_adapter(
-    model_name: str, config: Optional[Dict[str, Any]] = None
+    model_name: str, config: Optional[ModelConfig] = None
 ) -> ModelAdapter:
     """Factory function to get the appropriate model adapter."""
 
