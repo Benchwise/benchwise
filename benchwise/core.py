@@ -68,7 +68,7 @@ def evaluate(
             dataset: Dataset, **test_kwargs: Any
         ) -> List[EvaluationResult]:
             return await _run_evaluation(
-                test_func, dataset, models, upload, kwargs, test_kwargs
+                test_func, wrapper, dataset, models, upload, kwargs, test_kwargs
             )
 
         if hasattr(test_func, "_benchmark_metadata"):
@@ -81,6 +81,7 @@ def evaluate(
 
 async def _run_evaluation(
     test_func: Callable[..., Awaitable[Any]],
+    wrapper_func: Callable[..., Awaitable[Any]],
     dataset: Dataset,
     models: tuple[str, ...],
     upload: Optional[bool],
@@ -102,8 +103,8 @@ async def _run_evaluation(
             end_time = time.time()
 
             combined_metadata = decorator_kwargs.copy()
-            if hasattr(test_func, "_benchmark_metadata"):
-                combined_metadata.update(test_func._benchmark_metadata)
+            if hasattr(wrapper_func, "_benchmark_metadata"):
+                combined_metadata.update(wrapper_func._benchmark_metadata)
 
             eval_result = EvaluationResult(
                 model_name=model_name,
@@ -121,8 +122,8 @@ async def _run_evaluation(
             logger.error(f"✗ {model_name} failed: {e}", exc_info=True)
 
             combined_metadata = decorator_kwargs.copy()
-            if hasattr(test_func, "_benchmark_metadata"):
-                combined_metadata.update(test_func._benchmark_metadata)
+            if hasattr(wrapper_func, "_benchmark_metadata"):
+                combined_metadata.update(wrapper_func._benchmark_metadata)
 
             eval_result = EvaluationResult(
                 model_name=model_name,
