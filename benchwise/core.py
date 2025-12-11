@@ -31,7 +31,7 @@ def evaluate(
     *models: str, upload: Optional[bool] = None, **kwargs: Any
 ) -> Callable[
     [Callable[..., Awaitable[Any]]],
-    Callable[[Dataset, Any], Awaitable[List[EvaluationResult]]],
+    Callable[[Dataset], Awaitable[List[EvaluationResult]]],
 ]:
     """
     Decorator for creating LLM evaluations.

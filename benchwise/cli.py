@@ -5,7 +5,7 @@ Benchwise CLI - Command line interface for LLM evaluation
 import argparse
 import asyncio
 import sys
-from typing import List, Optional, Any
+from typing import List, Optional
 
 from . import __version__
 from .datasets import load_dataset
@@ -13,6 +13,7 @@ from .models import get_model_adapter
 from .results import save_results, BenchmarkResult, EvaluationResult
 from .config import get_api_config, configure_benchwise
 from .client import get_client, sync_offline_results
+from .types import ConfigureArgs, ConfigKwargs, SyncArgs, StatusArgs
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -206,14 +207,14 @@ async def run_evaluation(
             for metric_name in metrics:
                 try:
                     if metric_name == "accuracy":
-                        metric_result: Any = accuracy(responses, references)
+                        metric_result = accuracy(responses, references)
                         results["accuracy"] = metric_result["accuracy"]
                     elif metric_name == "rouge_l":
-                        metric_result = rouge_l(responses, references)
-                        results["rouge_l_f1"] = metric_result["f1"]
+                        rouge_result = rouge_l(responses, references)
+                        results["rouge_l_f1"] = rouge_result["f1"]
                     elif metric_name == "semantic_similarity":
-                        metric_result = semantic_similarity(responses, references)
-                        results["semantic_similarity"] = metric_result[
+                        semantic_result = semantic_similarity(responses, references)
+                        results["semantic_similarity"] = semantic_result[
                             "mean_similarity"
                         ]
                     else:
@@ -285,7 +286,7 @@ async def run_evaluation(
     return benchmark_result
 
 
-async def configure_api(args: Any) -> None:
+async def configure_api(args: ConfigureArgs) -> None:
     """Configure Benchwise API settings."""
     from .config import reset_config
 
@@ -300,7 +301,7 @@ async def configure_api(args: Any) -> None:
         return
 
     # Update configuration
-    kwargs = {}
+    kwargs: ConfigKwargs = {}
     if args.api_url:
         kwargs["api_url"] = args.api_url
     if args.api_key:
@@ -321,7 +322,7 @@ async def configure_api(args: Any) -> None:
         print("No configuration changes specified. Use --show to see current config.")
 
 
-async def sync_offline(args: Any) -> None:
+async def sync_offline(args: SyncArgs) -> None:
     """Sync offline results with the API."""
     try:
         client = await get_client()
@@ -354,7 +355,7 @@ async def sync_offline(args: Any) -> None:
         pass
 
 
-async def show_status(args: Any) -> None:
+async def show_status(args: StatusArgs) -> None:
     """Show Benchwise status information."""
     config = get_api_config()
     client = None

@@ -2,12 +2,14 @@ import httpx
 import asyncio
 import uuid
 import logging
-from typing import Dict, Any, Optional, List, cast
+import types
+from typing import Dict, Any, Optional, List, Type, cast
 from datetime import datetime
 from contextvars import ContextVar
 
 from .config import get_api_config
 from .results import EvaluationResult, BenchmarkResult
+from .types import OfflineQueueItem
 
 # Set up logger
 logger = logging.getLogger("benchwise.client")
@@ -64,7 +66,7 @@ class BenchwiseClient:
         self.benchmark_cache: Dict[str, int] = {}
 
         # Offline queue for storing results when API is unavailable
-        self.offline_queue: List[Dict[str, Any]] = []
+        self.offline_queue: List[OfflineQueueItem] = []
         self.offline_mode = False
 
         # Track if client is closed
@@ -75,7 +77,12 @@ class BenchwiseClient:
     async def __aenter__(self) -> "BenchwiseClient":
         return self
 
-    async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+    async def __aexit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[types.TracebackType],
+    ) -> None:
         await self.close()
 
     async def close(self) -> None:
