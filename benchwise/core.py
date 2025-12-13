@@ -8,6 +8,7 @@ from typing import (
     ParamSpec,
     TypeVar,
     Awaitable,
+    cast,
 )
 from functools import wraps
 import asyncio
@@ -15,10 +16,18 @@ import time
 import inspect
 import logging
 from .models import get_model_adapter
-from .datasets import Dataset
+from .datasets import Dataset, convert_metadata_to_info
 from .results import EvaluationResult
 from .config import get_api_config
 from .client import upload_results
+from .types import (
+    RunnerConfig,
+    ModelComparisonResult,
+    EvaluationResultDict,
+    EvaluationMetadata,
+    DatasetInfo,
+    CallableWithBenchmarkMetadata,
+)
 
 # Type variables for decorator typing
 P = ParamSpec("P")
@@ -71,8 +80,15 @@ def evaluate(
                 test_func, wrapper, dataset, models, upload, kwargs, test_kwargs
             )
 
+        # Copy benchmark metadata if it exists
         if hasattr(test_func, "_benchmark_metadata"):
-            wrapper._benchmark_metadata = test_func._benchmark_metadata  # type: ignore[attr-defined]
+            # Type narrowing: test_func has _benchmark_metadata after hasattr check
+            benchmark_func = cast(CallableWithBenchmarkMetadata, test_func)
+            # Type the wrapper as having the metadata attribute
+            wrapper_with_metadata = cast(CallableWithBenchmarkMetadata, wrapper)
+            wrapper_with_metadata._benchmark_metadata = (
+                benchmark_func._benchmark_metadata
+            )
 
         return wrapper
 
@@ -104,15 +120,19 @@ async def _run_evaluation(
 
             combined_metadata = decorator_kwargs.copy()
             if hasattr(wrapper_func, "_benchmark_metadata"):
-                combined_metadata.update(wrapper_func._benchmark_metadata)
+                # Type narrowing: wrapper_func has _benchmark_metadata after hasattr check
+                benchmark_func = cast(CallableWithBenchmarkMetadata, wrapper_func)
+                combined_metadata.update(benchmark_func._benchmark_metadata)
 
             eval_result = EvaluationResult(
                 model_name=model_name,
                 test_name=test_func.__name__,
                 result=result,
                 duration=end_time - start_time,
-                dataset_info=dataset.metadata,
-                metadata=combined_metadata,
+                dataset_info=convert_metadata_to_info(dataset.metadata)
+                if dataset.metadata
+                else None,
+                metadata=cast(EvaluationMetadata, combined_metadata),
             )
             results.append(eval_result)
 
@@ -123,15 +143,19 @@ async def _run_evaluation(
 
             combined_metadata = decorator_kwargs.copy()
             if hasattr(wrapper_func, "_benchmark_metadata"):
-                combined_metadata.update(wrapper_func._benchmark_metadata)
+                # Type narrowing: wrapper_func has _benchmark_metadata after hasattr check
+                benchmark_func = cast(CallableWithBenchmarkMetadata, wrapper_func)
+                combined_metadata.update(benchmark_func._benchmark_metadata)
 
             eval_result = EvaluationResult(
                 model_name=model_name,
                 test_name=test_func.__name__,
                 error=str(e),
                 duration=0,
-                dataset_info=dataset.metadata,
-                metadata=combined_metadata,
+                dataset_info=convert_metadata_to_info(dataset.metadata)
+                if dataset.metadata
+                else None,
+                metadata=cast(EvaluationMetadata, combined_metadata),
             )
             results.append(eval_result)
 
@@ -141,7 +165,14 @@ async def _run_evaluation(
     if should_upload and results:
         try:
             logger.debug("Uploading results to Benchwise API")
-            await upload_results(results, test_func.__name__, dataset.metadata or {})
+            dataset_info_for_upload: DatasetInfo = (
+                convert_metadata_to_info(dataset.metadata)
+                if dataset.metadata
+                else cast(
+                    DatasetInfo, {"size": dataset.size, "task": "general", "tags": []}
+                )
+            )
+            await upload_results(results, test_func.__name__, dataset_info_for_upload)
             logger.info("Results uploaded successfully")
         except Exception as e:
             logger.warning(f"Upload failed (results saved locally): {e}")
@@ -164,7 +195,9 @@ def benchmark(
     """
 
     def decorator(test_func: Callable[P, R]) -> Callable[P, R]:
-        test_func._benchmark_metadata = {  # type: ignore[attr-defined]
+        # Add benchmark metadata to the function
+        benchmark_func = cast(CallableWithBenchmarkMetadata, test_func)
+        benchmark_func._benchmark_metadata = {
             "name": name,
             "description": description,
             **kwargs,
@@ -227,9 +260,9 @@ def stress_test(
 class EvaluationRunner:
     """Main class for running evaluations."""
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
-        self.config: Dict[str, Any] = config or {}
-        self.results_cache: Dict[str, Any] = {}
+    def __init__(self, config: Optional[RunnerConfig] = None) -> None:
+        self.config: RunnerConfig = config or cast(RunnerConfig, {})
+        self.results_cache: Dict[str, EvaluationResultDict] = {}
         self.logger = logging.getLogger("benchwise.runner")
 
     async def run_evaluation(
@@ -255,13 +288,15 @@ class EvaluationRunner:
 
     def compare_models(
         self, results: List[EvaluationResult], metric_name: Optional[str] = None
-    ) -> Dict[str, Any]:
+    ) -> ModelComparisonResult:
         """Compare model performance."""
         successful_results = [r for r in results if r.success]
 
         if not successful_results:
             self.logger.warning("No successful results to compare")
-            return {"error": "No successful results to compare"}
+            return cast(
+                ModelComparisonResult, {"error": "No successful results to compare"}
+            )
 
         model_scores = []
         for r in successful_results:
@@ -286,19 +321,28 @@ class EvaluationRunner:
             model_scores.append((r.model_name, score if score is not None else 0))
 
         if not model_scores:
-            return {"error": "No comparable scores found"}
+            return cast(ModelComparisonResult, {"error": "No comparable scores found"})
 
         model_scores.sort(key=lambda x: x[1], reverse=True)
 
-        comparison = {
-            "models": [r.model_name for r in successful_results],
-            "scores": [score for _, score in model_scores],
-            "best_model": model_scores[0][0],
-            "worst_model": model_scores[-1][0],
-            "ranking": [
-                {"model": name, "score": score} for name, score in model_scores
-            ],
-        }
+        comparison = cast(
+            ModelComparisonResult,
+            {
+                "ranking": [
+                    {"model": name, "score": float(score)}
+                    for name, score in model_scores
+                ],
+                "best_model": model_scores[0][0],
+                "best_score": float(model_scores[0][1]),
+                "worst_model": model_scores[-1][0],
+                "worst_score": float(model_scores[-1][1]),
+                "mean_score": float(
+                    sum(score for _, score in model_scores) / len(model_scores)
+                ),
+                "std_score": 0.0,  # Could calculate if needed
+                "total_models": len(model_scores),
+            },
+        )
 
         self.logger.info(
             f"Comparison complete: Best model is {comparison['best_model']}"

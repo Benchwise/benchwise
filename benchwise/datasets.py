@@ -1,10 +1,105 @@
-from typing import List, Dict, Any, Optional, Union, Callable
+from typing import List, Dict, Any, Optional, Union, Callable, cast
 import json
 import pandas as pd
 from pathlib import Path
 import requests
 from dataclasses import dataclass
 import hashlib
+
+from .types import (
+    DatasetItem,
+    DatasetMetadata,
+    DatasetSchema,
+    DatasetDict,
+    DatasetInfo,
+)
+
+
+def _validate_dataset_item(item: Any) -> DatasetItem:
+    """
+    Validate and convert a dictionary to DatasetItem.
+
+    Args:
+        item: Dictionary or any value to validate
+
+    Returns:
+        Validated DatasetItem
+
+    Raises:
+        ValueError: If item is not a dictionary
+    """
+    if not isinstance(item, dict):
+        raise ValueError(f"Expected dict for DatasetItem, got {type(item).__name__}")
+    return cast(DatasetItem, item)
+
+
+def _validate_dataset_items(items: Any) -> List[DatasetItem]:
+    """
+    Validate and convert a list of dictionaries to List[DatasetItem].
+
+    Args:
+        items: List of dictionaries or any value to validate
+
+    Returns:
+        Validated List[DatasetItem]
+
+    Raises:
+        ValueError: If items is not a list or contains non-dict items
+    """
+    if not isinstance(items, list):
+        raise ValueError(f"Expected list for dataset data, got {type(items).__name__}")
+
+    validated_items: List[DatasetItem] = []
+    for i, item in enumerate(items):
+        if not isinstance(item, dict):
+            raise ValueError(
+                f"Expected dict for dataset item at index {i}, got {type(item).__name__}"
+            )
+        validated_items.append(cast(DatasetItem, item))
+
+    return validated_items
+
+
+def _validate_dataset_metadata(metadata: Any) -> Optional[DatasetMetadata]:
+    """
+    Validate and convert metadata to DatasetMetadata.
+
+    Args:
+        metadata: Dictionary or None to validate
+
+    Returns:
+        Validated DatasetMetadata or None
+    """
+    if metadata is None:
+        return None
+
+    if not isinstance(metadata, dict):
+        raise ValueError(
+            f"Expected dict or None for DatasetMetadata, got {type(metadata).__name__}"
+        )
+
+    return cast(DatasetMetadata, metadata)
+
+
+def _validate_dataset_schema(schema: Any) -> Optional[DatasetSchema]:
+    """
+    Validate and convert schema to DatasetSchema.
+
+    Args:
+        schema: Dictionary or None to validate
+
+    Returns:
+        Validated DatasetSchema or None
+    """
+    if schema is None:
+        return None
+
+    if not isinstance(schema, dict):
+        raise ValueError(
+            f"Expected dict or None for DatasetSchema, got {type(schema).__name__}"
+        )
+
+    return cast(DatasetSchema, schema)
 
 
 @dataclass
@@ -20,20 +115,23 @@ class Dataset:
     """
 
     name: str
-    data: List[Dict[str, Any]]
-    metadata: Optional[Dict[str, Any]] = None
-    schema: Optional[Dict[str, Any]] = None
+    data: List[DatasetItem]
+    metadata: Optional[DatasetMetadata] = None
+    schema: Optional[DatasetSchema] = None
 
     def __post_init__(self) -> None:
         if self.metadata is None:
-            self.metadata = {}
+            self.metadata = cast(DatasetMetadata, {})
 
         if not self.metadata:
-            self.metadata = {
-                "size": len(self.data),
-                "created_at": pd.Timestamp.now().isoformat(),
-                "hash": self._compute_hash(),
-            }
+            self.metadata = cast(
+                DatasetMetadata,
+                {
+                    "size": len(self.data),
+                    "created_at": pd.Timestamp.now().isoformat(),
+                    "hash": self._compute_hash(),
+                },
+            )
 
     def _compute_hash(self) -> str:
         """Compute hash of dataset for versioning."""
@@ -78,14 +176,17 @@ class Dataset:
                 references.append(str(ref))
         return references
 
-    def filter(self, condition: Callable[[Dict[str, Any]], bool]) -> "Dataset":
+    def filter(self, condition: Callable[[DatasetItem], bool]) -> "Dataset":
         """Filter dataset items based on condition."""
         filtered_data = [item for item in self.data if condition(item)]
-        metadata = self.metadata or {}
+        metadata = self.metadata or cast(DatasetMetadata, {})
         return Dataset(
             name=f"{self.name}_filtered",
             data=filtered_data,
-            metadata={**metadata, "filtered": True, "original_size": self.size},
+            metadata=cast(
+                DatasetMetadata,
+                {**metadata, "filtered": True, "original_size": self.size},
+            ),
         )
 
     def sample(self, n: int, random_state: Optional[int] = None) -> "Dataset":
@@ -95,12 +196,16 @@ class Dataset:
         if random_state:
             random.seed(random_state)
 
-        sampled_data = random.sample(self.data, min(n, len(self.data)))
-        metadata = self.metadata or {}
+        sampled_data: List[DatasetItem] = random.sample(
+            self.data, min(n, len(self.data))
+        )
+        metadata = self.metadata or cast(DatasetMetadata, {})
         return Dataset(
             name=f"{self.name}_sample_{n}",
             data=sampled_data,
-            metadata={**metadata, "sampled": True, "sample_size": n},
+            metadata=cast(
+                DatasetMetadata, {**metadata, "sampled": True, "sample_size": n}
+            ),
         )
 
     def split(
@@ -112,43 +217,52 @@ class Dataset:
         if random_state:
             random.seed(random_state)
 
-        shuffled_data = self.data.copy()
+        shuffled_data: List[DatasetItem] = self.data.copy()
         random.shuffle(shuffled_data)
 
         split_idx = int(len(shuffled_data) * train_ratio)
-        train_data = shuffled_data[:split_idx]
-        test_data = shuffled_data[split_idx:]
+        train_data: List[DatasetItem] = shuffled_data[:split_idx]
+        test_data: List[DatasetItem] = shuffled_data[split_idx:]
 
         train_dataset = Dataset(
             name=f"{self.name}_train",
             data=train_data,
-            metadata={
-                **(self.metadata or {}),
-                "split": "train",
-                "train_ratio": train_ratio,
-            },
+            metadata=cast(
+                DatasetMetadata,
+                {
+                    **(self.metadata or cast(DatasetMetadata, {})),
+                    "split": "train",
+                    "train_ratio": train_ratio,
+                },
+            ),
         )
 
         test_dataset = Dataset(
             name=f"{self.name}_test",
             data=test_data,
-            metadata={
-                **(self.metadata or {}),
-                "split": "test",
-                "train_ratio": train_ratio,
-            },
+            metadata=cast(
+                DatasetMetadata,
+                {
+                    **(self.metadata or cast(DatasetMetadata, {})),
+                    "split": "test",
+                    "test_ratio": 1 - train_ratio,
+                },
+            ),
         )
 
         return train_dataset, test_dataset
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> DatasetDict:
         """Convert dataset to dictionary format."""
-        return {
-            "name": self.name,
-            "data": self.data,
-            "metadata": self.metadata,
-            "schema": self.schema,
-        }
+        return cast(
+            DatasetDict,
+            {
+                "name": self.name,
+                "data": self.data,
+                "metadata": self.metadata,
+                "schema": self.schema,
+            },
+        )
 
     def to_json(self, file_path: Optional[str] = None) -> str:
         """Export dataset to JSON format."""
@@ -170,7 +284,14 @@ class Dataset:
         if not self.schema:
             return True
 
-        required_fields = self.schema.get("required", [])
+        # Support both "required" and "required_fields" for backward compatibility
+        # Check if "required" key exists first, then fall back to "required_fields"
+        if "required" in self.schema:
+            required_fields = self.schema["required"]
+        elif "required_fields" in self.schema:
+            required_fields = self.schema["required_fields"]
+        else:
+            required_fields = []
 
         for item in self.data:
             for field in required_fields:
@@ -210,7 +331,7 @@ class Dataset:
         return stats
 
 
-def load_dataset(source: Union[str, Path, Dict[str, Any]], **kwargs: Any) -> Dataset:
+def load_dataset(source: Union[str, Path, DatasetDict], **kwargs: Any) -> Dataset:
     """
     Load dataset from various sources.
 
@@ -223,11 +344,19 @@ def load_dataset(source: Union[str, Path, Dict[str, Any]], **kwargs: Any) -> Dat
     """
 
     if isinstance(source, dict):
+        # Type narrowing: after isinstance check, treat as DatasetDict
+        # Note: .get() on TypedDict with total=False returns Any for optional keys,
+        # but we know the structure from DatasetDict, so we use proper type annotations
+        dataset_dict: DatasetDict = source
+        data: List[DatasetItem] = dataset_dict.get("data", [])
+        metadata: Optional[DatasetMetadata] = dataset_dict.get("metadata")
+        schema: Optional[DatasetSchema] = dataset_dict.get("schema")
+
         return Dataset(
             name=kwargs.get("name", "custom_dataset"),
-            data=source.get("data", []),
-            metadata=source.get("metadata", {}),
-            schema=source.get("schema"),
+            data=_validate_dataset_items(data),
+            metadata=_validate_dataset_metadata(metadata),
+            schema=_validate_dataset_schema(schema),
         )
 
     elif isinstance(source, (str, Path)):
@@ -235,20 +364,24 @@ def load_dataset(source: Union[str, Path, Dict[str, Any]], **kwargs: Any) -> Dat
 
         if source_path.suffix == ".json":
             with open(source_path, "r") as f:
-                data = json.load(f)
+                json_data = json.load(f)
 
-            if isinstance(data, dict) and "data" in data:
+            if isinstance(json_data, dict) and "data" in json_data:
                 return Dataset(
-                    name=data.get("name", source_path.stem),
-                    data=data["data"],
-                    metadata=data.get("metadata", {}),
-                    schema=data.get("schema"),
+                    name=json_data.get("name", source_path.stem)
+                    if isinstance(json_data.get("name"), str)
+                    else source_path.stem,
+                    data=_validate_dataset_items(json_data["data"]),
+                    metadata=_validate_dataset_metadata(json_data.get("metadata")),
+                    schema=_validate_dataset_schema(json_data.get("schema")),
                 )
-            elif isinstance(data, list):
+            elif isinstance(json_data, list):
                 return Dataset(
-                    name=kwargs.get("name", source_path.stem),
-                    data=data,
-                    metadata=kwargs.get("metadata", {}),
+                    name=kwargs.get("name", source_path.stem)
+                    if isinstance(kwargs.get("name"), str)
+                    else source_path.stem,
+                    data=_validate_dataset_items(json_data),
+                    metadata=_validate_dataset_metadata(kwargs.get("metadata", {})),
                 )
             else:
                 raise ValueError(
@@ -258,12 +391,19 @@ def load_dataset(source: Union[str, Path, Dict[str, Any]], **kwargs: Any) -> Dat
         elif source_path.suffix == ".csv":
             df = pd.read_csv(source_path)
             # Type cast: pandas to_dict returns dict[Hashable, Any] but we need dict[str, Any]
-            data = [dict(record) for record in df.to_dict("records")]
+            records: List[Dict[str, Any]] = [
+                cast(Dict[str, Any], dict(record)) for record in df.to_dict("records")
+            ]
+            csv_data: List[DatasetItem] = [
+                cast(DatasetItem, record) for record in records
+            ]
 
             return Dataset(
-                name=kwargs.get("name", source_path.stem),
-                data=data,
-                metadata=kwargs.get("metadata", {}),
+                name=kwargs.get("name", source_path.stem)
+                if isinstance(kwargs.get("name"), str)
+                else source_path.stem,
+                data=csv_data,
+                metadata=_validate_dataset_metadata(kwargs.get("metadata")),
             )
 
         elif str(source).startswith(("http://", "https://")):
@@ -273,19 +413,23 @@ def load_dataset(source: Union[str, Path, Dict[str, Any]], **kwargs: Any) -> Dat
             response.raise_for_status()
 
             if source_str.endswith(".json"):
-                data = response.json()
-                if isinstance(data, dict) and "data" in data:
+                json_data = response.json()
+                if isinstance(json_data, dict) and "data" in json_data:
                     return Dataset(
-                        name=data.get("name", "remote_dataset"),
-                        data=data["data"],
-                        metadata=data.get("metadata", {}),
-                        schema=data.get("schema"),
+                        name=json_data.get("name", "remote_dataset")
+                        if isinstance(json_data.get("name"), str)
+                        else "remote_dataset",
+                        data=_validate_dataset_items(json_data["data"]),
+                        metadata=_validate_dataset_metadata(json_data.get("metadata")),
+                        schema=_validate_dataset_schema(json_data.get("schema")),
                     )
-                elif isinstance(data, list):
+                elif isinstance(json_data, list):
                     return Dataset(
-                        name=kwargs.get("name", "remote_dataset"),
-                        data=data,
-                        metadata=kwargs.get("metadata", {}),
+                        name=kwargs.get("name", "remote_dataset")
+                        if isinstance(kwargs.get("name"), str)
+                        else "remote_dataset",
+                        data=_validate_dataset_items(json_data),
+                        metadata=_validate_dataset_metadata(kwargs.get("metadata", {})),
                     )
                 else:
                     raise ValueError(
@@ -322,23 +466,32 @@ def create_qa_dataset(
     if len(questions) != len(answers):
         raise ValueError("Questions and answers must have the same length")
 
-    data = [{"question": q, "answer": a} for q, a in zip(questions, answers)]
+    data: List[DatasetItem] = [
+        cast(DatasetItem, {"question": q, "answer": a})
+        for q, a in zip(questions, answers)
+    ]
 
     return Dataset(
-        name=kwargs.get("name", "qa_dataset"),
+        name=kwargs.get("name", "qa_dataset")
+        if isinstance(kwargs.get("name"), str)
+        else "qa_dataset",
         data=data,
-        metadata={
-            "task": "question_answering",
-            "size": len(data),
-            **kwargs.get("metadata", {}),
-        },
-        schema={
-            "required": ["question", "answer"],
-            "properties": {
-                "question": {"type": "string"},
-                "answer": {"type": "string"},
+        metadata=cast(
+            DatasetMetadata,
+            {
+                "task": "question_answering",
+                "size": len(data),
+                **kwargs.get("metadata", {}),
             },
-        },
+        ),
+        schema=cast(
+            DatasetSchema,
+            {
+                "required": ["question", "answer"],
+                "prompt_field": "question",
+                "reference_field": "answer",
+            },
+        ),
     )
 
 
@@ -360,25 +513,32 @@ def create_summarization_dataset(
     if len(documents) != len(summaries):
         raise ValueError("Documents and summaries must have the same length")
 
-    data = [
-        {"document": doc, "summary": summ} for doc, summ in zip(documents, summaries)
+    data: List[DatasetItem] = [
+        cast(DatasetItem, {"document": doc, "summary": summ})
+        for doc, summ in zip(documents, summaries)
     ]
 
     return Dataset(
-        name=kwargs.get("name", "summarization_dataset"),
+        name=kwargs.get("name", "summarization_dataset")
+        if isinstance(kwargs.get("name"), str)
+        else "summarization_dataset",
         data=data,
-        metadata={
-            "task": "summarization",
-            "size": len(data),
-            **kwargs.get("metadata", {}),
-        },
-        schema={
-            "required": ["document", "summary"],
-            "properties": {
-                "document": {"type": "string"},
-                "summary": {"type": "string"},
+        metadata=cast(
+            DatasetMetadata,
+            {
+                "task": "summarization",
+                "size": len(data),
+                **kwargs.get("metadata", {}),
             },
-        },
+        ),
+        schema=cast(
+            DatasetSchema,
+            {
+                "required": ["document", "summary"],
+                "prompt_field": "document",
+                "reference_field": "summary",
+            },
+        ),
     )
 
 
@@ -400,21 +560,33 @@ def create_classification_dataset(
     if len(texts) != len(labels):
         raise ValueError("Texts and labels must have the same length")
 
-    data = [{"text": text, "label": label} for text, label in zip(texts, labels)]
+    data: List[DatasetItem] = [
+        cast(DatasetItem, {"text": text, "label": label})
+        for text, label in zip(texts, labels)
+    ]
 
     return Dataset(
-        name=kwargs.get("name", "classification_dataset"),
+        name=kwargs.get("name", "classification_dataset")
+        if isinstance(kwargs.get("name"), str)
+        else "classification_dataset",
         data=data,
-        metadata={
-            "task": "classification",
-            "size": len(data),
-            "unique_labels": list(set(labels)),
-            **kwargs.get("metadata", {}),
-        },
-        schema={
-            "required": ["text", "label"],
-            "properties": {"text": {"type": "string"}, "label": {"type": "string"}},
-        },
+        metadata=cast(
+            DatasetMetadata,
+            {
+                "task": "classification",
+                "size": len(data),
+                "unique_labels": list(set(labels)),
+                **kwargs.get("metadata", {}),
+            },
+        ),
+        schema=cast(
+            DatasetSchema,
+            {
+                "required": ["text", "label"],
+                "prompt_field": "text",
+                "reference_field": "label",
+            },
+        ),
     )
 
 
@@ -446,73 +618,144 @@ registry = DatasetRegistry()
 
 
 def load_mmlu_sample() -> Dataset:
-    sample_data = [
-        {
-            "question": "What is the capital of France?",
-            "choices": ["London", "Berlin", "Paris", "Madrid"],
-            "answer": "Paris",
-            "subject": "geography",
-        },
-        {
-            "question": "What is 2 + 2?",
-            "choices": ["3", "4", "5", "6"],
-            "answer": "4",
-            "subject": "mathematics",
-        },
+    sample_data: List[DatasetItem] = [
+        cast(
+            DatasetItem,
+            {
+                "question": "What is the capital of France?",
+                "choices": ["London", "Berlin", "Paris", "Madrid"],
+                "answer": "Paris",
+                "subject": "geography",
+            },
+        ),
+        cast(
+            DatasetItem,
+            {
+                "question": "What is 2 + 2?",
+                "choices": ["3", "4", "5", "6"],
+                "answer": "4",
+                "subject": "mathematics",
+            },
+        ),
     ]
 
     return Dataset(
         name="mmlu_sample",
         data=sample_data,
-        metadata={
-            "task": "multiple_choice_qa",
-            "source": "MMLU",
-            "description": "Sample from Massive Multitask Language Understanding",
-        },
+        metadata=cast(
+            DatasetMetadata,
+            {
+                "task": "multiple_choice_qa",
+                "source": "MMLU",
+                "description": "Sample from Massive Multitask Language Understanding",
+            },
+        ),
     )
 
 
 def load_hellaswag_sample() -> Dataset:
     """Load a sample of HellaSwag dataset."""
-    sample_data = [
-        {
-            "context": "A woman is outside with a bucket and a dog. The dog is running around trying to avoid a bath. She",
-            "endings": [
-                "rinses the bucket off with soap and blow dry the dog.",
-                "uses a hose to keep the dog from getting soapy.",
-                "gets the dog wet, then it runs away again.",
-                "gets into the bath tub with the dog.",
-            ],
-            "label": 2,
-        }
+    sample_data: List[DatasetItem] = [
+        cast(
+            DatasetItem,
+            {
+                "context": "A woman is outside with a bucket and a dog. The dog is running around trying to avoid a bath. She",
+                "endings": [
+                    "rinses the bucket off with soap and blow dry the dog.",
+                    "uses a hose to keep the dog from getting soapy.",
+                    "gets the dog wet, then it runs away again.",
+                    "gets into the bath tub with the dog.",
+                ],
+                "label": 2,
+            },
+        )
     ]
 
     return Dataset(
         name="hellaswag_sample",
         data=sample_data,
-        metadata={
-            "task": "sentence_completion",
-            "source": "HellaSwag",
-            "description": "Commonsense reasoning benchmark",
-        },
+        metadata=cast(
+            DatasetMetadata,
+            {
+                "task": "sentence_completion",
+                "source": "HellaSwag",
+                "description": "Commonsense reasoning benchmark",
+            },
+        ),
     )
 
 
 def load_gsm8k_sample() -> Dataset:
     """Load a sample of GSM8K (Grade School Math 8K) dataset."""
-    sample_data = [
-        {
-            "question": "Janet's ducks lay 16 eggs per day. She eats 3 for breakfast every morning and bakes 4 into muffins for her friends every day. She sells the remainder at the farmers' market daily for $2 per fresh duck egg. How much money does she make every day at the farmers' market?",
-            "answer": "Janet sells 16 - 3 - 4 = 9 duck eggs every day. She makes 9 * $2 = $18 every day at the farmers' market.",
-        }
+    sample_data: List[DatasetItem] = [
+        cast(
+            DatasetItem,
+            {
+                "question": "Janet's ducks lay 16 eggs per day. She eats 3 for breakfast every morning and bakes 4 into muffins for her friends every day. She sells the remainder at the farmers' market daily for $2 per fresh duck egg. How much money does she make every day at the farmers' market?",
+                "answer": "Janet sells 16 - 3 - 4 = 9 duck eggs every day. She makes 9 * $2 = $18 every day at the farmers' market.",
+            },
+        )
     ]
 
     return Dataset(
         name="gsm8k_sample",
         data=sample_data,
-        metadata={
-            "task": "math_word_problems",
-            "source": "GSM8K",
-            "description": "Grade school math word problems",
-        },
+        metadata=cast(
+            DatasetMetadata,
+            {
+                "task": "math_word_problems",
+                "source": "GSM8K",
+                "description": "Grade school math word problems",
+            },
+        ),
     )
+
+
+def convert_metadata_to_info(metadata: DatasetMetadata) -> DatasetInfo:
+    """
+    Convert DatasetMetadata to DatasetInfo for evaluation results.
+
+    This function properly converts dataset metadata (which is stored with the dataset)
+    to dataset info (which is used in evaluation results). It handles missing fields
+    and ensures type safety.
+
+    Args:
+        metadata: Dataset metadata to convert
+
+    Returns:
+        DatasetInfo with converted fields
+    """
+    # Extract fields that exist in DatasetMetadata
+    size: int = metadata.get("size", 0)
+    tags: List[str] = metadata.get("tags", [])
+    source: Optional[str] = metadata.get("source")
+    name: Optional[str] = metadata.get("name")
+    description: Optional[str] = metadata.get("description")
+    version: Optional[str] = metadata.get("version")
+    created_at: Optional[str] = metadata.get("created_at")
+
+    # Extract fields that might exist but aren't in DatasetMetadata TypedDict
+    # These could be present at runtime even if not in the type definition
+    metadata_dict: Dict[str, Any] = cast(Dict[str, Any], metadata)
+    hash_value: Optional[str] = metadata_dict.get("hash")
+    task: Optional[str] = metadata_dict.get("task")
+    difficulty: Optional[str] = metadata_dict.get("difficulty")
+
+    # Build DatasetInfo with proper types
+    info: DatasetInfo = {
+        "size": size,
+        "tags": tags,
+        "source": source,
+        "name": name,
+        "description": description,
+        "version": version,
+        "created_at": created_at,
+        "hash": hash_value,
+        "task": task if task else "general",
+    }
+
+    # Add difficulty if available
+    if difficulty:
+        info["difficulty"] = difficulty
+
+    return info

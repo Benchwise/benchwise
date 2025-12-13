@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, List, Optional, Union, cast
 from dataclasses import dataclass, field
 from datetime import datetime
 import json
@@ -6,6 +6,19 @@ import pandas as pd
 from pathlib import Path
 import numpy as np
 import hashlib
+
+from .types import (
+    DatasetInfo,
+    EvaluationMetadata,
+    EvaluationResultDict,
+    BenchmarkSummary,
+    BenchmarkResultDict,
+    ModelComparisonResult,
+    CrossBenchmarkComparison,
+    ModelPerformanceAnalysis,
+    CachedResultInfo,
+    BenchmarkComparisonInfo,
+)
 
 
 @dataclass
@@ -28,9 +41,11 @@ class EvaluationResult:
     test_name: str
     result: Any = None
     duration: float = 0.0
-    dataset_info: Optional[Dict[str, Any]] = None
+    dataset_info: Optional[DatasetInfo] = None
     error: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: EvaluationMetadata = field(
+        default_factory=lambda: cast(EvaluationMetadata, {})
+    )
     timestamp: datetime = field(default_factory=datetime.now)
 
     @property
@@ -43,19 +58,22 @@ class EvaluationResult:
         """Whether the evaluation failed."""
         return self.error is not None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> EvaluationResultDict:
         """Convert result to dictionary format."""
-        return {
-            "model_name": self.model_name,
-            "test_name": self.test_name,
-            "result": self.result,
-            "duration": self.duration,
-            "dataset_info": self.dataset_info,
-            "error": self.error,
-            "metadata": self.metadata,
-            "timestamp": self.timestamp.isoformat(),
-            "success": self.success,
-        }
+        return cast(
+            EvaluationResultDict,
+            {
+                "model_name": self.model_name,
+                "test_name": self.test_name,
+                "result": self.result,
+                "duration": self.duration,
+                "dataset_info": self.dataset_info,
+                "error": self.error,
+                "metadata": self.metadata,
+                "timestamp": self.timestamp.isoformat(),
+                "success": self.success,
+            },
+        )
 
     def get_score(self, metric_name: Optional[str] = None) -> Union[float, Any]:
         """
@@ -90,7 +108,9 @@ class BenchmarkResult:
 
     benchmark_name: str
     results: List[EvaluationResult] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: EvaluationMetadata = field(
+        default_factory=lambda: cast(EvaluationMetadata, {})
+    )
     timestamp: datetime = field(default_factory=datetime.now)
 
     def add_result(self, result: EvaluationResult) -> None:
@@ -157,7 +177,9 @@ class BenchmarkResult:
             successful_results, key=lambda r: r.get_score(metric_name) or float("inf")
         )
 
-    def compare_models(self, metric_name: Optional[str] = None) -> Dict[str, Any]:
+    def compare_models(
+        self, metric_name: Optional[str] = None
+    ) -> ModelComparisonResult:
         """
         Compare all models in the benchmark.
 
@@ -169,7 +191,9 @@ class BenchmarkResult:
         """
         successful_results = self.successful_results
         if not successful_results:
-            return {"error": "No successful results to compare"}
+            return cast(
+                ModelComparisonResult, {"error": "No successful results to compare"}
+            )
 
         scores = [result.get_score(metric_name) for result in successful_results]
         model_names = [result.model_name for result in successful_results]
@@ -182,22 +206,25 @@ class BenchmarkResult:
         ]
 
         if not valid_scores:
-            return {"error": "No valid scores found"}
+            return cast(ModelComparisonResult, {"error": "No valid scores found"})
 
         sorted_results = sorted(valid_scores, key=lambda x: x[1], reverse=True)
 
-        return {
-            "ranking": [
-                {"model": name, "score": score} for name, score in sorted_results
-            ],
-            "best_model": sorted_results[0][0],
-            "best_score": sorted_results[0][1],
-            "worst_model": sorted_results[-1][0],
-            "worst_score": sorted_results[-1][1],
-            "mean_score": np.mean([score for _, score in valid_scores]),
-            "std_score": np.std([score for _, score in valid_scores]),
-            "total_models": len(valid_scores),
-        }
+        return cast(
+            ModelComparisonResult,
+            {
+                "ranking": [
+                    {"model": name, "score": score} for name, score in sorted_results
+                ],
+                "best_model": sorted_results[0][0],
+                "best_score": sorted_results[0][1],
+                "worst_model": sorted_results[-1][0],
+                "worst_score": sorted_results[-1][1],
+                "mean_score": float(np.mean([score for _, score in valid_scores])),
+                "std_score": float(np.std([score for _, score in valid_scores])),
+                "total_models": len(valid_scores),
+            },
+        )
 
     def get_model_result(self, model_name: str) -> Optional[EvaluationResult]:
         """Get result for a specific model."""
@@ -206,20 +233,24 @@ class BenchmarkResult:
                 return result
         return None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> BenchmarkResultDict:
         """Convert benchmark result to dictionary format."""
-        return {
-            "benchmark_name": self.benchmark_name,
-            "results": [result.to_dict() for result in self.results],
-            "metadata": self.metadata,
-            "timestamp": self.timestamp.isoformat(),
-            "summary": {
-                "total_models": len(self.results),
-                "successful_models": len(self.successful_results),
-                "failed_models": len(self.failed_results),
-                "success_rate": self.success_rate,
-            },
+        summary: BenchmarkSummary = {
+            "total_models": len(self.results),
+            "successful_models": len(self.successful_results),
+            "failed_models": len(self.failed_results),
+            "success_rate": self.success_rate,
         }
+        return cast(
+            BenchmarkResultDict,
+            {
+                "benchmark_name": self.benchmark_name,
+                "results": [result.to_dict() for result in self.results],
+                "metadata": self.metadata,
+                "timestamp": self.timestamp.isoformat(),
+                "summary": summary,
+            },
+        )
 
     def to_dataframe(self) -> pd.DataFrame:
         """Convert results to pandas DataFrame for analysis."""
@@ -262,7 +293,7 @@ class ResultsAnalyzer:
     @staticmethod
     def compare_benchmarks(
         benchmark_results: List[BenchmarkResult], metric_name: Optional[str] = None
-    ) -> Dict[str, Any]:
+    ) -> CrossBenchmarkComparison:
         """
         Compare results across multiple benchmarks.
 
@@ -273,11 +304,12 @@ class ResultsAnalyzer:
         Returns:
             Dictionary with cross-benchmark comparison
         """
-        comparison: Dict[str, Any] = {
+        comparison: CrossBenchmarkComparison = {
             "benchmarks": [],
-            "models": set(),
+            "models": [],
             "cross_benchmark_scores": {},
         }
+        models_set: set[str] = set()
 
         for benchmark in benchmark_results:
             benchmark_info = {
@@ -287,8 +319,10 @@ class ResultsAnalyzer:
                 "success_rate": benchmark.success_rate,
             }
 
-            comparison["benchmarks"].append(benchmark_info)
-            comparison["models"].update(benchmark.model_names)
+            comparison["benchmarks"].append(
+                cast(BenchmarkComparisonInfo, benchmark_info)
+            )
+            models_set.update(benchmark.model_names)
 
             # Collect scores for each model
             for result in benchmark.successful_results:
@@ -302,14 +336,14 @@ class ResultsAnalyzer:
                     benchmark.benchmark_name
                 ] = score
 
-        comparison["models"] = list(comparison["models"])
+        comparison["models"] = list(models_set)
 
         return comparison
 
     @staticmethod
     def analyze_model_performance(
         results: List[EvaluationResult], metric_name: Optional[str] = None
-    ) -> Dict[str, Any]:
+    ) -> ModelPerformanceAnalysis:
         """
         Analyze performance of a single model across multiple evaluations.
 
@@ -321,32 +355,38 @@ class ResultsAnalyzer:
             Dictionary with performance analysis
         """
         if not results:
-            return {"error": "No results provided"}
+            return cast(ModelPerformanceAnalysis, {"error": "No results provided"})
 
         model_name = results[0].model_name
         successful_results = [r for r in results if r.success]
 
         if not successful_results:
-            return {"error": "No successful results found"}
+            return cast(
+                ModelPerformanceAnalysis, {"error": "No successful results found"}
+            )
 
         scores = [result.get_score(metric_name) for result in successful_results]
         valid_scores = [score for score in scores if score is not None]
 
         if not valid_scores:
-            return {"error": "No valid scores found"}
+            return cast(ModelPerformanceAnalysis, {"error": "No valid scores found"})
 
-        return {
-            "model_name": model_name,
-            "total_evaluations": len(results),
-            "successful_evaluations": len(successful_results),
-            "success_rate": len(successful_results) / len(results),
-            "mean_score": np.mean(valid_scores),
-            "median_score": np.median(valid_scores),
-            "std_score": np.std(valid_scores),
-            "min_score": np.min(valid_scores),
-            "max_score": np.max(valid_scores),
-            "score_range": np.max(valid_scores) - np.min(valid_scores),
-        }
+        return cast(
+            ModelPerformanceAnalysis,
+            {
+                "model_name": model_name,
+                "total_evaluations": len(results),
+                "successful_evaluations": len(successful_results),
+                "failed_evaluations": len(results) - len(successful_results),
+                "success_rate": len(successful_results) / len(results),
+                "mean_score": float(np.mean(valid_scores)),
+                "median_score": float(np.median(valid_scores)),
+                "std_score": float(np.std(valid_scores)),
+                "min_score": float(np.min(valid_scores)),
+                "max_score": float(np.max(valid_scores)),
+                "scores": valid_scores,
+            },
+        )
 
     @staticmethod
     def generate_report(
@@ -529,7 +569,7 @@ class ResultsCache:
         for cache_file in self.cache_dir.glob("*.json"):
             cache_file.unlink()
 
-    def list_cached_results(self) -> List[Dict[str, Any]]:
+    def list_cached_results(self) -> List[CachedResultInfo]:
         """List all cached results."""
         results = []
         for cache_file in self.cache_dir.glob("*.json"):
@@ -537,12 +577,15 @@ class ResultsCache:
                 with open(cache_file, "r") as f:
                     data = json.load(f)
                 results.append(
-                    {
-                        "file": cache_file.name,
-                        "model_name": data.get("model_name"),
-                        "test_name": data.get("test_name"),
-                        "timestamp": data.get("timestamp"),
-                    }
+                    cast(
+                        CachedResultInfo,
+                        {
+                            "file": cache_file.name,
+                            "model_name": data.get("model_name"),
+                            "test_name": data.get("test_name"),
+                            "timestamp": data.get("timestamp"),
+                        },
+                    )
                 )
             except Exception:
                 continue

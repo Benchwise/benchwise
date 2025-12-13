@@ -8,12 +8,12 @@ import sys
 from typing import List, Optional
 
 from . import __version__
-from .datasets import load_dataset
+from .datasets import load_dataset, convert_metadata_to_info
 from .models import get_model_adapter
 from .results import save_results, BenchmarkResult, EvaluationResult
 from .config import get_api_config, configure_benchwise
 from .client import get_client, sync_offline_results
-from .types import ConfigureArgs, ConfigKwargs, SyncArgs, StatusArgs
+from .types import ConfigureArgs, ConfigKwargs, SyncArgs, StatusArgs, DatasetInfo
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -136,15 +136,21 @@ async def run_evaluation(
         sys.exit(1)
 
     # Create benchmark result
+    from .types import EvaluationMetadata
+    from typing import cast
+
     benchmark_result = BenchmarkResult(
         benchmark_name=f"cli_evaluation_{dataset.name}",
-        metadata={
-            "dataset_path": dataset_path,
-            "models": models,
-            "metrics": metrics,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-        },
+        metadata=cast(
+            EvaluationMetadata,
+            {
+                "dataset_path": dataset_path,
+                "models": models,
+                "metrics": metrics,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+            },
+        ),
     )
 
     # Run evaluation for each model
@@ -239,7 +245,9 @@ async def run_evaluation(
                 model_name=model_name,
                 test_name="cli_evaluation",
                 result=results,
-                dataset_info=dataset.metadata,
+                dataset_info=convert_metadata_to_info(dataset.metadata)
+                if dataset.metadata
+                else None,
             )
 
             benchmark_result.add_result(eval_result)
@@ -251,7 +259,9 @@ async def run_evaluation(
                 model_name=model_name,
                 test_name="cli_evaluation",
                 error=str(e),
-                dataset_info=dataset.metadata,
+                dataset_info=convert_metadata_to_info(dataset.metadata)
+                if dataset.metadata
+                else None,
             )
             benchmark_result.add_result(eval_result)
             print(f"✗ {model_name} failed: {e}")
@@ -268,10 +278,23 @@ async def run_evaluation(
             try:
                 from .client import upload_results
 
+                # Extract dataset_info from dataset metadata for upload_results
+                # upload_results expects DatasetInfo
+                dataset_info_for_upload: DatasetInfo = cast(
+                    DatasetInfo,
+                    {
+                        "size": dataset.size,
+                        "task": "general",
+                        "tags": [],
+                    },
+                )
+                if dataset.metadata:
+                    dataset_info_for_upload = convert_metadata_to_info(dataset.metadata)
+
                 success = await upload_results(
                     benchmark_result.results,
                     benchmark_result.benchmark_name,
-                    benchmark_result.metadata,
+                    dataset_info_for_upload,
                 )
                 if success:
                     print("✅ Results uploaded to Benchwise API")

@@ -1,5 +1,11 @@
 import asyncio
-from benchwise import evaluate, benchmark, create_qa_dataset, accuracy, semantic_similarity
+from benchwise import (
+    evaluate,
+    benchmark,
+    create_qa_dataset,
+    accuracy,
+    semantic_similarity,
+)
 
 # Create your dataset
 qa_dataset = create_qa_dataset(
@@ -8,17 +14,18 @@ qa_dataset = create_qa_dataset(
         "Who wrote '1984'?",
         "What is the speed of light?",
         "Explain photosynthesis in one sentence.",
-        "What causes rainbows?"
+        "What causes rainbows?",
     ],
     answers=[
         "Tokyo",
         "George Orwell",
         "299,792,458 meters per second",
         "Photosynthesis is the process by which plants convert sunlight into energy.",
-        "Rainbows are caused by light refraction and reflection in water droplets."
+        "Rainbows are caused by light refraction and reflection in water droplets.",
     ],
-    name="general_knowledge_qa"
+    name="general_knowledge_qa",
 )
+
 
 @benchmark("General Knowledge QA", "Tests basic factual knowledge")
 @evaluate("gpt-3.5-turbo", "gemini-2.5-flash-lite")
@@ -31,8 +38,9 @@ async def test_general_knowledge(model, dataset):
     return {
         "accuracy": acc["accuracy"],
         "semantic_similarity": similarity["mean_similarity"],
-        "total_questions": len(responses)
+        "total_questions": len(responses),
     }
+
 
 # Run the evaluation
 async def main():
@@ -46,5 +54,6 @@ async def main():
             print(f"  Similarity: {result.result['semantic_similarity']:.3f}")
         else:
             print(f"{result.model_name}: FAILED - {result.error}")
+
 
 asyncio.run(main())

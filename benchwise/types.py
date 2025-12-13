@@ -298,7 +298,7 @@ class DatasetItem(TypedDict, total=False):
     summary: str
     # Additional fields
     id: str
-    metadata: Dict[str, Any]
+    metadata: "EvaluationMetadata"
 
 
 class DatasetMetadata(TypedDict, total=False):
@@ -318,8 +318,41 @@ class DatasetSchema(TypedDict, total=False):
 
     prompt_field: str
     reference_field: str
-    required_fields: List[str]
+    required: List[str]  # Required fields in dataset items
+    required_fields: List[str]  # Alias for backward compatibility
     optional_fields: List[str]
+
+
+class DatasetInfo(TypedDict, total=False):
+    """Information about a dataset used in evaluation."""
+
+    size: int
+    task: str
+    tags: List[str]
+    difficulty: Optional[str]
+    source: Optional[str]
+    name: Optional[str]
+    description: Optional[str]
+    version: Optional[str]
+    hash: Optional[str]
+    created_at: Optional[str]
+
+
+class DatasetStatistics(TypedDict, total=False):
+    """Statistics about a dataset."""
+
+    size: int
+    fields: List[str]
+    metadata: Optional[DatasetMetadata]
+
+
+class DatasetDict(TypedDict, total=False):
+    """Dictionary representation of a dataset."""
+
+    name: str
+    data: List[DatasetItem]
+    metadata: Optional[DatasetMetadata]
+    schema: Optional[DatasetSchema]
 
 
 # Configuration Types
@@ -342,32 +375,80 @@ class ConfigDict(TypedDict, total=False):
 
 
 # Results Types
+class EvaluationMetadata(TypedDict, total=False):
+    """Metadata for an evaluation result."""
+
+    temperature: float
+    max_tokens: int
+    model_version: str
+    dataset_hash: str
+    evaluation_id: Optional[int]
+    benchmark_id: Optional[int]
+    dataset: DatasetInfo  # Dataset information for the evaluation
+    description: str  # Description of the evaluation/benchmark
+    dataset_path: str  # Path to the dataset file used in evaluation
+    models: List[str]  # List of models evaluated
+    metrics: List[str]  # List of metrics used in evaluation
+    # Allow additional metadata fields
+    # Note: This is intentionally flexible for user-defined metadata
+
+
 class EvaluationResultDict(TypedDict, total=False):
     """Serialized evaluation result."""
 
-    model: str
-    prompt: str
-    response: str
-    score: float
-    scores: Dict[str, float]
-    metadata: Dict[str, Any]
+    model_name: str
+    test_name: str
+    result: Any
+    duration: float
+    dataset_info: Optional[DatasetInfo]
+    error: Optional[str]
+    metadata: EvaluationMetadata
     timestamp: str
     success: bool
-    error: Optional[str]
+
+
+class BenchmarkSummary(TypedDict):
+    """Summary statistics for a benchmark."""
+
+    total_models: int
+    successful_models: int
+    failed_models: int
+    success_rate: float
 
 
 class BenchmarkResultDict(TypedDict, total=False):
     """Serialized benchmark result."""
 
     benchmark_name: str
-    benchmark_description: str
     results: List[EvaluationResultDict]
-    summary: Dict[str, Any]
+    metadata: EvaluationMetadata
     timestamp: str
+    summary: BenchmarkSummary
+
+
+class ModelRanking(TypedDict):
+    """Ranking entry for a model."""
+
+    model: str
+    score: float
+
+
+class ModelComparisonResult(TypedDict, total=False):
+    """Result of model comparison."""
+
+    ranking: List[ModelRanking]
+    best_model: str
+    best_score: float
+    worst_model: str
+    worst_score: float
+    mean_score: float
+    std_score: float
+    total_models: int
+    error: Optional[str]
 
 
 class ComparisonResult(TypedDict):
-    """Result of model comparison."""
+    """Result of model comparison (legacy format)."""
 
     best_model: str
     best_score: float
@@ -376,11 +457,76 @@ class ComparisonResult(TypedDict):
 
 
 # API Response Types
+class TokenData(TypedDict, total=False):
+    """JWT token data from login."""
+
+    access_token: str
+    token_type: str
+    expires_in: Optional[int]
+    refresh_token: Optional[str]
+
+
 class LoginResponse(TypedDict):
     """Response from login endpoint."""
 
-    token: Dict[str, str]
-    user: Dict[str, Any]
+    token: TokenData
+    user: "UserInfo"  # Forward reference
+
+
+class ModelInfo(TypedDict, total=False):
+    """Model information from API."""
+
+    id: int
+    name: str
+    provider: str
+    model_id: str  # Provider-specific model identifier
+    description: Optional[str]
+    is_active: bool
+    pricing: Optional[PricingInfo]
+    metadata: Optional[EvaluationMetadata]
+
+
+class BenchmarkRegistrationData(TypedDict, total=False):
+    """Data for registering a benchmark with the API."""
+
+    name: str
+    description: str
+    category: str
+    tags: List[str]
+    difficulty: Optional[str]
+    dataset_url: Optional[str]
+    config: Dict[str, Any]
+    metadata: DatasetInfo
+    is_public: bool
+
+
+class BenchmarkInfo(TypedDict, total=False):
+    """Benchmark information from API."""
+
+    id: int
+    name: str
+    description: Optional[str]
+    category: Optional[str]
+    tags: List[str]
+    difficulty: Optional[str]
+    dataset_url: Optional[str]
+    config: Dict[str, Any]  # API config can be arbitrary
+    metadata: Optional[DatasetInfo]
+    is_public: bool
+    created_at: Optional[str]
+
+
+class EvaluationInfo(TypedDict, total=False):
+    """Evaluation information from API."""
+
+    id: int
+    benchmark_id: int
+    model_id: int
+    test_name: str
+    status: str
+    results: Optional[Dict[str, Any]]  # Results can be arbitrary
+    metadata: Optional[EvaluationMetadata]
+    created_at: Optional[str]
 
 
 class UserInfo(TypedDict, total=False):
@@ -393,14 +539,20 @@ class UserInfo(TypedDict, total=False):
     is_active: bool
 
 
-class UploadResultsResponse(TypedDict):
-    """Response from upload results endpoint."""
+class UploadBenchmarkResponse(TypedDict):
+    """Response from upload benchmark result endpoint."""
 
     id: int
     benchmark_id: int
     model_ids: List[int]
     results_count: int
     message: str
+
+
+class FileUploadResponse(TypedDict, total=False):
+    """Response from file upload endpoint."""
+
+    file_info: Dict[str, str]  # Contains url and other file metadata
 
 
 # Protocols
@@ -446,6 +598,23 @@ class SupportsMetrics(Protocol):
         ...
 
 
+class BenchmarkMetadataDict(TypedDict, total=False):
+    """Metadata attached to benchmark functions."""
+
+    name: str
+    description: str
+
+
+class CallableWithBenchmarkMetadata(Protocol):
+    """Protocol for callables that may have benchmark metadata attached."""
+
+    _benchmark_metadata: Dict[str, Any]
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        """Call the function."""
+        ...
+
+
 class ConfigureArgs(Protocol):
     """Arguments for configuring Benchwise."""
 
@@ -480,5 +649,68 @@ class ConfigKwargs(TypedDict, total=False):
 class OfflineQueueItem(TypedDict):
     """Item in offline queue."""
 
-    data: Dict[str, Any]
+    data: Dict[str, Any]  # Can contain different operation types
     timestamp: str
+
+
+class RunnerConfig(TypedDict, total=False):
+    """Configuration for EvaluationRunner."""
+
+    cache_enabled: bool
+    upload_enabled: bool
+    timeout: float
+    max_retries: int
+    debug: bool
+    verbose: bool
+
+
+class CacheEntry(TypedDict, total=False):
+    """Entry in results cache."""
+
+    result: EvaluationResultDict
+    dataset_hash: str
+    timestamp: str
+
+
+class CachedResultInfo(TypedDict, total=False):
+    """Information about a cached result."""
+
+    file: str
+    model_name: Optional[str]
+    test_name: Optional[str]
+    timestamp: Optional[str]
+    dataset_hash: Optional[str]
+
+
+class BenchmarkComparisonInfo(TypedDict, total=False):
+    """Information about a benchmark in cross-benchmark comparison."""
+
+    name: str
+    timestamp: str
+    models: List[str]
+    success_rate: float
+
+
+class CrossBenchmarkComparison(TypedDict, total=False):
+    """Result of comparing multiple benchmarks."""
+
+    benchmarks: List[BenchmarkComparisonInfo]
+    models: List[str]
+    cross_benchmark_scores: Dict[str, Dict[str, Optional[float]]]
+
+
+class ModelPerformanceAnalysis(TypedDict, total=False):
+    """Performance analysis for a single model."""
+
+    model_name: str
+    total_evaluations: int
+    successful_evaluations: int
+    failed_evaluations: int
+    success_rate: float
+    mean_score: float
+    std_score: float
+    min_score: float
+    max_score: float
+    median_score: float
+    scores: List[float]
+    error: Optional[str]
