@@ -30,11 +30,11 @@ class ModelAdapter(ABC):
     async def batch_generate(
         self,
         prompts: List[str],
-        batch_size: int = 50,
-        max_concurrent: int = 5,
-        max_retries: int = 3,
-        base_delay: float = 1.0,
-        max_delay: float = 60.0,
+        batch_size: Optional[int] = None,
+        max_concurrent: Optional[int] = None,
+        max_retries: Optional[int] = None,
+        base_delay: Optional[float] = None,
+        max_delay: Optional[float] = None,
         **kwargs
     ) -> List[str]:
         """
@@ -42,25 +42,33 @@ class ModelAdapter(ABC):
         
         Args:
             prompts: List of prompts to process
-            batch_size: Number of prompts to process per batch (default: 50)
-            max_concurrent: Maximum number of concurrent requests (default: 10)
-            max_retries: Maximum number of retry attempts for rate limits (default: 3)
-            base_delay: Base delay in seconds for exponential backoff (default: 1.0)
-            max_delay: Maximum delay in seconds between retries (default: 60.0)
+            batch_size: Number of prompts to process per batch. If None, uses config value or default: 50
+            max_concurrent: Maximum number of concurrent requests. If None, uses config value or default: 5
+            max_retries: Maximum number of retry attempts for rate limits. If None, uses config value or default: 3
+            base_delay: Base delay in seconds for exponential backoff. If None, uses config value or default: 1.0
+            max_delay: Maximum delay in seconds between retries. If None, uses config value or default: 60.0
             **kwargs: Additional arguments passed to generate()
             
         Returns:
             List of responses in the same order as input prompts
             
         Example:
-            >>> adapter = OpenAIAdapter("gpt-3.5-turbo")
+            >>> adapter = OpenAIAdapter("gpt-3.5-turbo", config={"max_concurrent": 10})
             >>> prompts = ["Hello", "How are you?", "Tell me a joke"]
-            >>> responses = await adapter.batch_generate(prompts, max_concurrent=5)
+            >>> responses = await adapter.batch_generate(prompts)  # Uses max_concurrent=10 from config
+            >>> responses = await adapter.batch_generate(prompts, max_concurrent=5)  # Overrides config
         """
         if not prompts:
             return []
         
         logger = logging.getLogger("benchwise.models")
+        
+        # Get values from config if not explicitly provided, with hardcoded defaults as fallback
+        batch_size = batch_size if batch_size is not None else self.config.get("batch_size", 50)
+        max_concurrent = max_concurrent if max_concurrent is not None else self.config.get("max_concurrent", 5)
+        max_retries = max_retries if max_retries is not None else self.config.get("max_retries", 3)
+        base_delay = base_delay if base_delay is not None else self.config.get("base_delay", 1.0)
+        max_delay = max_delay if max_delay is not None else self.config.get("max_delay", 60.0)
         
         # Create semaphore for this call to limit concurrency
         semaphore = asyncio.Semaphore(max_concurrent)
