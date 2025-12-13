@@ -1,5 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any, Optional
+import asyncio
+import random
+import logging
 
 
 class ModelAdapter(ABC):
@@ -24,7 +27,125 @@ class ModelAdapter(ABC):
         """Estimate cost for given token counts."""
         pass
 
+    async def batch_generate(
+        self,
+        prompts: List[str],
+        batch_size: int = 50,
+        max_concurrent: int = 5,
+        max_retries: int = 3,
+        base_delay: float = 1.0,
+        max_delay: float = 60.0,
+        **kwargs
+    ) -> List[str]:
+        """
+        Generate responses for a list of prompts with concurrent processing and rate limit protection.
+        
+        Args:
+            prompts: List of prompts to process
+            batch_size: Number of prompts to process per batch (default: 50)
+            max_concurrent: Maximum number of concurrent requests (default: 10)
+            max_retries: Maximum number of retry attempts for rate limits (default: 3)
+            base_delay: Base delay in seconds for exponential backoff (default: 1.0)
+            max_delay: Maximum delay in seconds between retries (default: 60.0)
+            **kwargs: Additional arguments passed to generate()
+            
+        Returns:
+            List of responses in the same order as input prompts
+            
+        Example:
+            >>> adapter = OpenAIAdapter("gpt-3.5-turbo")
+            >>> prompts = ["Hello", "How are you?", "Tell me a joke"]
+            >>> responses = await adapter.batch_generate(prompts, max_concurrent=5)
+        """
+        if not prompts:
+            return []
+        
+        logger = logging.getLogger("benchwise.models")
+        
+        # Create semaphore for this call to limit concurrency
+        semaphore = asyncio.Semaphore(max_concurrent)
+        
+        async def process_single_prompt(index: int, prompt: str) -> tuple[int, str]:
+            """Process a single prompt with retry logic and rate limit handling."""
+            async with semaphore:
+                for attempt in range(max_retries + 1):
+                    try:
+                        # Call the generate method with a single prompt
+                        results = await self.generate([prompt], **kwargs)
+                        return (index, results[0])
+                    
+                    except Exception as e:
+                        error_str = str(e).lower()
+                        
+                        # Check if this is a rate limit error
+                        is_rate_limit = any([
+                            "rate limit" in error_str,
+                            "429" in error_str,
+                            "too many requests" in error_str,
+                            "quota" in error_str,
+                        ])
+                        
+                        if is_rate_limit and attempt < max_retries:
+                            # Calculate exponential backoff with jitter
+                            delay = min(base_delay * (2 ** attempt), max_delay)
+                            jitter = random.uniform(0, 0.1 * delay)
+                            total_delay = delay + jitter
+                            
+                            logger.warning(
+                                f"Rate limit hit for prompt {index}, retrying after {total_delay:.2f}s "
+                                f"(attempt {attempt + 1}/{max_retries})"
+                            )
+                            await asyncio.sleep(total_delay)
+                            continue
+                        
+                        # Non-rate-limit error or max retries exceeded
+                        error_message = f"Error: {str(e)}"
+                        if attempt == max_retries:
+                            logger.error(f"Max retries exceeded for prompt {index}: {e}")
+                        return (index, error_message)
+            
+            # Should never reach here, but just in case
+            return (index, "Error: Unknown error occurred")
+        
+        # Split prompts into batches
+        batches = []
+        for i in range(0, len(prompts), batch_size):
+            batch = prompts[i:i + batch_size]
+            batches.append(batch)
+        
+        logger.info(
+            f"Processing {len(prompts)} prompts in {len(batches)} batch(es) "
+            f"with max {max_concurrent} concurrent requests"
+        )
+        
+        # Process all prompts concurrently (up to max_concurrent at a time)
+        all_tasks = []
+        for batch_idx, batch in enumerate(batches):
+            batch_start_idx = batch_idx * batch_size
+            for i, prompt in enumerate(batch):
+                task = process_single_prompt(batch_start_idx + i, prompt)
+                all_tasks.append(task)
+        
+        # Gather all results with exception handling
+        results_with_indices = await asyncio.gather(*all_tasks, return_exceptions=True)
+        
+        # Handle any exceptions that weren't caught
+        processed_results = []
+        for item in results_with_indices:
+            if isinstance(item, Exception):
+                processed_results.append((len(processed_results), f"Error: {str(item)}"))
+            else:
+                processed_results.append(item)
+        
+        # Sort by index to maintain original order and extract just the responses
+        processed_results.sort(key=lambda x: x[0])
+        responses = [result[1] for result in processed_results]
+        
+        logger.info(f"Completed processing {len(responses)} prompts")
+        
+        return responses
 
+    
 class OpenAIAdapter(ModelAdapter):
     """Adapter for OpenAI models."""
 
