@@ -348,12 +348,19 @@ def load_dataset(source: Union[str, Path, DatasetDict], **kwargs: Any) -> Datase
         # Note: .get() on TypedDict with total=False returns Any for optional keys,
         # but we know the structure from DatasetDict, so we use proper type annotations
         dataset_dict: DatasetDict = source
+        # Prefer name from DatasetDict if present, otherwise fall back to kwargs
+        name_from_dict: Optional[str] = dataset_dict.get("name")
+        name: str = (
+            name_from_dict
+            if isinstance(name_from_dict, str)
+            else kwargs.get("name", "custom_dataset")
+        )
         data: List[DatasetItem] = dataset_dict.get("data", [])
         metadata: Optional[DatasetMetadata] = dataset_dict.get("metadata")
         schema: Optional[DatasetSchema] = dataset_dict.get("schema")
 
         return Dataset(
-            name=kwargs.get("name", "custom_dataset"),
+            name=name,
             data=_validate_dataset_items(data),
             metadata=_validate_dataset_metadata(metadata),
             schema=_validate_dataset_schema(schema),
