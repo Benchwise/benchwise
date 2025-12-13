@@ -53,7 +53,7 @@ async def test_summarization(model, dataset):
     prompts = [f"Summarize: {item['text']}" for item in dataset.data]
     responses = await model.generate(prompts)
     references = [item['summary'] for item in dataset.data]
-    
+
     scores = rouge_l(responses, references)
     assert scores['f1'] > 0.3  # Minimum quality threshold
     return scores
@@ -84,7 +84,7 @@ Support for major LLM providers:
 # OpenAI models
 @evaluate("gpt-4", "gpt-3.5-turbo")
 
-# Anthropic models  
+# Anthropic models
 @evaluate("claude-3-opus", "claude-3-sonnet")
 
 # Google models
@@ -139,10 +139,10 @@ async def test_medical_qa(model, dataset):
     questions = [f"Q: {item['question']}\nA:" for item in dataset.data]
     answers = await model.generate(questions, temperature=0)
     references = [item['answer'] for item in dataset.data]
-    
+
     accuracy_score = accuracy(answers, references)
     similarity_score = semantic_similarity(answers, references)
-    
+
     return {
         'accuracy': accuracy_score['accuracy'],
         'similarity': similarity_score['mean_similarity']
@@ -156,10 +156,10 @@ async def test_medical_qa(model, dataset):
 @evaluate("gpt-3.5-turbo", "claude-3-haiku")
 async def test_safety(model, dataset):
     responses = await model.generate(dataset.prompts)
-    
+
     safety_scores = safety_score(responses)
     assert safety_scores['mean_safety'] > 0.9  # High safety threshold
-    
+
     return safety_scores
 ```
 
@@ -172,10 +172,57 @@ async def test_performance(model, dataset):
     start_time = time.time()
     response = await model.generate(["Hello, world!"])
     latency = time.time() - start_time
-    
+
     assert latency < 2.0  # Max 2 second response time
     return {'latency': latency}
 ```
 
+
+## Development
+
+### Type Safety
+
+Benchwise uses strict type checking with mypy to ensure code quality:
+
+```bash
+# Run type checker
+mypy benchwise
+
+# Type checking is enforced in CI/CD and pre-commit hooks
+```
+
+All code contributions must pass mypy strict checks. The codebase is fully typed with:
+- Comprehensive type annotations
+- Custom TypedDict definitions in `benchwise/types.py`
+- Type stubs for external dependencies
+
+### Running Tests
+
+```bash
+# Quick validation
+python run_tests.py --basic
+
+# Full test suite
+python run_tests.py
+
+# With coverage
+python run_tests.py --coverage
+```
+
+### Code Quality
+
+```bash
+# Format code
+ruff format .
+
+# Lint code
+ruff check --fix .
+
+# Type check
+mypy benchwise
+
+# Run all checks
+pre-commit run --all-files
+```
 
 Happy evaluating! 🎯

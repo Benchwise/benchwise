@@ -184,9 +184,9 @@ class TestResultsCache:
         cache_files = list(Path(temp_cache_dir).glob("*.json"))
         assert len(cache_files) > 0, f"No cache files created in {temp_cache_dir}"
 
-        assert (
-            loaded is not None
-        ), f"Failed to load cached result. Cache files: {cache_files}"
+        assert loaded is not None, (
+            f"Failed to load cached result. Cache files: {cache_files}"
+        )
         assert loaded.model_name == sample_evaluation_result.model_name
         assert loaded.test_name == sample_evaluation_result.test_name
 

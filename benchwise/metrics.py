@@ -1,9 +1,20 @@
-from typing import List, Dict, Any, Tuple, Optional
+from typing import List, Dict, Any, Tuple, Optional, Callable, cast
 import numpy as np
+from benchwise.types import (
+    RougeScores,
+    BleuScores,
+    BertScoreResults,
+    AccuracyResults,
+    SemanticSimilarityResults,
+    PerplexityResults,
+    FactualCorrectnessResults,
+    CoherenceResults,
+    SafetyResults,
+)
 from rouge_score import rouge_scorer
 from sacrebleu import BLEU
 import bert_score
-from nltk.translate.bleu_score import sentence_bleu
+from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
 import nltk
 import re
 import string
@@ -26,7 +37,7 @@ def _bootstrap_confidence_interval(
 ) -> Tuple[float, float]:
     """Calculate bootstrap confidence interval for a list of scores."""
     if len(scores) < 2:
-        return (np.mean(scores), np.mean(scores))
+        return (float(np.mean(scores)), float(np.mean(scores)))
 
     bootstrap_means = []
     for _ in range(n_bootstrap):
@@ -38,8 +49,8 @@ def _bootstrap_confidence_interval(
     upper_percentile = (1 - alpha / 2) * 100
 
     return (
-        np.percentile(bootstrap_means, lower_percentile),
-        np.percentile(bootstrap_means, upper_percentile),
+        float(np.percentile(bootstrap_means, lower_percentile)),
+        float(np.percentile(bootstrap_means, upper_percentile)),
     )
 
 
@@ -65,7 +76,7 @@ def rouge_l(
     use_stemmer: bool = True,
     alpha: float = 0.5,
     return_confidence: bool = True,
-) -> Dict[str, float]:
+) -> RougeScores:
     """
     Calculate enhanced ROUGE-L scores for predictions vs references.
 
@@ -96,7 +107,13 @@ def rouge_l(
     scorer = rouge_scorer.RougeScorer(
         ["rougeL", "rouge1", "rouge2"], use_stemmer=use_stemmer
     )
-    scores = {"precision": [], "recall": [], "f1": [], "rouge1_f1": [], "rouge2_f1": []}
+    scores: Dict[str, List[float]] = {
+        "precision": [],
+        "recall": [],
+        "f1": [],
+        "rouge1_f1": [],
+        "rouge2_f1": [],
+    }
 
     for pred, ref in zip(predictions, references):
         # Handle empty strings gracefully
@@ -130,15 +147,15 @@ def rouge_l(
             scores["rouge1_f1"].append(score["rouge1"].fmeasure)
             scores["rouge2_f1"].append(score["rouge2"].fmeasure)
 
-    result = {
-        "precision": np.mean(scores["precision"]),
-        "recall": np.mean(scores["recall"]),
-        "f1": np.mean(scores["f1"]),
-        "rouge1_f1": np.mean(scores["rouge1_f1"]),
-        "rouge2_f1": np.mean(scores["rouge2_f1"]),
-        "std_precision": np.std(scores["precision"]),
-        "std_recall": np.std(scores["recall"]),
-        "std_f1": np.std(scores["f1"]),
+    result: RougeScores = {
+        "precision": float(np.mean(scores["precision"])),
+        "recall": float(np.mean(scores["recall"])),
+        "f1": float(np.mean(scores["f1"])),
+        "rouge1_f1": float(np.mean(scores["rouge1_f1"])),
+        "rouge2_f1": float(np.mean(scores["rouge2_f1"])),
+        "std_precision": float(np.std(scores["precision"])),
+        "std_recall": float(np.std(scores["recall"])),
+        "std_f1": float(np.std(scores["f1"])),
         "scores": scores,
     }
 
@@ -166,7 +183,7 @@ def bleu_score(
     smooth_method: str = "exp",
     return_confidence: bool = True,
     max_n: int = 4,
-) -> Dict[str, float]:
+) -> BleuScores:
     """
     Calculate enhanced BLEU scores for predictions vs references.
 
@@ -204,7 +221,9 @@ def bleu_score(
 
     # Calculate sentence-level BLEU with improved handling
     sentence_scores = []
-    ngram_precisions = {f"bleu_{i}": [] for i in range(1, max_n + 1)}
+    ngram_precisions: Dict[str, List[float]] = {
+        f"bleu_{i}": [] for i in range(1, max_n + 1)
+    }
 
     for pred, ref in zip(predictions, references):
         try:
@@ -256,49 +275,48 @@ def bleu_score(
             for i in range(1, max_n + 1):
                 ngram_precisions[f"bleu_{i}"].append(0.0)
 
-    result = {
+    # Build result dict dynamically, then cast to BleuScores
+    result_dict: Dict[str, Any] = {
         "corpus_bleu": corpus_bleu,
-        "sentence_bleu": np.mean(sentence_scores),
-        "std_sentence_bleu": np.std(sentence_scores),
-        "median_sentence_bleu": np.median(sentence_scores),
+        "sentence_bleu": float(np.mean(sentence_scores)),
+        "std_sentence_bleu": float(np.std(sentence_scores)),
+        "median_sentence_bleu": float(np.median(sentence_scores)),
         "scores": sentence_scores,
     }
 
     # Add n-gram precision scores
     for key, scores in ngram_precisions.items():
         if scores:  # Only add if we have scores
-            result[key] = np.mean(scores)
-            result[f"{key}_std"] = np.std(scores)
+            result_dict[key] = float(np.mean(scores))
+            result_dict[f"{key}_std"] = float(np.std(scores))
 
     # Add confidence intervals if requested
     if return_confidence and len(sentence_scores) > 1:
         try:
-            result[
-                "sentence_bleu_confidence_interval"
-            ] = _bootstrap_confidence_interval(sentence_scores)
+            result_dict["sentence_bleu_confidence_interval"] = (
+                _bootstrap_confidence_interval(sentence_scores)
+            )
         except Exception as e:
             warnings.warn(f"Could not calculate BLEU confidence intervals: {e}")
 
-    return result
+    return cast(BleuScores, result_dict)
 
 
-def _get_smoothing_function(smooth_method: str):
+def _get_smoothing_function(smooth_method: str) -> Optional[Callable[..., Any]]:
     """Get NLTK smoothing function based on method name."""
-    from nltk.translate.bleu_score import SmoothingFunction
-
     smoothing = SmoothingFunction()
 
     if smooth_method == "exp":
-        return smoothing.method1
+        return smoothing.method1  # type: ignore[no-any-return]
     elif smooth_method == "floor":
-        return smoothing.method2
+        return smoothing.method2  # type: ignore[no-any-return]
     elif smooth_method == "add-k":
-        return smoothing.method3
+        return smoothing.method3  # type: ignore[no-any-return]
     else:
         return None
 
 
-def _get_weights(n: int) -> tuple:
+def _get_weights(n: int) -> Tuple[float, ...]:
     """Get n-gram weights for BLEU calculation."""
     weights = [0.0] * 4
     weights[n - 1] = 1.0
@@ -311,7 +329,7 @@ def bert_score_metric(
     model_type: str = "distilbert-base-uncased",
     return_confidence: bool = True,
     batch_size: int = 64,
-) -> Dict[str, float]:
+) -> BertScoreResults:
     """
     Calculate enhanced BERTScore for predictions vs references.
 
@@ -331,12 +349,15 @@ def bert_score_metric(
         )
 
     if not predictions or not references:
-        return {
-            "precision": 0.0,
-            "recall": 0.0,
-            "f1": 0.0,
-            "scores": {"precision": [], "recall": [], "f1": []},
-        }
+        return cast(
+            BertScoreResults,
+            {
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "scores": {"precision": [], "recall": [], "f1": []},
+            },
+        )
 
     try:
         # Handle empty strings gracefully
@@ -385,16 +406,16 @@ def bert_score_metric(
             R_scores[idx] = r
             F1_scores[idx] = f1
 
-        result = {
-            "precision": np.mean(P_scores),
-            "recall": np.mean(R_scores),
-            "f1": np.mean(F1_scores),
-            "std_precision": np.std(P_scores),
-            "std_recall": np.std(R_scores),
-            "std_f1": np.std(F1_scores),
-            "min_f1": np.min(F1_scores),
-            "max_f1": np.max(F1_scores),
-            "median_f1": np.median(F1_scores),
+        result_dict: Dict[str, Any] = {
+            "precision": float(np.mean(P_scores)),
+            "recall": float(np.mean(R_scores)),
+            "f1": float(np.mean(F1_scores)),
+            "std_precision": float(np.std(P_scores)),
+            "std_recall": float(np.std(R_scores)),
+            "std_f1": float(np.std(F1_scores)),
+            "min_f1": float(np.min(F1_scores)),
+            "max_f1": float(np.max(F1_scores)),
+            "median_f1": float(np.median(F1_scores)),
             "model_used": model_type,
             "scores": {"precision": P_scores, "recall": R_scores, "f1": F1_scores},
         }
@@ -402,36 +423,39 @@ def bert_score_metric(
         # Add confidence intervals if requested
         if return_confidence and len(F1_scores) > 1:
             try:
-                result["f1_confidence_interval"] = _bootstrap_confidence_interval(
+                result_dict["f1_confidence_interval"] = _bootstrap_confidence_interval(
                     F1_scores
                 )
-                result[
-                    "precision_confidence_interval"
-                ] = _bootstrap_confidence_interval(P_scores)
-                result["recall_confidence_interval"] = _bootstrap_confidence_interval(
-                    R_scores
+                result_dict["precision_confidence_interval"] = (
+                    _bootstrap_confidence_interval(P_scores)
+                )
+                result_dict["recall_confidence_interval"] = (
+                    _bootstrap_confidence_interval(R_scores)
                 )
             except Exception as e:
                 warnings.warn(
                     f"Could not calculate BERTScore confidence intervals: {e}"
                 )
 
-        return result
+        return cast(BertScoreResults, result_dict)
 
     except Exception as e:
         warnings.warn(f"BERTScore calculation failed: {e}")
         # Return fallback scores
-        return {
-            "precision": 0.0,
-            "recall": 0.0,
-            "f1": 0.0,
-            "error": str(e),
-            "scores": {
-                "precision": [0.0] * len(predictions),
-                "recall": [0.0] * len(predictions),
-                "f1": [0.0] * len(predictions),
+        return cast(
+            BertScoreResults,
+            {
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "error": str(e),
+                "scores": {
+                    "precision": [0.0] * len(predictions),
+                    "recall": [0.0] * len(predictions),
+                    "f1": [0.0] * len(predictions),
+                },
             },
-        }
+        )
 
 
 def accuracy(
@@ -442,7 +466,7 @@ def accuracy(
     fuzzy_match: bool = False,
     fuzzy_threshold: float = 0.8,
     return_confidence: bool = True,
-) -> Dict[str, float]:
+) -> AccuracyResults:
     """
     Calculate enhanced exact match accuracy with multiple matching strategies.
 
@@ -464,7 +488,7 @@ def accuracy(
         )
 
     if not predictions or not references:
-        return {"accuracy": 0.0, "correct": 0, "total": 0}
+        return cast(AccuracyResults, {"accuracy": 0.0, "correct": 0, "total": 0})
 
     correct_exact = 0
     correct_fuzzy = 0
@@ -524,28 +548,28 @@ def accuracy(
     exact_accuracy = correct_exact / total if total > 0 else 0.0
     fuzzy_accuracy = correct_fuzzy / total if total > 0 else 0.0
 
-    result = {
+    result_dict: Dict[str, Any] = {
         "accuracy": exact_accuracy,
         "exact_accuracy": exact_accuracy,
         "fuzzy_accuracy": fuzzy_accuracy if fuzzy_match else exact_accuracy,
         "correct": correct_exact,
         "correct_fuzzy": correct_fuzzy if fuzzy_match else correct_exact,
         "total": total,
-        "mean_score": np.mean(individual_scores),
-        "std_score": np.std(individual_scores),
+        "mean_score": float(np.mean(individual_scores)),
+        "std_score": float(np.std(individual_scores)),
         "individual_scores": individual_scores,
         "match_types": match_types,
     }
 
     if return_confidence and len(individual_scores) > 1:
         try:
-            result["accuracy_confidence_interval"] = _bootstrap_confidence_interval(
-                individual_scores
+            result_dict["accuracy_confidence_interval"] = (
+                _bootstrap_confidence_interval(individual_scores)
             )
         except Exception as e:
             warnings.warn(f"Could not calculate accuracy confidence intervals: {e}")
 
-    return result
+    return cast(AccuracyResults, result_dict)
 
 
 def semantic_similarity(
@@ -555,7 +579,7 @@ def semantic_similarity(
     batch_size: int = 32,
     return_confidence: bool = True,
     similarity_threshold: float = 0.5,
-) -> Dict[str, float]:
+) -> SemanticSimilarityResults:
     """
     Calculate enhanced semantic similarity using sentence embeddings.
 
@@ -576,7 +600,7 @@ def semantic_similarity(
         )
 
     if not predictions or not references:
-        return {"mean_similarity": 0.0, "scores": []}
+        return cast(SemanticSimilarityResults, {"mean_similarity": 0.0, "scores": []})
 
     try:
         from sentence_transformers import SentenceTransformer, util
@@ -646,37 +670,38 @@ def semantic_similarity(
     # Calculate enhanced statistics
     similarities_array = np.array(similarities)
 
-    result = {
-        "mean_similarity": np.mean(similarities),
-        "median_similarity": np.median(similarities),
-        "std_similarity": np.std(similarities),
-        "min_similarity": np.min(similarities),
-        "max_similarity": np.max(similarities),
-        "similarity_above_threshold": np.sum(similarities_array >= similarity_threshold)
-        / len(similarities),
+    result_dict: Dict[str, Any] = {
+        "mean_similarity": float(np.mean(similarities)),
+        "median_similarity": float(np.median(similarities)),
+        "std_similarity": float(np.std(similarities)),
+        "min_similarity": float(np.min(similarities)),
+        "max_similarity": float(np.max(similarities)),
+        "similarity_above_threshold": float(
+            np.sum(similarities_array >= similarity_threshold) / len(similarities)
+        ),
         "scores": similarities,
         "model_used": model_type,
     }
 
-    result["percentile_25"] = np.percentile(similarities, 25)
-    result["percentile_75"] = np.percentile(similarities, 75)
-    result["percentile_90"] = np.percentile(similarities, 90)
+    result_dict["percentile_25"] = float(np.percentile(similarities, 25))
+    result_dict["percentile_75"] = float(np.percentile(similarities, 75))
+    result_dict["percentile_90"] = float(np.percentile(similarities, 90))
 
     # Add confidence intervals if requested
     if return_confidence and len(similarities) > 1:
         try:
-            result["similarity_confidence_interval"] = _bootstrap_confidence_interval(
-                similarities
+            result_dict["similarity_confidence_interval"] = (
+                _bootstrap_confidence_interval(similarities)
             )
         except Exception as e:
             warnings.warn(
                 f"Could not calculate semantic similarity confidence intervals: {e}"
             )
 
-    return result
+    return cast(SemanticSimilarityResults, result_dict)
 
 
-def perplexity(predictions: List[str], model_name: str = "gpt2") -> Dict[str, float]:
+def perplexity(predictions: List[str], model_name: str = "gpt2") -> PerplexityResults:
     """
     Calculate perplexity of generated text.
 
@@ -711,11 +736,14 @@ def perplexity(predictions: List[str], model_name: str = "gpt2") -> Dict[str, fl
             perplexity = torch.exp(loss).item()
             perplexities.append(perplexity)
 
-    return {
-        "mean_perplexity": np.mean(perplexities),
-        "median_perplexity": np.median(perplexities),
-        "scores": perplexities,
-    }
+    return cast(
+        PerplexityResults,
+        {
+            "mean_perplexity": float(np.mean(perplexities)),
+            "median_perplexity": float(np.median(perplexities)),
+            "scores": perplexities,
+        },
+    )
 
 
 def factual_correctness(
@@ -725,7 +753,7 @@ def factual_correctness(
     use_named_entities: bool = True,
     return_confidence: bool = True,
     detailed_analysis: bool = True,
-) -> Dict[str, Any]:
+) -> FactualCorrectnessResults:
     """
     Evaluate factual correctness of predictions using enhanced fact-checking methods.
 
@@ -746,7 +774,7 @@ def factual_correctness(
         )
 
     if not predictions or not references:
-        return {"mean_correctness": 0.0, "scores": []}
+        return cast(FactualCorrectnessResults, {"mean_correctness": 0.0, "scores": []})
 
     correctness_scores = []
     detailed_results = []
@@ -785,16 +813,16 @@ def factual_correctness(
 
         # Calculate overall correctness score
         overall_score = np.mean(list(factual_analysis.values()))
-        correctness_scores.append(overall_score)
+        correctness_scores.append(float(overall_score))
         detailed_results.append(factual_analysis)
 
     # Compile results
-    result = {
-        "mean_correctness": np.mean(correctness_scores),
-        "median_correctness": np.median(correctness_scores),
-        "std_correctness": np.std(correctness_scores),
-        "min_correctness": np.min(correctness_scores),
-        "max_correctness": np.max(correctness_scores),
+    result_dict: Dict[str, Any] = {
+        "mean_correctness": float(np.mean(correctness_scores)),
+        "median_correctness": float(np.median(correctness_scores)),
+        "std_correctness": float(np.std(correctness_scores)),
+        "min_correctness": float(np.min(correctness_scores)),
+        "max_correctness": float(np.max(correctness_scores)),
         "scores": correctness_scores,
     }
 
@@ -802,37 +830,40 @@ def factual_correctness(
     if detailed_analysis:
         # Aggregate component scores
         components = ["entity_overlap", "keyword_overlap", "semantic_overlap"]
-        result["components"] = {}
+        result_dict["components"] = {}
 
         for component in components:
             component_scores = [
                 detail.get(component, 0.0) for detail in detailed_results
             ]
             if component_scores:
-                result["components"][component] = {
-                    "mean": np.mean(component_scores),
-                    "std": np.std(component_scores),
+                result_dict["components"][component] = {
+                    "mean": float(np.mean(component_scores)),
+                    "std": float(np.std(component_scores)),
                     "scores": component_scores,
                 }
 
-        result["detailed_results"] = detailed_results
+        result_dict["detailed_results"] = detailed_results
 
     # Add confidence intervals if requested
     if return_confidence and len(correctness_scores) > 1:
         try:
-            result["correctness_confidence_interval"] = _bootstrap_confidence_interval(
-                correctness_scores
+            result_dict["correctness_confidence_interval"] = (
+                _bootstrap_confidence_interval(correctness_scores)
             )
         except Exception as e:
             warnings.warn(
                 f"Could not calculate factual correctness confidence intervals: {e}"
             )
 
-    return result
+    return cast(FactualCorrectnessResults, result_dict)
 
 
 def _analyze_factual_correctness(
-    prediction: str, reference: str, nlp_model=None, use_named_entities: bool = True
+    prediction: str,
+    reference: str,
+    nlp_model: Any = None,
+    use_named_entities: bool = True,
 ) -> Dict[str, float]:
     """
     Analyze factual correctness using multiple approaches.
@@ -868,7 +899,7 @@ def _analyze_factual_correctness(
     }
 
 
-def _calculate_entity_overlap(prediction: str, reference: str, nlp_model) -> float:
+def _calculate_entity_overlap(prediction: str, reference: str, nlp_model: Any) -> float:
     """
     Calculate overlap between named entities in prediction and reference.
     """
@@ -913,8 +944,7 @@ def _calculate_enhanced_keyword_overlap(prediction: str, reference: str) -> floa
     }
 
     # Extract important words from reference
-    important_ref_words = set()
-    " ".join(ref_words)
+    important_ref_words: set[str] = set()
 
     for pattern_type, pattern in important_patterns.items():
         matches = re.findall(pattern, reference, re.IGNORECASE)
@@ -1011,7 +1041,7 @@ def coherence_score(
     predictions: List[str],
     return_confidence: bool = True,
     detailed_analysis: bool = True,
-) -> Dict[str, Any]:
+) -> CoherenceResults:
     """
     Evaluate text coherence using enhanced linguistic and statistical metrics.
 
@@ -1024,10 +1054,10 @@ def coherence_score(
         Dictionary with enhanced coherence scores and analysis
     """
     if not predictions:
-        return {"mean_coherence": 1.0, "scores": []}
+        return cast(CoherenceResults, {"mean_coherence": 1.0, "scores": []})
 
     coherence_scores = []
-    component_scores = {
+    component_scores: Dict[str, List[float]] = {
         "sentence_consistency": [],
         "lexical_diversity": [],
         "flow_continuity": [],
@@ -1046,7 +1076,7 @@ def coherence_score(
 
         # Calculate overall coherence score
         overall_coherence = np.mean(list(coherence_components.values()))
-        coherence_scores.append(overall_coherence)
+        coherence_scores.append(float(overall_coherence))
 
         # Store component scores
         for component, score in coherence_components.items():
@@ -1054,36 +1084,36 @@ def coherence_score(
                 component_scores[component].append(score)
 
     # Compile results
-    result = {
-        "mean_coherence": np.mean(coherence_scores),
-        "median_coherence": np.median(coherence_scores),
-        "std_coherence": np.std(coherence_scores),
-        "min_coherence": np.min(coherence_scores),
-        "max_coherence": np.max(coherence_scores),
+    result_dict: Dict[str, Any] = {
+        "mean_coherence": float(np.mean(coherence_scores)),
+        "median_coherence": float(np.median(coherence_scores)),
+        "std_coherence": float(np.std(coherence_scores)),
+        "min_coherence": float(np.min(coherence_scores)),
+        "max_coherence": float(np.max(coherence_scores)),
         "scores": coherence_scores,
     }
 
     # Add detailed component analysis if requested
     if detailed_analysis:
-        result["components"] = {}
+        result_dict["components"] = {}
         for component, scores in component_scores.items():
             if scores:  # Only add if we have scores
-                result["components"][component] = {
-                    "mean": np.mean(scores),
-                    "std": np.std(scores),
+                result_dict["components"][component] = {
+                    "mean": float(np.mean(scores)),
+                    "std": float(np.std(scores)),
                     "scores": scores,
                 }
 
     # Add confidence intervals if requested
     if return_confidence and len(coherence_scores) > 1:
         try:
-            result["coherence_confidence_interval"] = _bootstrap_confidence_interval(
-                coherence_scores
+            result_dict["coherence_confidence_interval"] = (
+                _bootstrap_confidence_interval(coherence_scores)
             )
         except Exception as e:
             warnings.warn(f"Could not calculate coherence confidence intervals: {e}")
 
-    return result
+    return cast(CoherenceResults, result_dict)
 
 
 def _analyze_text_coherence(text: str) -> Dict[str, float]:
@@ -1104,12 +1134,13 @@ def _analyze_text_coherence(text: str) -> Dict[str, float]:
     # 1. Sentence consistency (length and structure)
     sentence_lengths = [len(s.split()) for s in sentences]
     if len(sentence_lengths) > 1:
-        length_cv = (
-            np.std(sentence_lengths) / np.mean(sentence_lengths)
+        length_cv: float = (
+            float(np.std(sentence_lengths) / np.mean(sentence_lengths))
             if np.mean(sentence_lengths) > 0
-            else 1
+            else 1.0
         )
-        sentence_consistency = max(0, 1 - (length_cv / 2))  # Normalize to 0-1
+        cv_value: float = length_cv / 2.0
+        sentence_consistency = max(0.0, 1.0 - cv_value)  # Normalize to 0-1
     else:
         sentence_consistency = 1.0 if sentence_lengths else 0.0
 
@@ -1252,18 +1283,18 @@ def _calculate_topic_consistency(sentences: List[str]) -> float:
         overlaps.append(overlap)
 
     # Return average overlap
-    return np.mean(overlaps) if overlaps else 1.0
+    return float(np.mean(overlaps)) if overlaps else 1.0
 
 
 def safety_score(
     predictions: List[str],
-    safety_categories: List[str] = None,
+    safety_categories: Optional[List[str]] = None,
     use_perspective_api: bool = False,
-    perspective_api_key: str = None,
+    perspective_api_key: Optional[str] = None,
     return_confidence: bool = True,
     detailed_categories: bool = True,
     context_aware: bool = True,
-) -> Dict[str, float]:
+) -> SafetyResults:
     """
     Evaluate safety of generated text with enhanced detection methods.
 
@@ -1280,7 +1311,7 @@ def safety_score(
         Dictionary with enhanced safety scores and category breakdowns
     """
     if not predictions:
-        return {"mean_safety": 1.0, "scores": []}
+        return cast(SafetyResults, {"mean_safety": 1.0, "scores": []})
 
     if safety_categories is None:
         safety_categories = [
@@ -1341,8 +1372,8 @@ def safety_score(
     }
 
     safety_scores = []
-    category_scores = {cat: [] for cat in safety_categories}
-    violation_details = []
+    category_scores: Dict[str, List[float]] = {cat: [] for cat in safety_categories}
+    violation_details: List[List[str]] = []
 
     for i, text in enumerate(predictions):
         if not text.strip():
@@ -1404,11 +1435,11 @@ def safety_score(
         violation_details.append(violations)
 
     # Compile results
-    result = {
-        "mean_safety": np.mean(safety_scores),
-        "median_safety": np.median(safety_scores),
-        "std_safety": np.std(safety_scores),
-        "min_safety": np.min(safety_scores),
+    result_dict: Dict[str, Any] = {
+        "mean_safety": float(np.mean(safety_scores)),
+        "median_safety": float(np.median(safety_scores)),
+        "std_safety": float(np.std(safety_scores)),
+        "min_safety": float(np.min(safety_scores)),
         "unsafe_count": len(
             [s for s in safety_scores if s < 0.8]
         ),  # Threshold for "unsafe"
@@ -1418,25 +1449,25 @@ def safety_score(
 
     # Add detailed category scores if requested
     if detailed_categories:
-        result["category_scores"] = {}
+        result_dict["category_scores"] = {}
         for cat in safety_categories:
             if category_scores[cat]:  # Only add if we have scores
-                result["category_scores"][cat] = {
-                    "mean": np.mean(category_scores[cat]),
-                    "violation_rate": 1.0 - np.mean(category_scores[cat]),
+                result_dict["category_scores"][cat] = {
+                    "mean": float(np.mean(category_scores[cat])),
+                    "violation_rate": float(1.0 - np.mean(category_scores[cat])),
                     "scores": category_scores[cat],
                 }
 
     # Add confidence intervals if requested
     if return_confidence and len(safety_scores) > 1:
         try:
-            result["safety_confidence_interval"] = _bootstrap_confidence_interval(
+            result_dict["safety_confidence_interval"] = _bootstrap_confidence_interval(
                 safety_scores
             )
         except Exception as e:
             warnings.warn(f"Could not calculate safety confidence intervals: {e}")
 
-    return result
+    return cast(SafetyResults, result_dict)
 
 
 def _check_keyword_in_context(
@@ -1482,15 +1513,17 @@ def _check_keyword_in_context(
 class MetricCollection:
     """Collection of evaluation metrics that can be run together."""
 
-    def __init__(self):
-        self.metrics = {}
+    def __init__(self) -> None:
+        self.metrics: Dict[str, Tuple[Callable[..., Any], Dict[str, Any]]] = {}
 
-    def add_metric(self, name: str, metric_func: callable, **kwargs):
+    def add_metric(
+        self, name: str, metric_func: Callable[..., Any], **kwargs: Any
+    ) -> None:
         """Add a metric to the collection."""
         self.metrics[name] = (metric_func, kwargs)
 
     def evaluate(
-        self, predictions: List[str], references: List[str] = None
+        self, predictions: List[str], references: Optional[List[str]] = None
     ) -> Dict[str, Any]:
         """Run all metrics in the collection."""
         results = {}

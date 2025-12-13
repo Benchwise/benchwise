@@ -29,9 +29,9 @@ class TestMemoryLargeDatasets:
             current_memory = self.get_memory_usage()
             memory_increase = current_memory - initial_memory
 
-            assert (
-                memory_increase < 100
-            ), f"Memory usage too high: {memory_increase}MB for {size} items"
+            assert memory_increase < 100, (
+                f"Memory usage too high: {memory_increase}MB for {size} items"
+            )
 
             sampled = dataset.sample(100)
             filtered = dataset.filter(lambda x: len(x["question"]) > 10)
@@ -57,9 +57,9 @@ class TestMemoryLargeDatasets:
             generation_memory = after_generation - before_generation
 
             # Memory increase should be reasonable
-            assert (
-                generation_memory < 50
-            ), f"Generation used too much memory: {generation_memory}MB"
+            assert generation_memory < 50, (
+                f"Generation used too much memory: {generation_memory}MB"
+            )
 
             return {"response_count": len(responses), "memory_used": generation_memory}
 
@@ -69,9 +69,9 @@ class TestMemoryLargeDatasets:
         total_memory_increase = final_memory - initial_memory
 
         # Total memory increase should be reasonable
-        assert (
-            total_memory_increase < 100
-        ), f"Total memory increase too high: {total_memory_increase}MB"
+        assert total_memory_increase < 100, (
+            f"Total memory increase too high: {total_memory_increase}MB"
+        )
 
         assert len(results) == 1
         assert results[0].success
@@ -100,9 +100,9 @@ class TestMemoryLargeDatasets:
             # Memory shouldn't grow significantly per chunk
             current_memory = self.get_memory_usage()
             memory_per_chunk = (current_memory - initial_memory) / processed_chunks
-            assert (
-                memory_per_chunk < 10
-            ), f"Memory per chunk too high: {memory_per_chunk}MB"
+            assert memory_per_chunk < 10, (
+                f"Memory per chunk too high: {memory_per_chunk}MB"
+            )
 
             del chunk_dataset, chunk_data, prompts
             gc.collect()
@@ -135,9 +135,9 @@ class TestMemoryLargeDatasets:
                 memory_used = current_memory - initial_memory
                 max_memory_used = max(max_memory_used, memory_used)
 
-                assert (
-                    memory_used < 50
-                ), f"Streaming memory too high: {memory_used}MB at {processed_items} items"
+                assert memory_used < 50, (
+                    f"Streaming memory too high: {memory_used}MB at {processed_items} items"
+                )
 
         assert processed_items == 5000
         assert max_memory_used < 50, f"Max memory usage too high: {max_memory_used}MB"
@@ -164,9 +164,9 @@ class TestMemoryLargeDatasets:
             # Memory should return close to baseline
             current_memory = self.get_memory_usage()
             memory_diff = current_memory - baseline_memory
-            assert (
-                memory_diff < 30
-            ), f"Memory not cleaned up properly: {memory_diff}MB after iteration {i}"
+            assert memory_diff < 30, (
+                f"Memory not cleaned up properly: {memory_diff}MB after iteration {i}"
+            )
 
     async def test_large_dataset_file_operations(self, tmp_path):
         initial_memory = self.get_memory_usage()
@@ -184,9 +184,9 @@ class TestMemoryLargeDatasets:
         # Memory shouldn't increase significantly during file operations
         after_save_memory = self.get_memory_usage()
         save_memory_increase = after_save_memory - initial_memory
-        assert (
-            save_memory_increase < 100
-        ), f"Save operation used too much memory: {save_memory_increase}MB"
+        assert save_memory_increase < 100, (
+            f"Save operation used too much memory: {save_memory_increase}MB"
+        )
 
         # Test loading from file
         del large_dataset
@@ -198,9 +198,9 @@ class TestMemoryLargeDatasets:
         # Memory after loading should be reasonable
         after_load_memory = self.get_memory_usage()
         load_memory_increase = after_load_memory - initial_memory
-        assert (
-            load_memory_increase < 150
-        ), f"Load operation used too much memory: {load_memory_increase}MB"
+        assert load_memory_increase < 150, (
+            f"Load operation used too much memory: {load_memory_increase}MB"
+        )
 
         # Verify file sizes are reasonable
         json_size = json_file.stat().st_size / 1024 / 1024  # MB

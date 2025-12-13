@@ -59,9 +59,10 @@ class TestMockAdapter:
 
 class TestGetModelAdapter:
     def test_get_gpt_adapter(self):
-        adapter = get_model_adapter("gpt-3.5-turbo")
-        assert isinstance(adapter, OpenAIAdapter)
-        assert adapter.model_name == "gpt-3.5-turbo"
+        with patch("openai.AsyncOpenAI"):
+            adapter = get_model_adapter("gpt-3.5-turbo")
+            assert isinstance(adapter, OpenAIAdapter)
+            assert adapter.model_name == "gpt-3.5-turbo"
 
     def test_get_claude_adapter(self):
         adapter = get_model_adapter("claude-3-haiku")
@@ -80,8 +81,9 @@ class TestGetModelAdapter:
 
     def test_get_huggingface_adapter_default(self):
         # Use a mock model name that won't trigger real HuggingFace download
-        with patch("transformers.AutoTokenizer"), patch(
-            "transformers.AutoModelForCausalLM"
+        with (
+            patch("transformers.AutoTokenizer"),
+            patch("transformers.AutoModelForCausalLM"),
         ):
             adapter = get_model_adapter("test/unknown-model-name")
             assert isinstance(adapter, HuggingFaceAdapter)
@@ -197,15 +199,17 @@ class TestGoogleAdapter:
 
 class TestHuggingFaceAdapter:
     def test_huggingface_adapter_creation(self):
-        with patch("transformers.AutoTokenizer"), patch(
-            "transformers.AutoModelForCausalLM"
+        with (
+            patch("transformers.AutoTokenizer"),
+            patch("transformers.AutoModelForCausalLM"),
         ):
             adapter = HuggingFaceAdapter("gpt2")
             assert adapter.model_name == "gpt2"
 
     def test_huggingface_cost_estimate(self):
-        with patch("transformers.AutoTokenizer"), patch(
-            "transformers.AutoModelForCausalLM"
+        with (
+            patch("transformers.AutoTokenizer"),
+            patch("transformers.AutoModelForCausalLM"),
         ):
             adapter = HuggingFaceAdapter("gpt2")
             cost = adapter.get_cost_estimate(1000, 500)
@@ -239,10 +243,11 @@ class TestModelNaming:
     def test_gpt_variants(self):
         models = ["gpt-3.5-turbo", "gpt-4", "gpt-4o"]
 
-        for model in models:
-            adapter = get_model_adapter(model)
-            assert isinstance(adapter, OpenAIAdapter)
-            assert adapter.model_name == model
+        with patch("openai.AsyncOpenAI"):
+            for model in models:
+                adapter = get_model_adapter(model)
+                assert isinstance(adapter, OpenAIAdapter)
+                assert adapter.model_name == model
 
     def test_claude_variants(self):
         models = ["claude-3-opus", "claude-3-sonnet", "claude-3-haiku"]

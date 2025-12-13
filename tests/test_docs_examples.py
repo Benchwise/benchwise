@@ -17,16 +17,16 @@ def extract_code_blocks_from_md(markdown_file: Path) -> List[tuple]:
     Extract all Python code blocks from a markdown file.
     Returns list of (code, block_number, line_number) tuples.
     """
-    with open(markdown_file, 'r', encoding='utf-8') as f:
+    with open(markdown_file, "r", encoding="utf-8") as f:
         content = f.read()
 
-    pattern = r'```python\n(.*?)```'
+    pattern = r"```python\n(.*?)```"
     matches = re.finditer(pattern, content, re.DOTALL)
 
     code_blocks = []
     for i, match in enumerate(matches, 1):
         code = match.group(1)
-        line_number = content[:match.start()].count('\n') + 1
+        line_number = content[: match.start()].count("\n") + 1
         code_blocks.append((code, i, line_number))
 
     return code_blocks
@@ -34,12 +34,12 @@ def extract_code_blocks_from_md(markdown_file: Path) -> List[tuple]:
 
 def get_doc_files() -> List[Path]:
     """Get all markdown documentation files with code examples."""
-    docs_dir = Path(__file__).parent.parent / 'docs' / 'docs' / 'examples'
+    docs_dir = Path(__file__).parent.parent / "docs" / "docs" / "examples"
 
     if not docs_dir.exists():
         return []
 
-    return sorted(docs_dir.glob('*.md'))
+    return sorted(docs_dir.glob("*.md"))
 
 
 def prepare_code_for_testing(code: str) -> str:
@@ -67,11 +67,11 @@ def prepare_code_for_testing(code: str) -> str:
     if 'load_dataset("data/' in modified_code:
         modified_code = modified_code.replace(
             'load_dataset("data/qa_1000.json")',
-            'create_qa_dataset(questions=["Q1?"], answers=["A1"], name="test")'
+            'create_qa_dataset(questions=["Q1?"], answers=["A1"], name="test")',
         )
         modified_code = modified_code.replace(
             'load_dataset("data/news_articles.json")',
-            'create_summarization_dataset(documents=["Doc1"], summaries=["Sum1"], name="news")'
+            'create_summarization_dataset(documents=["Doc1"], summaries=["Sum1"], name="news")',
         )
 
     return modified_code
@@ -87,8 +87,11 @@ for doc_file in doc_files:
         test_params.append((doc_file.name, block_num, line_num, code))
 
 
-@pytest.mark.parametrize("filename,block_num,line_num,code", test_params,
-                        ids=[f"{f}:block_{b}:L{l}" for f, b, l, _ in test_params])
+@pytest.mark.parametrize(
+    "filename,block_num,line_num,code",
+    test_params,
+    ids=[f"{f}:block_{b}:L{line}" for f, b, line, _ in test_params],
+)
 def test_documentation_code_syntax(filename, block_num, line_num, code):
     """
     Test that all code examples in documentation have valid Python syntax.
@@ -107,8 +110,11 @@ def test_documentation_code_syntax(filename, block_num, line_num, code):
 
 @pytest.mark.slow
 @pytest.mark.mock
-@pytest.mark.parametrize("filename,block_num,line_num,code", test_params,
-                        ids=[f"{f}:block_{b}:L{l}" for f, b, l, _ in test_params])
+@pytest.mark.parametrize(
+    "filename,block_num,line_num,code",
+    test_params,
+    ids=[f"{f}:block_{b}:L{line}" for f, b, line, _ in test_params],
+)
 def test_documentation_code_execution(filename, block_num, line_num, code):
     """
     Test that code examples can be executed without errors (using mock models).
@@ -117,11 +123,13 @@ def test_documentation_code_execution(filename, block_num, line_num, code):
     and will be skipped.
     """
     # Skip examples that are just function definitions without execution
-    if '@evaluate(' in code and 'asyncio.run' not in code:
+    if "@evaluate(" in code and "asyncio.run" not in code:
         pytest.skip("Incomplete example (defines functions only)")
 
     # Skip examples that require external data files
-    if 'load_dataset("data/' in code and 'create_' not in prepare_code_for_testing(code):
+    if 'load_dataset("data/' in code and "create_" not in prepare_code_for_testing(
+        code
+    ):
         pytest.skip("Requires external data files")
 
     # Prepare code with mock models
@@ -129,7 +137,7 @@ def test_documentation_code_execution(filename, block_num, line_num, code):
 
     # Execute the code
     try:
-        exec_globals = {'__name__': '__main__'}
+        exec_globals = {"__name__": "__main__"}
         exec(prepared_code, exec_globals)
     except Exception as e:
         pytest.fail(
@@ -141,11 +149,11 @@ def test_documentation_code_execution(filename, block_num, line_num, code):
 @pytest.mark.smoke
 def test_documentation_examples_exist():
     """Verify that documentation example files exist and contain code blocks."""
-    docs_dir = Path(__file__).parent.parent / 'docs' / 'docs' / 'examples'
+    docs_dir = Path(__file__).parent.parent / "docs" / "docs" / "examples"
 
     assert docs_dir.exists(), f"Documentation examples directory not found: {docs_dir}"
 
-    doc_files = list(docs_dir.glob('*.md'))
+    doc_files = list(docs_dir.glob("*.md"))
     assert len(doc_files) > 0, "No documentation markdown files found"
 
     total_blocks = 0
@@ -154,9 +162,11 @@ def test_documentation_examples_exist():
         total_blocks += len(blocks)
 
     assert total_blocks > 0, "No Python code blocks found in documentation"
-    print(f"\nFound {len(doc_files)} documentation files with {total_blocks} code blocks")
+    print(
+        f"\nFound {len(doc_files)} documentation files with {total_blocks} code blocks"
+    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Run just the smoke test
-    pytest.main([__file__, '-k', 'test_documentation_examples_exist', '-v'])
+    pytest.main([__file__, "-k", "test_documentation_examples_exist", "-v"])

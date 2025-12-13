@@ -5,6 +5,7 @@ import os
 # Assuming data.json is in the same directory as this script for testing purposes
 data_file_path = "data.json"
 
+
 def test_load_dataset_from_json():
     # Load the dataset
     dataset = load_dataset(data_file_path)
@@ -16,6 +17,7 @@ def test_load_dataset_from_json():
     assert dataset.references == ["Paris", "William Shakespeare"]
 
     print("Successfully loaded dataset and assertions passed!")
+
 
 if __name__ == "__main__":
     # Create a dummy data.json file for testing if it doesn't exist

@@ -252,4 +252,4 @@ redis-data/
 celery-beat-schedule
 
 # AI files
-CLAUDE.md
+test_single_doc_file.py

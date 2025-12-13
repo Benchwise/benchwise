@@ -106,9 +106,10 @@ class TestConfigFileLoading:
 
         try:
             # Mock the config file paths
-            with patch.object(Path, "exists", return_value=True), patch(
-                "builtins.open", create=True
-            ) as mock_open:
+            with (
+                patch.object(Path, "exists", return_value=True),
+                patch("builtins.open", create=True) as mock_open,
+            ):
                 import json
 
                 mock_open.return_value.__enter__.return_value.read.return_value = (

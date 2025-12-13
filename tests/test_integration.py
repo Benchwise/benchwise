@@ -109,8 +109,9 @@ class TestBasicIntegration:
             assert adapter.__class__.__name__ == expected_type
             assert adapter.model_name == model_name
 
-        with patch("transformers.AutoTokenizer"), patch(
-            "transformers.AutoModelForCausalLM"
+        with (
+            patch("transformers.AutoTokenizer"),
+            patch("transformers.AutoModelForCausalLM"),
         ):
             adapter = get_model_adapter("test/unknown-model")
             assert adapter.__class__.__name__ == "HuggingFaceAdapter"

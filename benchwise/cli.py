@@ -4,15 +4,30 @@ Benchwise CLI - Command line interface for LLM evaluation
 
 import argparse
 import asyncio
+import os
 import sys
-from typing import List, Optional
+from typing import List, Optional, cast
 
 from . import __version__
-from .datasets import load_dataset
+from .datasets import load_dataset, convert_metadata_to_info
 from .models import get_model_adapter
-from .results import save_results, BenchmarkResult, EvaluationResult
-from .config import get_api_config, configure_benchwise
-from .client import get_client, sync_offline_results
+from .results import (
+    save_results,
+    BenchmarkResult,
+    EvaluationResult,
+    load_results,
+    ResultsAnalyzer,
+)
+from .config import get_api_config, configure_benchwise, reset_config
+from .client import get_client, sync_offline_results, upload_results
+from .types import (
+    ConfigureArgs,
+    ConfigKwargs,
+    SyncArgs,
+    StatusArgs,
+    DatasetInfo,
+    EvaluationMetadata,
+)
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -137,13 +152,16 @@ async def run_evaluation(
     # Create benchmark result
     benchmark_result = BenchmarkResult(
         benchmark_name=f"cli_evaluation_{dataset.name}",
-        metadata={
-            "dataset_path": dataset_path,
-            "models": models,
-            "metrics": metrics,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-        },
+        metadata=cast(
+            EvaluationMetadata,
+            {
+                "dataset_path": dataset_path,
+                "models": models,
+                "metrics": metrics,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+            },
+        ),
     )
 
     # Run evaluation for each model
@@ -156,8 +174,6 @@ async def run_evaluation(
 
             # Check for API key requirements for cloud models
             if model_name.startswith(("gpt-", "claude-", "gemini-")):
-                import os
-
                 api_key_map = {
                     "gpt-": "OPENAI_API_KEY",
                     "claude-": "ANTHROPIC_API_KEY",
@@ -209,11 +225,11 @@ async def run_evaluation(
                         metric_result = accuracy(responses, references)
                         results["accuracy"] = metric_result["accuracy"]
                     elif metric_name == "rouge_l":
-                        metric_result = rouge_l(responses, references)
-                        results["rouge_l_f1"] = metric_result["f1"]
+                        rouge_result = rouge_l(responses, references)
+                        results["rouge_l_f1"] = rouge_result["f1"]
                     elif metric_name == "semantic_similarity":
-                        metric_result = semantic_similarity(responses, references)
-                        results["semantic_similarity"] = metric_result[
+                        semantic_result = semantic_similarity(responses, references)
+                        results["semantic_similarity"] = semantic_result[
                             "mean_similarity"
                         ]
                     else:
@@ -238,7 +254,9 @@ async def run_evaluation(
                 model_name=model_name,
                 test_name="cli_evaluation",
                 result=results,
-                dataset_info=dataset.metadata,
+                dataset_info=convert_metadata_to_info(dataset.metadata)
+                if dataset.metadata
+                else None,
             )
 
             benchmark_result.add_result(eval_result)
@@ -250,7 +268,9 @@ async def run_evaluation(
                 model_name=model_name,
                 test_name="cli_evaluation",
                 error=str(e),
-                dataset_info=dataset.metadata,
+                dataset_info=convert_metadata_to_info(dataset.metadata)
+                if dataset.metadata
+                else None,
             )
             benchmark_result.add_result(eval_result)
             print(f"✗ {model_name} failed: {e}")
@@ -265,12 +285,23 @@ async def run_evaluation(
 
         if should_upload and benchmark_result.results:
             try:
-                from .client import upload_results
+                # Extract dataset_info from dataset metadata for upload_results
+                # upload_results expects DatasetInfo
+                dataset_info_for_upload: DatasetInfo = cast(
+                    DatasetInfo,
+                    {
+                        "size": dataset.size,
+                        "task": "general",
+                        "tags": [],
+                    },
+                )
+                if dataset.metadata:
+                    dataset_info_for_upload = convert_metadata_to_info(dataset.metadata)
 
                 success = await upload_results(
                     benchmark_result.results,
                     benchmark_result.benchmark_name,
-                    benchmark_result.metadata,
+                    dataset_info_for_upload,
                 )
                 if success:
                     print("✅ Results uploaded to Benchwise API")
@@ -285,10 +316,8 @@ async def run_evaluation(
     return benchmark_result
 
 
-async def configure_api(args):
+async def configure_api(args: ConfigureArgs) -> None:
     """Configure Benchwise API settings."""
-    from .config import reset_config
-
     if args.reset:
         reset_config()
         print("✓ Configuration reset to defaults")
@@ -300,7 +329,7 @@ async def configure_api(args):
         return
 
     # Update configuration
-    kwargs = {}
+    kwargs: ConfigKwargs = {}
     if args.api_url:
         kwargs["api_url"] = args.api_url
     if args.api_key:
@@ -321,7 +350,7 @@ async def configure_api(args):
         print("No configuration changes specified. Use --show to see current config.")
 
 
-async def sync_offline(args):
+async def sync_offline(args: SyncArgs) -> None:
     """Sync offline results with the API."""
     try:
         client = await get_client()
@@ -354,7 +383,7 @@ async def sync_offline(args):
         pass
 
 
-async def show_status(args):
+async def show_status(args: StatusArgs) -> None:
     """Show Benchwise status information."""
     config = get_api_config()
     client = None
@@ -412,7 +441,7 @@ async def show_status(args):
         pass
 
 
-def list_resources(resource_type: str):
+def list_resources(resource_type: str) -> None:
     """List available resources."""
     if resource_type == "models":
         print("Available model adapters:")
@@ -440,7 +469,7 @@ def list_resources(resource_type: str):
         )
 
 
-def validate_dataset(dataset_path: str):
+def validate_dataset(dataset_path: str) -> None:
     """Validate dataset format."""
     try:
         dataset = load_dataset(dataset_path)
@@ -478,10 +507,10 @@ def validate_dataset(dataset_path: str):
         sys.exit(1)
 
 
-async def compare_results(result_paths: List[str], metric: Optional[str] = None):
+async def compare_results(
+    result_paths: List[str], metric: Optional[str] = None
+) -> None:
     """Compare evaluation results."""
-    from .results import load_results, ResultsAnalyzer
-
     try:
         # Load all results
         benchmark_results = []
@@ -509,7 +538,7 @@ async def compare_results(result_paths: List[str], metric: Optional[str] = None)
         sys.exit(1)
 
 
-def main():
+def main() -> None:
     """Main CLI entry point."""
     parser = create_parser()
     args = parser.parse_args()
