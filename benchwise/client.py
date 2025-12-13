@@ -2,6 +2,7 @@ import httpx
 import asyncio
 import uuid
 import logging
+import os
 import types
 from typing import Dict, Any, Optional, List, Type, cast
 from datetime import datetime
@@ -830,8 +831,6 @@ class BenchwiseClient:
 
                 if data_type == "full_benchmark_result":
                     # Reconstruct BenchmarkResult and upload
-                    from .results import BenchmarkResult
-
                     benchmark_result_dict: Dict[str, Any] = queue_data.get(
                         "benchmark_result", {}
                     )
@@ -886,8 +885,6 @@ class BenchwiseClient:
         Returns:
             Dataset URL
         """
-        import os
-
         logger.info(f"Uploading dataset for benchmark {benchmark_id}")
         try:
             with open(dataset_path, "rb") as f:
@@ -1014,7 +1011,6 @@ async def upload_results(
             logger.warning(
                 "Benchwise API not available, results will be cached offline"
             )
-            from .results import BenchmarkResult
 
             benchmark_result = BenchmarkResult(
                 benchmark_name=test_name,
@@ -1035,7 +1031,6 @@ async def upload_results(
         # Check authentication
         if not client.jwt_token:
             logger.warning("Not authenticated - results will be cached offline")
-            from .results import BenchmarkResult
 
             benchmark_result = BenchmarkResult(
                 benchmark_name=test_name,
@@ -1054,8 +1049,6 @@ async def upload_results(
             return False
 
         # Create benchmark result and upload
-        from .results import BenchmarkResult
-
         benchmark_result = BenchmarkResult(
             benchmark_name=test_name,
             results=results,

@@ -4,16 +4,30 @@ Benchwise CLI - Command line interface for LLM evaluation
 
 import argparse
 import asyncio
+import os
 import sys
-from typing import List, Optional
+from typing import List, Optional, cast
 
 from . import __version__
 from .datasets import load_dataset, convert_metadata_to_info
 from .models import get_model_adapter
-from .results import save_results, BenchmarkResult, EvaluationResult
-from .config import get_api_config, configure_benchwise
-from .client import get_client, sync_offline_results
-from .types import ConfigureArgs, ConfigKwargs, SyncArgs, StatusArgs, DatasetInfo
+from .results import (
+    save_results,
+    BenchmarkResult,
+    EvaluationResult,
+    load_results,
+    ResultsAnalyzer,
+)
+from .config import get_api_config, configure_benchwise, reset_config
+from .client import get_client, sync_offline_results, upload_results
+from .types import (
+    ConfigureArgs,
+    ConfigKwargs,
+    SyncArgs,
+    StatusArgs,
+    DatasetInfo,
+    EvaluationMetadata,
+)
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -136,9 +150,6 @@ async def run_evaluation(
         sys.exit(1)
 
     # Create benchmark result
-    from .types import EvaluationMetadata
-    from typing import cast
-
     benchmark_result = BenchmarkResult(
         benchmark_name=f"cli_evaluation_{dataset.name}",
         metadata=cast(
@@ -163,8 +174,6 @@ async def run_evaluation(
 
             # Check for API key requirements for cloud models
             if model_name.startswith(("gpt-", "claude-", "gemini-")):
-                import os
-
                 api_key_map = {
                     "gpt-": "OPENAI_API_KEY",
                     "claude-": "ANTHROPIC_API_KEY",
@@ -276,8 +285,6 @@ async def run_evaluation(
 
         if should_upload and benchmark_result.results:
             try:
-                from .client import upload_results
-
                 # Extract dataset_info from dataset metadata for upload_results
                 # upload_results expects DatasetInfo
                 dataset_info_for_upload: DatasetInfo = cast(
@@ -311,8 +318,6 @@ async def run_evaluation(
 
 async def configure_api(args: ConfigureArgs) -> None:
     """Configure Benchwise API settings."""
-    from .config import reset_config
-
     if args.reset:
         reset_config()
         print("✓ Configuration reset to defaults")
@@ -506,8 +511,6 @@ async def compare_results(
     result_paths: List[str], metric: Optional[str] = None
 ) -> None:
     """Compare evaluation results."""
-    from .results import load_results, ResultsAnalyzer
-
     try:
         # Load all results
         benchmark_results = []

@@ -10,6 +10,8 @@ from pathlib import Path
 from typing import Optional, Dict, Any, List
 from dataclasses import dataclass, field
 import json
+import asyncio
+import httpx
 
 from benchwise.types import ConfigDict
 
@@ -408,8 +410,6 @@ def validate_api_connection(config: BenchwiseConfig) -> bool:
         True if connection is valid
     """
     try:
-        import asyncio
-        import httpx
 
         async def check_connection() -> bool:
             async with httpx.AsyncClient(timeout=5.0) as client:
@@ -434,8 +434,6 @@ def validate_api_keys(config: BenchwiseConfig) -> Dict[str, bool]:
     Returns:
         Dict mapping provider to validity status
     """
-    import os
-
     results = {}
 
     if os.getenv("OPENAI_API_KEY"):

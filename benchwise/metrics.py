@@ -14,7 +14,7 @@ from benchwise.types import (
 from rouge_score import rouge_scorer
 from sacrebleu import BLEU
 import bert_score
-from nltk.translate.bleu_score import sentence_bleu
+from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
 import nltk
 import re
 import string
@@ -304,8 +304,6 @@ def bleu_score(
 
 def _get_smoothing_function(smooth_method: str) -> Optional[Callable[..., Any]]:
     """Get NLTK smoothing function based on method name."""
-    from nltk.translate.bleu_score import SmoothingFunction
-
     smoothing = SmoothingFunction()
 
     if smooth_method == "exp":

@@ -5,6 +5,7 @@ from pathlib import Path
 import requests
 from dataclasses import dataclass
 import hashlib
+import random
 
 from .types import (
     DatasetItem,
@@ -191,8 +192,6 @@ class Dataset:
 
     def sample(self, n: int, random_state: Optional[int] = None) -> "Dataset":
         """Sample n items from dataset."""
-        import random
-
         if random_state:
             random.seed(random_state)
 
@@ -212,8 +211,6 @@ class Dataset:
         self, train_ratio: float = 0.8, random_state: Optional[int] = None
     ) -> tuple["Dataset", "Dataset"]:
         """Split dataset into train and test sets."""
-        import random
-
         if random_state:
             random.seed(random_state)
 
